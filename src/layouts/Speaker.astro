@@ -1,0 +1,46 @@
+---
+import BaseHead from "@/components/BaseHead.astro";
+import Navigation from "@/components/global/Navigation.astro";
+import Footer from "@/components/global/Footer.astro";
+
+interface SpeakerProps {
+  name?: string;
+  title?: string;
+  bio?: string;
+  image?: string;
+}
+
+const { name, title, bio, image } = Astro.props.content;
+console.log(Astro.props.name)
+---
+
+<html lang="en" class="scroll-smooth selection:bg-black selection:text-white">
+  <head>
+    <BaseHead title={`${name} - Speaker`} />
+  </head>
+  <body class="bg-zinc-100 flex flex-col min-h-screen mx-auto 2xl:max-w-screen-xl relative">
+    <Navigation />
+    <main class="flex-grow container mx-auto p-4">
+      <!-- Speaker Profile -->
+      <article>
+        </br></br></br></br>
+        {image && <img src={image} alt={`Image of ${name}`} class="max-w-xs mx-auto" />}
+        </br>
+        <h2
+        class="text-2xl tracking-tighter  font-light lg:text-4xl text-black"
+        >
+          {name}
+        </h2>
+        </br>
+        <h3
+        class="text-2xl tracking-tighter  font-light lg:text-2xl text-black"
+        >
+          {title}
+        </h3>
+        </br>
+        <slot />
+      </article>
+    </main>
+    <Footer />
+  </body>
+</html>
