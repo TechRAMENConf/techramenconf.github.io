@@ -1,12 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Shippori+Antique&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 :root {
-  font-family: Inter, sans-serif;
+  font-family: 'Shippori Antique', sans-serif;
 }
 @supports (font-variation-settings: normal) {
   /* Use variable font if supported */
   :root {
-    font-family: InterVariable, sans-serif;
+    font-family: 'Shippori Antique', sans-serif;
   }
 }
