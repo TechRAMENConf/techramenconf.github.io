@@ -1,8 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Shippori+Antique&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Chivo+Mono:ital,wght@0,100..900;1,100..900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+  .chivo-mono {
+    font-family: "Chivo Mono", monospace;
+  }
+}
+
 :root {
   font-family: 'Shippori Antique', sans-serif;
 }
