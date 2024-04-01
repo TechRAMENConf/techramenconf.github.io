@@ -3,30 +3,32 @@ import { information } from "../../data/information.json";
 ---
 
 <section class="scroll-mt-24" id="services">
-  <div class="px-8 md:px-12 py-12 max-w-2xl mx-auto">
-    <div
-      class="col-span-full lg:col-span-2 w-full rounded-4xl h-full items-center inline-flex text-black"
-    >
+  <div class="px-8 md:px-12 py-12 max-w-4xl mx-auto">
+    <div class="col-span-full lg:col-span-2 w-full rounded-4xl h-full items-center inline-flex text-black">
       <h2 class="text-3xl tracking-tighter font-light">
         お知らせ
       </h2>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-1 gap-px mt-8">
       <div class="p-8 bg-white rounded-3xl">
-        <div class="divide-y divide-white/10 my-2">
-          {
-            information.map((template) => (
-              <>
-                <div class=" flex flex-col sm:flex-row justify-between gap-4 lg:items-end">
-                  <p class="font-medium leading-6 text-zinc-500 text-sm flex gap-2 items-center">
-                    {template.title}
-                  </p>
-                </div>
-              </>
-            ))
-          }
+        <div class="mb-4"> 
+          <p class="items-center">
+            2024/4/x:
+          </p>
+          <p class="pl-8 flex items-center">
+            事前整理券の配布を開始しました。<a href="https://example.com" class="text-blue-500 hover:text-blue-700">ご予約はこちら</a>
+          </p>
         </div>
-      </div>
+  
+        <div class="mb-4">
+          <p class="items-center">
+            2024/4/x:
+          </p>
+          <p class="pl-8 flex items-center">
+            ウェブサイトを公開しました！
+          </p>
+        </div>
+        </div>
     </div>
   </div>
 </section>
