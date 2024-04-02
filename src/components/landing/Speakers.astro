@@ -17,6 +17,11 @@ const speakerProfiles = await Astro.glob('@/pages/Speakers/*.md');
           <img src={profile.frontmatter.image} alt={profile.frontmatter.name} class="w-full md:w-1/3 h-64 object-cover object-top rounded-3xl" />
           <div class="w-full md:w-2/3">
             <h2 class="text-1xl tracking-tighter font-light lg:text-2xl text-black">{profile.frontmatter.name}</h2>
+            {profile.frontmatter.x && (
+              <p>
+                X: <a href={profile.frontmatter.x} class="text-blue-500 hover:text-blue-700">@{profile.frontmatter.x.split('/').pop()}</a>
+              </p>
+            )}
             <br>
             <p>{profile.frontmatter.content}</p>
           </div>
