@@ -20,3 +20,8 @@
     font-family: 'Shippori Antique', sans-serif;
   }
 }
+
+.text-auto-phrase {
+  /*noinspection CssInvalidPropertyValue*/
+  word-break: auto-phrase;
+}
