@@ -1,0 +1,36 @@
+---
+import corporateSponsarsData from "../data/corporate_sponsars.json";
+const corporateSponsars = corporateSponsarsData;
+---
+
+<section class="scroll-mt-24" id="services">
+  <div class="px-8 md:px-12 py-12 max-w-4xl mx-auto">
+    <div class="col-span-full lg:col-span-2 w-full rounded-4xl h-full items-center inline-flex text-black">
+      <h2 class="text-3xl tracking-tighter font-light">
+        ラーメン応援企業団
+      </h2>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-1 gap-px mt-8">
+      <div class="p-8 bg-white rounded-3xl">
+        <div class="mb-4"> 
+          <div class="flex flex-wrap">
+            {corporateSponsars.map((sponsor) => (
+              <span class="mb-4 mr-4 relative group">
+                <a href={sponsor.url}>
+                  <img
+                    src={`https://fortee.jp/${sponsor.avatarUrl}`}
+                    style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                    alt={sponsor.userName}
+                  />
+                </a>
+              <div class="absolute z-10 p-2 mb-2 text-sm text-white bg-black rounded-lg opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                {sponsor.userName}
+              </div>
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
