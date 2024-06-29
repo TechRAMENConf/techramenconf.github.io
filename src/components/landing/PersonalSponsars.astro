@@ -16,8 +16,9 @@ const personalSponsars = personalSponsarsData;
           <div class="flex flex-wrap">
             {personalSponsars.map((sponsar) => (
               <span class="mb-4 mr-4 relative group">
+                <!-- TODO: twitterUrl無い人の対応が必要 -->
                 <a href={sponsar.twitterUrl}>
-                <img src={"https://fortee.jp/" + sponsar.avatarUrl} class="rounded-full w-16 h-16"/>
+                  <img src={"https://fortee.jp/" + sponsar.avatarUrl} class="rounded-full w-16 h-16"/>
                 </a>
               <div class="absolute z-10 p-2 mb-2 text-sm text-white bg-black rounded-lg opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                 {sponsar.userName}
