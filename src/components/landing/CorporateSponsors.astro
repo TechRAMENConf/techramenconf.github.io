@@ -1,26 +1,30 @@
 ---
-import personalSponsars from "../data/personal_sponsars.json";
+import corporatesponsorsData from "../data/corporate_sponsors.json";
+const corporatesponsors = corporatesponsorsData;
 ---
 
 <section class="scroll-mt-24" id="services">
   <div class="px-8 md:px-12 py-12 max-w-4xl mx-auto">
     <div class="col-span-full lg:col-span-2 w-full rounded-4xl h-full items-center inline-flex text-black">
       <h2 class="text-3xl tracking-tighter font-light">
-        ラーメン応援団
+        ラーメン応援企業団
       </h2>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-1 gap-px mt-8">
       <div class="p-8 bg-white rounded-3xl">
         <div class="mb-4"> 
           <div class="flex flex-wrap">
-            {personalSponsars.map((sponsar) => (
+            {corporatesponsors.map((sponsor) => (
               <span class="mb-4 mr-4 relative group">
-                <!-- TODO: twitterUrl無い人の対応が必要 -->
-                <a href={sponsar.twitterUrl}>
-                  <img src={"https://fortee.jp/" + sponsar.avatarUrl} class="rounded-full w-16 h-16"/>
+                <a href={sponsor.url}>
+                  <img
+                    src={`https://fortee.jp/${sponsor.avatarUrl}`}
+                    style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                    alt={sponsor.userName}
+                  />
                 </a>
               <div class="absolute z-10 p-2 mb-2 text-sm text-white bg-black rounded-lg opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                {sponsar.userName}
+                {sponsor.userName}
               </div>
               </span>
             ))}
