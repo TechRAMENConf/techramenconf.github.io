@@ -1,5 +1,6 @@
 ---
-import personalsponsors from "../data/personal_sponsors.json";
+import personalSponsors from "../data/personal_sponsors.json";
+import PersonalSponsorImage from "./PersonalSponsorImage.astro";
 ---
 
 <section class="scroll-mt-24" id="services">
@@ -14,24 +15,18 @@ import personalsponsors from "../data/personal_sponsors.json";
         <div class="mb-4">
           <div class="flex flex-wrap">
             {
-              personalsponsors.map((sponsor) => (
+              personalSponsors.map((sponsor) => (
                 <span class="mb-4 mr-4 relative group">
                   {() => {
                     if (sponsor.twitterUrl) {
                       return (
                         <a href={sponsor.twitterUrl}>
-                          <img
-                            src={"https://fortee.jp/" + sponsor.avatarUrl}
-                            class="rounded-full w-16 h-16"
-                          />
+                          <PersonalSponsorImage avatarUrl={sponsor.avatarUrl} />
                         </a>
                       );
                     } else {
                       return (
-                        <img
-                          src={"https://fortee.jp/" + sponsor.avatarUrl}
-                          class="rounded-full w-16 h-16"
-                        />
+                        <PersonalSponsorImage avatarUrl={sponsor.avatarUrl} />
                       );
                     }
                   }}
