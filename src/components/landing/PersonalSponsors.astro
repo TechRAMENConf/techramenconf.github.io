@@ -17,19 +17,13 @@ import PersonalSponsorImage from "./PersonalSponsorImage.astro";
             {
               personalSponsors.map((sponsor) => (
                 <span class="mb-4 mr-4 relative group">
-                  {() => {
-                    if (sponsor.twitterUrl) {
-                      return (
-                        <a href={sponsor.twitterUrl}>
-                          <PersonalSponsorImage avatarUrl={sponsor.avatarUrl} />
-                        </a>
-                      );
-                    } else {
-                      return (
-                        <PersonalSponsorImage avatarUrl={sponsor.avatarUrl} />
-                      );
-                    }
-                  }}
+                  {sponsor.twitterUrl ? (
+                    <a href={sponsor.twitterUrl}>
+                      <PersonalSponsorImage avatarUrl={sponsor.avatarUrl} />
+                    </a>
+                  ) : (
+                    <PersonalSponsorImage avatarUrl={sponsor.avatarUrl} />
+                  )}
                   <div class="absolute z-10 p-2 mb-2 text-sm text-white bg-black rounded-lg opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                     {sponsor.userName}
                   </div>
