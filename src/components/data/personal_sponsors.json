@@ -73,9 +73,9 @@
 	},
 	{
 		"userName": "tacck",
-		"avatarUrl": "/images/avatar-blank.png",
-		"twitterScreenName": "",
-		"twitterUrl": ""
+		"avatarUrl": "/files/_user/03fe326c-997c-48a2-a591-04c77f1cd9d1.jpg",
+		"twitterScreenName": "tacck",
+		"twitterUrl": "https://x.com/tacck"
 	},
 	{
 		"userName": "onk",
@@ -193,9 +193,9 @@
 	},
 	{
 		"userName": "ebibibibi",
-		"avatarUrl": "/images/avatar-blank.png",
-		"twitterScreenName": "",
-		"twitterUrl": ""
+		"avatarUrl": "/files/_user/7540b79c-3090-4dd4-9f36-664aca168656.jpg",
+		"twitterScreenName": "025cm",
+		"twitterUrl": "https://x.com/025cm"
 	},
 	{
 		"userName": "chiroruxx",
@@ -244,5 +244,35 @@
 		"avatarUrl": "/files/_user/01413459-f3a3-40c6-b5c7-0b3c2498c4ce.jpg",
 		"twitterScreenName": "uutan1108",
 		"twitterUrl": "https://x.com/uutan1108"
+	},
+	{
+		"userName": "planset",
+		"avatarUrl": "/images/avatar-blank.png",
+		"twitterScreenName": "",
+		"twitterUrl": ""
+	},
+	{
+		"userName": "dayjournal",
+		"avatarUrl": "/files/_user/d50a9091-5f58-4071-a05d-e8e1a8c5e75b.jpg",
+		"twitterScreenName": "dayjournal_nori",
+		"twitterUrl": "https://x.com/dayjournal_nori"
+	},
+	{
+		"userName": "DE-TEIU",
+		"avatarUrl": "/files/_user/0a1ba212-81f9-447e-a9a3-66912e56c6f6.jpg",
+		"twitterScreenName": "de_teiu_tkg",
+		"twitterUrl": "https://x.com/de_teiu_tkg"
+	},
+	{
+		"userName": "kazuhiro1982",
+		"avatarUrl": "/files/_user/ce6f0b75-43f0-4c3c-8c29-499b968ddd97.jpg",
+		"twitterScreenName": "kappe1982",
+		"twitterUrl": "https://x.com/kappe1982"
+	},
+	{
+		"userName": "ichigats",
+		"avatarUrl": "/files/_user/49499759-1ffc-4ff1-82a9-641403fec753.png",
+		"twitterScreenName": "ichigats",
+		"twitterUrl": "https://x.com/ichigats"
 	}
 ]
