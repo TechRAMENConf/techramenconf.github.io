@@ -19,15 +19,15 @@
 	},
 	{
 		"userName": "masatoshiitoh",
-		"avatarUrl": "/images/avatar-blank.png",
-		"twitterScreenName": "",
-		"twitterUrl": ""
+		"avatarUrl": "/files/_user/19d3479a-46c8-4539-b6c6-02fc1f526e75.jpg",
+		"twitterScreenName": "masatoshiitoh",
+		"twitterUrl": "https://x.com/masatoshiitoh"
 	},
 	{
 		"userName": "masatoshiitoh",
-		"avatarUrl": "/images/avatar-blank.png",
-		"twitterScreenName": "",
-		"twitterUrl": ""
+		"avatarUrl": "/files/_user/19d3479a-46c8-4539-b6c6-02fc1f526e75.jpg",
+		"twitterScreenName": "masatoshiitoh",
+		"twitterUrl": "https://x.com/masatoshiitoh"
 	},
 	{
 		"userName": "chatii",
@@ -162,7 +162,7 @@
 		"twitterUrl": "https://x.com/st_tm_k"
 	},
 	{
-		"userName": "arima",
+		"userName": "ShotaArima",
 		"avatarUrl": "/files/_user/0cf39aa3-eed5-4fc3-b8c8-af209e62c661.jpg",
 		"twitterScreenName": "live_in_2107",
 		"twitterUrl": "https://x.com/live_in_2107"
@@ -274,5 +274,35 @@
 		"avatarUrl": "/files/_user/49499759-1ffc-4ff1-82a9-641403fec753.png",
 		"twitterScreenName": "ichigats",
 		"twitterUrl": "https://x.com/ichigats"
+	},
+	{
+		"userName": "pyama86",
+		"avatarUrl": "/files/_user/2cca2e82-3fc7-4677-930e-167ba167c39a.jpg",
+		"twitterScreenName": "pyama86",
+		"twitterUrl": "https://x.com/pyama86"
+	},
+	{
+		"userName": "pyama86",
+		"avatarUrl": "/files/_user/2cca2e82-3fc7-4677-930e-167ba167c39a.jpg",
+		"twitterScreenName": "pyama86",
+		"twitterUrl": "https://x.com/pyama86"
+	},
+	{
+		"userName": "pyama86",
+		"avatarUrl": "/files/_user/2cca2e82-3fc7-4677-930e-167ba167c39a.jpg",
+		"twitterScreenName": "pyama86",
+		"twitterUrl": "https://x.com/pyama86"
+	},
+	{
+		"userName": "furufuru",
+		"avatarUrl": "/files/_user/0eac7081-89c0-4bec-9c07-88cca6644833.jpg",
+		"twitterScreenName": "yfuru2454",
+		"twitterUrl": "https://x.com/yfuru2454"
+	},
+	{
+		"userName": "gishi-yama",
+		"avatarUrl": "/files/_user/6090a16f-cf0b-4372-ba34-5661e0303fd6.jpg",
+		"twitterScreenName": "gishi_yama",
+		"twitterUrl": "https://x.com/gishi_yama"
 	}
 ]
