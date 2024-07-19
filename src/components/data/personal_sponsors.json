@@ -228,7 +228,7 @@
 		"twitterUrl": "https://x.com/92thunder"
 	},
 	{
-		"userName": "takamune56513",
+		"userName": "suda",
 		"avatarUrl": "/files/_user/9697adf8-2a5d-4cbf-b779-9ae2c8b8de3a.jpg",
 		"twitterScreenName": "STakamu2532",
 		"twitterUrl": "https://x.com/STakamu2532"
@@ -364,5 +364,17 @@
 		"avatarUrl": "/files/_user/2862f4d5-2ef5-474f-8b9e-686665f35f15.jpg",
 		"twitterScreenName": "_ko2ka_",
 		"twitterUrl": "https://x.com/_ko2ka_"
+	},
+	{
+		"userName": "whaibara",
+		"avatarUrl": "/images/avatar-blank.png",
+		"twitterScreenName": "w_haibara",
+		"twitterUrl": "https://x.com/w_haibara"
+	},
+	{
+		"userName": "syossan27",
+		"avatarUrl": "/files/_user/779d4707-b938-430a-a7b0-0688a67289e6.jpg",
+		"twitterScreenName": "syossan27",
+		"twitterUrl": "https://x.com/syossan27"
 	}
 ]
