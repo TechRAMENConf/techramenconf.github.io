@@ -169,9 +169,9 @@
 	},
 	{
 		"userName": "hokkai7go",
-		"avatarUrl": "/images/avatar-blank.png",
-		"twitterScreenName": "",
-		"twitterUrl": ""
+		"avatarUrl": "/files/_user/82abfb99-4f3c-4a54-bb5d-d6b8aff62c0b.jpg",
+		"twitterScreenName": "hokkai7go",
+		"twitterUrl": "https://x.com/hokkai7go"
 	},
 	{
 		"userName": "jnkykn",
@@ -406,5 +406,29 @@
 		"avatarUrl": "/files/_user/6333213b-efa8-494d-8c50-24d870ec8e32.jpg",
 		"twitterScreenName": "anctsasa1971",
 		"twitterUrl": "https://x.com/anctsasa1971"
+	},
+	{
+		"userName": "JunM",
+		"avatarUrl": "/files/_user/158216ff-8161-4706-8d1d-17018f2eba79.jpg",
+		"twitterScreenName": "",
+		"twitterUrl": ""
+	},
+	{
+		"userName": "JunM",
+		"avatarUrl": "/files/_user/158216ff-8161-4706-8d1d-17018f2eba79.jpg",
+		"twitterScreenName": "",
+		"twitterUrl": ""
+	},
+	{
+		"userName": "hanhan1978",
+		"avatarUrl": "/files/_user/991e1436-0a7e-4567-a99f-2da46ee318ee.jpg",
+		"twitterScreenName": "hanhan1978",
+		"twitterUrl": "https://x.com/hanhan1978"
+	},
+	{
+		"userName": "akinoriakatsuka",
+		"avatarUrl": "/files/_user/a0231adc-6eb7-4e53-8a24-d5d551751707.jpg",
+		"twitterScreenName": "aki_artisan",
+		"twitterUrl": "https://x.com/aki_artisan"
 	}
 ]
