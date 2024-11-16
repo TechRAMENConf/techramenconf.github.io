@@ -1,0 +1,14 @@
+---
+const { avatarUrl } = Astro.props;
+---
+
+{
+  avatarUrl === "/images/avatar-blank.png" ? (
+    <img src="./avatar_default.jpg" class="rounded-full w-16 h-16 opacity-60" />
+  ) : (
+    <img
+      src={"https://fortee.jp/" + avatarUrl}
+      class="rounded-full w-16 h-16"
+    />
+  )
+}
