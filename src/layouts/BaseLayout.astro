@@ -1,18 +1,17 @@
 ---
-import BaseHead from "@/components/BaseHead.astro";
-import Navigation from "@/components/global/Navigation.astro"
-import Footer from "@/components/global/Footer.astro"
+
 ---
 
 <html lang="ja" class="scroll-smooth selection:bg-black selection:text-white">
-  <head>
-    <BaseHead />
-  </head>
-  <body class="bg-zinc-100 flex flex-col min-h-screen mx-auto 2xl:max-w-screen-xl relative">
+  <h1>TechRAMEN 2025 Conference</h1>
 
-    <Navigation/>
-    <main class="flex-grow"><slot /></main>
-    <Footer/>
+  <p>26 July, 2025</p>
+  <p>Asahikawa, Hokkaido, Japan</p>
+  <p>
+    <a href="https://note.com/tomio2480/n/n824cca735490"
+      >https://note.com/tomio2480/n/n824cca735490</a>
+  </p>
 
-  </body>
+  <a href="./2024/">2024</a>
+
 </html>
