@@ -19,43 +19,43 @@ const uniqueSponsors = corporatesponsors.filter(
 );
 ---
 
-<section class="scroll-mt-24" id="services">
-  <div class="px-8 md:px-12 py-12 max-w-4xl mx-auto">
-    <div
-      class="col-span-full lg:col-span-2 w-full rounded-4xl h-full items-center inline-flex text-black"
-    >
-      <h2 class="text-3xl tracking-tighter font-light">ラーメン応援法人団</h2>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-1 gap-px mt-8">
-      <div class="p-8 bg-white rounded-3xl">
-        <div class="mb-4">
-          {
-            uniqueSponsors.map((sponsor) => (
-              <div class="flex flex-wrap">
-                {Array.from({ length: uniqueCounts[sponsor.userName] }).map(
-                  () => (
-                    <span class="mb-4 mr-4 relative group">
-                      <a href={sponsor.url}>
-                        <img
-                          src={sponsor.avatarUrl}
-                          style={{
-                            width: "100px",
-                            height: "100px",
-                            objectFit: "cover",
-                          }}
-                          alt={sponsor.userName}
-                        />
-                      </a>
-                      <div class="absolute z-10 p-2 mb-2 text-sm text-white bg-black rounded-lg opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                        {sponsor.userName}
-                      </div>
-                    </span>
-                  )
-                )}
-              </div>
-            ))
-          }
-        </div>
+<section class="section-colored section-secondary" id="corporate-sponsors">
+  <div class="container">
+    <h2 class="handwritten-title text-center text-white mb-12">
+      ラーメン応援法人団
+    </h2>
+    
+    <div class="card p-8 md:p-12 max-w-4xl mx-auto">
+      {
+        uniqueSponsors.map((sponsor) => (
+          <div class="mb-8">
+            <h3 class="text-xl font-bold mb-4">{sponsor.userName} <span class="text-sm font-normal text-gray-500">({uniqueCounts[sponsor.userName]}口)</span></h3>
+            <div class="flex flex-wrap gap-4">
+              {Array.from({ length: uniqueCounts[sponsor.userName] }).map(
+                () => (
+                  <div class="relative group">
+                    <a href={sponsor.url} class="block transition-transform hover:scale-110">
+                      <img
+                        src={sponsor.avatarUrl}
+                        class="w-24 h-24 object-cover rounded-lg"
+                        alt={sponsor.userName}
+                      />
+                    </a>
+                  </div>
+                )
+              )}
+            </div>
+          </div>
+        ))
+      }
+      
+      <div class="mt-12 text-center">
+        <p class="text-gray-700 mb-6">
+          企業スポンサーとして応援していただける企業様を募集しています
+        </p>
+        <a href="https://note.com/tomio2480/n/n9280fae6ab29?magazine_key=m8fb20b0824ea" class="btn btn-primary">
+          スポンサーになる
+        </a>
       </div>
     </div>
   </div>

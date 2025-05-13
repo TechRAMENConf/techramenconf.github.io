@@ -1,44 +1,57 @@
 ---
 import EndingMovie from "@/components/landing/EndingMovie.astro";
 ---
-<section class="overflow-hidden relative ">
-  <div class="flex justify-center pt-20 px-20 mt-20">
-    <img src="logo.png" alt="logo" class="w-full md:w-3/4 lg:w-1/2 h-auto">
-  </div>
-  <div>
-    <h2 class="text-2xl tracking-tighter font-normal text-gray-400 text-center mt-10">
+<section class="section-colored section-primary overflow-hidden relative pt-24" id="hero">
+  <div class="container">
+    <div class="flex justify-center mb-8">
+      <img src="logo.png" alt="logo" class="w-full md:w-2/3 lg:w-1/2 h-auto">
+    </div>
+    <h1 class="handwritten-title text-center text-white mb-6">
+      TechRAMEN Conference
+    </h1>
+    <h2 class="text-2xl tracking-tighter font-normal text-white/80 text-center mt-10 max-w-3xl mx-auto">
       Technology Roundtable on the future of Asahikawa <span class="block"
         >for Makers and ENgineers.</span
       >
     </h2>
-  </div>
-  <div>
-    <p class="text-2xl mt-12 tracking-tighter font-normal text-black text-center text-auto-phrase">
+    <p class="text-2xl mt-8 tracking-tighter font-normal text-white text-center text-auto-phrase max-w-3xl mx-auto">
       上川地方に技術の知見を惜しみなく注ぐ，技術好きのための円卓会議
     </p>
-  </div>
-  <div class="mt-10 ml-auto mr-auto w-1/2">
-    <p class="text-2xl tracking-tighter font-normal text-black text-center">
-      2024 ENDING MOVIE
-    </p>
-    <EndingMovie />
-  </div>
-  <div class="px-8 md:px-12 py-2 max-w-5xl mx-auto relative" id="abstract">
-    <div>
-      <h2 class="text-5xl mt-24 tracking-tighter font-normal text-black text-center chivo-mono">
-        TechRAMEN 2024 Conference
-      </h2>
+    <div class="flex justify-center mt-12">
+      <a href="#abstract" class="btn btn-outline border-white text-white hover:bg-white hover:text-primary">
+        詳細を見る
+      </a>
     </div>
-    <dl class="mt-10 grid max-w-4xl grid-cols-1 gap-x-8 gap-y-8 text-center mx-auto">
-      <div class="md:col-span-3 chivo-mono">
-        <dt class="font-mono text-lg text-gray-600">Date</dt>
-        <dd class="text-2xl font-semibold text-gray-900">2024/7/26(Fri) <span class="text-nowrap">16:00-20:00</span></dd>
-        <dd class="text-2xl font-semibold text-gray-900">2024/7/27(Sat) <span class="text-nowrap">10:00-18:00</span></dd>
-      </div>
-      <div class="md:col-span-3 chivo-mono">
-        <dt class="font-mono text-lg text-gray-600">Location</dt>
-        <dd class="text-2xl font-semibold text-gray-900">旭川市<wbr /><span class="text-nowrap">大雪クリスタルホール</span></dd>
-      </div>
-    </dl>
+  </div>
+</section>
+
+<section class="section-colored section-light overflow-hidden relative" id="abstract">
+  <div class="container">
+    <h2 class="handwritten-title text-center text-primary mb-12">
+      TechRAMEN 2025
+    </h2>
+    <div class="card p-8 md:p-12 max-w-4xl mx-auto">
+      <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-12">
+        <div class="chivo-mono">
+          <dt class="font-mono text-lg text-gray-600">Date</dt>
+          <dd class="text-2xl font-semibold text-gray-900">2025/7/26(Sat) <span class="text-nowrap">10:00-18:00</span></dd>
+        </div>
+        <div class="chivo-mono">
+          <dt class="font-mono text-lg text-gray-600">Location</dt>
+          <dd class="text-2xl font-semibold text-gray-900">旭川市<wbr /><span class="text-nowrap">大雪クリスタルホール</span></dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section class="section-colored section-secondary overflow-hidden relative">
+  <div class="container">
+    <h2 class="handwritten-title text-center text-white mb-6">
+      2024 ENDING MOVIE
+    </h2>
+    <div class="max-w-3xl mx-auto">
+      <EndingMovie />
+    </div>
   </div>
 </section>
