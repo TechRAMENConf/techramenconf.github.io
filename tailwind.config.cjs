@@ -17,9 +17,10 @@ export default {
         "6xl": "5rem",
       },
       fontFamily: {
-        sans: ["Shippori Antique", "sans-serif"],
+        sans: ["KikaiChokokuJIS", "Shippori Antique", "sans-serif"],
         mono: ["Chivo Mono", "monospace"],
         display: ["Poppins", "sans-serif"],
+        kikai: ["KikaiChokokuJIS", "sans-serif"],
       },
       gridTemplateColumns: {
         'auto-fill-100': 'repeat(auto-fill, minmax(100px, 1fr))',

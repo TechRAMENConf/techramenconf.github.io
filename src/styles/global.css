@@ -9,13 +9,22 @@
 @import '@fontsource/comic-neue/400.css';
 @import '@fontsource/comic-neue/700.css';
 
+/* 機械彫刻JISフォント */
+@font-face {
+  font-family: 'KikaiChokokuJIS';
+  src: url('/fonts/KikaiChokokuJIS-Md.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    font-family: 'Shippori Antique', sans-serif;
+    font-family: 'KikaiChokokuJIS', 'Shippori Antique', sans-serif;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -29,6 +38,10 @@
   
   code, pre {
     @apply font-mono;
+  }
+  
+  .japanese-text {
+    font-family: 'KikaiChokokuJIS', sans-serif;
   }
 }
 
