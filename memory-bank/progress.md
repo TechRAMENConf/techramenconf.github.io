@@ -19,7 +19,8 @@ This document tracks the project's progress, including what works, what's left t
   - ユーティリティクラス（テキストグラデーション、背景グリッドなど）
 - 過去のコンテンツ（/2024）のアーカイブが存在し、アクセス可能。
 - JSONファイルを使用したデータ管理システム（corporate_sponsors.jsonなど）。
-- Guridoテーマへの移行計画が策定され、フェーズ1（基本構造の移行）が完了している。
+- Guridoテーマへの移行計画が策定され、フェーズ1（基本構造の移行）とフェーズ2（コンポーネントの更新）が完了している。
+- 日本語テキストに機械彫刻JISフォントが適用され、英語フォントと調和した見た目になっている。
 
 ## What's Left to Build
 
@@ -42,6 +43,11 @@ This document tracks the project's progress, including what works, what's left t
     - ✅ PersonalSponsors.astro：セクション背景色の変更、カードベースのデザイン
     - ✅ CorporateSponsors.astro：セクション背景色の変更、カードベースのデザイン
   - ✅ Footer.astroの更新：黒背景、グリッドレイアウト
+- ✅ 日本語フォントの更新：
+  - ✅ 機械彫刻JISフォント（KikaiChokokuJIS-Md）の追加
+  - ✅ global.cssへのフォント読み込み設定追加
+  - ✅ tailwind.config.cjsへのフォントファミリー設定追加
+  - ✅ 日本語テキスト部分へのフォント適用（Abstract, Information, Navigation, Footerなど）
 
 ### コンテンツ更新
 - 2025年のカンファレンスに関する詳細コンテンツ：
@@ -65,6 +71,7 @@ This document tracks the project's progress, including what works, what's left t
   - 各ページのメタデータ最適化
   - OGP（Open Graph Protocol）タグの充実
 - パフォーマンスとアクセシビリティの改善
+- フォントの最適化（特に日本語フォントのパフォーマンス）
 
 ## Current Status
 
@@ -76,6 +83,7 @@ This document tracks the project's progress, including what works, what's left t
 - Guridoテーマへの移行計画の実装状況：
   - ✅ フェーズ1（基本構造の移行）が完了
   - ✅ フェーズ2（コンポーネントの更新）が完了
+  - ✅ 日本語フォントの更新が完了
   - フェーズ3（コンテンツの更新と最適化）が次のステップ
 
 ## Known Issues
@@ -89,3 +97,4 @@ This document tracks the project's progress, including what works, what's left t
   - Astroバージョンの互換性の問題
   - Tailwind CSS v4への移行に伴う互換性の問題
   - 既存のコンポーネントとGuridoテーマのコンポーネントの統合
+- 日本語フォントのファイルサイズが大きい場合、ページの読み込み速度に影響する可能性がある。

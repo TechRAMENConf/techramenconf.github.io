@@ -11,6 +11,7 @@ This document details the technologies used in the project, the development setu
 - Tailwind CSS：ユーティリティファーストのCSSフレームワーク
 - Alpine.js：軽量なJavaScriptフレームワーク（インタラクティブ要素用）
 - Google Fonts：「Shippori Antique」と「Chivo Mono」フォント
+- 機械彫刻JISフォント：日本語テキスト用のフォント
 
 ## Development Setup
 
@@ -26,6 +27,7 @@ This document details the technologies used in the project, the development setu
 - クライアントサイドJavaScriptの使用はAstroのアイランドアーキテクチャに沿う必要がある。
 - レスポンシブデザインを実現するためにTailwind CSSのブレークポイントを活用する。
 - SEO対策として適切なメタタグとcanonical URLを設定する。
+- フォントファイルのサイズに注意し、パフォーマンスへの影響を最小限に抑える。
 
 ## Dependencies
 
@@ -40,4 +42,6 @@ This document details the technologies used in the project, the development setu
 - Google Fonts：
   - Shippori Antique：メインフォント
   - Chivo Mono：モノスペースフォント（コード表示など）
+  - Comic Neue：手書き風フォント（タイトルなど）
 - Inter：補助フォント（BaseHead.astroで読み込み）
+- 機械彫刻JISフォント（KikaiChokokuJIS-Md）：日本語テキスト用フォント

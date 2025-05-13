@@ -34,6 +34,11 @@ This document outlines the current work focus, recent changes, next steps, and a
     - ExternalLinks.astro：セクション背景色の変更、ボタンスタイルの更新
     - PersonalSponsors.astro：セクション背景色の変更、カードベースのデザイン適用
     - CorporateSponsors.astro：セクション背景色の変更、カードベースのデザイン適用
+- 日本語フォントの更新
+  - 機械彫刻JISフォント（KikaiChokokuJIS-Md）を追加
+  - 日本語テキスト部分に機械彫刻JISフォントを適用
+  - global.cssにフォント読み込みのための@font-faceを追加
+  - tailwind.config.cjsにフォントファミリーの設定を追加
 
 ## Next Steps
 
@@ -62,6 +67,7 @@ This document outlines the current work focus, recent changes, next steps, and a
   - 「Shippori Antique」をメインフォントとして維持
   - 「Chivo Mono」をモノスペースフォントとして維持
   - 見出しや特別な要素に「Comic Neue」フォントを使用（手書き風タイトル）
+  - 日本語テキストに「機械彫刻JIS」フォントを使用（英語フォントとの調和を図る）
 - レイアウト：
   - Guridoのグリッドレイアウトを取り入れた
   - セクション間の視覚的な区別を強化（背景色の変更）
@@ -72,6 +78,7 @@ This document outlines the current work focus, recent changes, next steps, and a
 - Astroバージョンの互換性確認
 - Tailwind CSSの設定更新
 - Alpine.jsの活用方法
+- フォントの最適化（特に日本語フォントのパフォーマンス）
 
 ### その他の考慮事項
 - 2025年のカンファレンスのテーマとデザインコンセプト
