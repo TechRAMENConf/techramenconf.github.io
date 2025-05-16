@@ -1,20 +1,20 @@
 ---
 import BaseHead from "@/components/BaseHead.astro";
+import Navigation from "@/components/global/Navigation.astro"
+import Footer from "@/components/global/Footer.astro"
 ---
 
-<html lang="ja" class="scroll-smooth selection:bg-black selection:text-white">
-  <BaseHead />
-  <body>
-    <h1>TechRAMEN 2025 Conference</h1>
-
-    <p>26 July, 2025</p>
-    <p>Asahikawa, Hokkaido, Japan</p>
-    <p>
-      <a href="https://note.com/tomio2480/n/n824cca735490"
-        >https://note.com/tomio2480/n/n824cca735490</a
-      >
-    </p>
-
-    <a href="./2024/">2024</a>
+<html lang="ja" class="scroll-smooth selection:bg-primary selection:text-white">
+  <head>
+    <BaseHead />
+    <script type="module" src="https://unpkg.com/ionicons@7.2.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.2.2/dist/ionicons/ionicons.js"></script>
+  </head>
+  <body class="bg-light flex flex-col min-h-screen relative">
+    <Navigation/>
+    <main class="flex-grow pt-16">
+      <slot />
+    </main>
+    <Footer/>
   </body>
 </html>

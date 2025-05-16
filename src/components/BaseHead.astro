@@ -7,17 +7,35 @@ import { SEO } from "astro-seo";
   title="TechRAMEN 2025 Conference"
   description="上川地方に技術の知見を惜しみなく注ぐ，技術好きのための円卓会議"
   canonical="https://techramenconf.github.io/"
+  openGraph={{
+    basic: {
+      title: "TechRAMEN 2025 Conference",
+      type: "website",
+      image: "https://via.placeholder.com/1200x630?text=TechRAMEN+Conference",
+    },
+    optional: {
+      description: "上川地方に技術の知見を惜しみなく注ぐ，技術好きのための円卓会議",
+      locale: "ja_JP",
+      siteName: "TechRAMEN Conference",
+    },
+  }}
+  twitter={{
+    card: "summary",
+    site: "@techramenconf",
+    title: "TechRAMEN 2025 Conference",
+    description: "上川地方に技術の知見を惜しみなく注ぐ，技術好きのための円卓会議",
+  }}
 />
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width" />
-<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="author" content="Michael Andreuzza" />
-<meta name="your keywords" content="Add ypour keywords here" />
+<meta name="author" content="TechRAMEN Conference" />
+<meta name="keywords" content="技術カンファレンス, 北海道, 旭川, プログラミング, 開発者, テクノロジー, TechRAMEN" />
+<meta name="theme-color" content="#FF6B35" />
 
+<!-- Favicon -->
 <link rel="icon" href="/favicon.svg" sizes="any" type="image/svg+xml" />
-<link rel="preconnect" href="https://rsms.me/" />
-<link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+<link rel="manifest" href="/site.webmanifest" />
 
+<!-- Alpine.js -->
 <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
