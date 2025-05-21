@@ -105,8 +105,10 @@
   }
   
   .handwritten-title {
-    @apply handwritten text-5xl md:text-7xl lg:text-8xl tracking-wide;
+    font-family: 'KikaiChokokuJIS', 'Shippori Antique', sans-serif;
+    @apply text-5xl md:text-7xl lg:text-8xl tracking-wide;
   }
+
 }
 
 @layer utilities {
