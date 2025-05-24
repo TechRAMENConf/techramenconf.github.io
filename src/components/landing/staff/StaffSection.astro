@@ -7,19 +7,22 @@ interface Staff {
 }
 
 interface Props {
+  title: string;
   staffList: Staff[];
+  sectionClass: string;
+  textColorClass: string;
 }
 
-const { staffList } = Astro.props;
+const { title, staffList, sectionClass, textColorClass } = Astro.props;
 
 // 序列をつけたくないのでスタッフをランダムに並び替え
 const randomizedStaffList = [...staffList].sort(() => Math.random() - 0.5);
 ---
 
-<section class="section-colored section-secondary" id="support-staff">
+<section class={`section-colored ${sectionClass}`} id={title.replace(/\s+/g, '-').toLowerCase()}>
   <div class="container">
-    <h2 class="handwritten-title text-center text-white mb-12">
-      サポートスタッフ
+    <h2 class={`handwritten-title text-center ${textColorClass} mb-12`}>
+      {title}
     </h2>
     
     <div class="card p-8 md:p-12 max-w-4xl mx-auto">

@@ -16,13 +16,34 @@ const coreStaff = staffList.filter((staff: Staff) => staff.type === 'コアス�
 const supportStaff = staffList.filter((staff: Staff) => staff.type === 'サポートスタッフ' && staff.name && staff.name.trim() !== '');
 const eventDayStaff = staffList.filter((staff: Staff) => staff.type === '当日スタッフ' && staff.name && staff.name.trim() !== '');
 
-import CoreStaff from './staff/CoreStaff.astro';
-import SupportStaff from './staff/SupportStaff.astro';
-import EventDayStaff from './staff/EventDayStaff.astro';
+import StaffSection from './staff/StaffSection.astro';
 ---
 
 <div id="staff-list">
-  {coreStaff.length > 0 && <CoreStaff staffList={coreStaff} />}
-  {supportStaff.length > 0 && <SupportStaff staffList={supportStaff} />}
-  {eventDayStaff.length > 0 && <EventDayStaff staffList={eventDayStaff} />}
+  {coreStaff.length > 0 && 
+    <StaffSection 
+      title="コアスタッフ" 
+      staffList={coreStaff} 
+      sectionClass="section-primary" 
+      textColorClass="text-white" 
+    />
+  }
+  
+  {supportStaff.length > 0 && 
+    <StaffSection 
+      title="サポートスタッフ" 
+      staffList={supportStaff} 
+      sectionClass="section-secondary" 
+      textColorClass="text-white" 
+    />
+  }
+  
+  {eventDayStaff.length > 0 && 
+    <StaffSection 
+      title="当日スタッフ" 
+      staffList={eventDayStaff} 
+      sectionClass="section-accent" 
+      textColorClass="text-black" 
+    />
+  }
 </div>
