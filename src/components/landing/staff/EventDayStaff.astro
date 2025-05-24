@@ -1,0 +1,46 @@
+---
+interface Staff {
+  name: string;
+  link_url: string;
+  avatar_url: string;
+  type: string;
+}
+
+interface Props {
+  staffList: Staff[];
+}
+
+const { staffList } = Astro.props;
+
+// 序列をつけたくないのでスタッフをランダムに並び替え
+const randomizedStaffList = [...staffList].sort(() => Math.random() - 0.5);
+---
+
+<section class="section-colored section-accent" id="event-day-staff">
+  <div class="container">
+    <h2 class="handwritten-title text-center text-black mb-12">
+      当日スタッフ
+    </h2>
+    
+    <div class="card p-8 md:p-12 max-w-4xl mx-auto">
+      <div class="flex flex-wrap gap-4">
+        {
+          randomizedStaffList.map((staff) => (
+            <div class="relative group">
+              <a href={staff.link_url || '#'} target="_blank" rel="noopener noreferrer" class="block transition-transform hover:scale-110">
+                <img
+                  src={staff.avatar_url}
+                  class="w-24 h-24 object-cover rounded-full border-4 border-white"
+                  alt={staff.name}
+                />
+              </a>
+              <div class="absolute z-10 p-2 -mt-2 text-sm text-white bg-dark rounded-lg opacity-0 transition-opacity duration-300 group-hover:opacity-100 left-1/2 transform -translate-x-1/2 top-full whitespace-nowrap">
+                {staff.name}
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
