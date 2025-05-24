@@ -4,35 +4,37 @@ const speakerProfiles = await Astro.glob('@/pages/Speakers/*.md');
 
 <section class="section-colored section-secondary" id="speakers">
   <div class="container">
-    <h2 class="handwritten-title text-center text-white mb-12">
+    <h2 class="handwritten-title text-center text-white mb-8">
       Guest Speakers
     </h2>
     
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
       {speakerProfiles.map((profile) => (
-        <div class="card overflow-hidden">
+        <div class="card control-panel control-panel-screw-enhanced overflow-hidden">
+          <div class="bottom-screw-left"></div>
+          <div class="bottom-screw-right"></div>
           <div class="relative">
             <img 
               src={profile.frontmatter.image} 
               alt={profile.frontmatter.name} 
-              class="w-full h-96 object-cover object-top" 
+              class="w-full h-80 object-cover object-top" 
             />
-            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-              <h3 class="text-xl text-white">{profile.frontmatter.name}</h3>
+            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-dark/90 to-transparent p-4">
+              <h3 class="text-lg text-led-green font-kikai font-bold">{profile.frontmatter.name}</h3>
             </div>
           </div>
-          <div class="p-6">
+          <div class="p-5">
             {profile.frontmatter.x && (
-              <p class="mb-4">
-                <a href={profile.frontmatter.x} class="text-primary hover:text-primary/70 flex items-center">
+              <p class="mb-3">
+                <a href={profile.frontmatter.x} class="text-led-blue hover:text-white flex items-center transition-colors text-sm">
                   <ion-icon name="logo-twitter" class="mr-2"></ion-icon>
                   @{profile.frontmatter.x.split('/').pop()}
                 </a>
               </p>
             )}
-            <p class="text-gray-700">{profile.frontmatter.content}</p>
-            <div class="mt-4">
-              <a href={`/Speakers/${profile.url?.split('/').pop() || ''}`} class="text-primary hover:text-primary/70 inline-flex items-center">
+            <p class="text-white/90 font-kikai text-sm">{profile.frontmatter.content}</p>
+            <div class="mt-3">
+              <a href={`/Speakers/${profile.url?.split('/').pop() || ''}`} class="text-led-yellow hover:text-white inline-flex items-center transition-colors text-sm">
                 詳細を見る
                 <ion-icon name="arrow-forward-outline" class="ml-1"></ion-icon>
               </a>

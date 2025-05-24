@@ -45,70 +45,462 @@
   }
 }
 
-@layer components {
-  /* Gurido風のコンポーネントスタイル */
+@layer components {  /* 制御盤風のコンポーネントスタイル */
   .btn {
-    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg font-medium transition-colors duration-200;
+    @apply inline-flex items-center justify-center px-4 py-2 rounded font-medium transition-all duration-200 border;
+    background: linear-gradient(145deg, #505050, #404040);
+    border: 1px solid #666666;
+    font-size: 0.875rem;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3);
   }
   
   .btn-primary {
-    @apply bg-primary text-white hover:bg-primary/90;
+    @apply bg-panel text-primary border-metallic hover:bg-light;
+    background: linear-gradient(145deg, #505050, #404040);
   }
   
   .btn-secondary {
-    @apply bg-secondary text-white hover:bg-secondary/90;
+    @apply bg-panel text-secondary border-metallic hover:bg-light;
+    background: linear-gradient(145deg, #505050, #404040);
   }
   
   .btn-outline {
-    @apply border-2 border-primary text-primary hover:bg-primary hover:text-white;
+    @apply border border-metallic text-white hover:bg-light;
+    background: linear-gradient(145deg, #404040, #353535);
+  }
+    .card {
+    @apply bg-panel rounded border border-metallic overflow-hidden;
+    background: linear-gradient(145deg, #454545, #3a3a3a);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.3);
+    position: relative;
+  }
+  /* 制御盤の蓋装飾 */
+  .control-panel {
+    position: relative;
+    background: linear-gradient(145deg, #505050, #404040);
+    border: 2px solid #666666;
+    box-shadow: 
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+      0 2px 6px rgba(0, 0, 0, 0.3);
+    padding: 16px; /* ネジとコンテンツの間にスペースを確保 */
+  }
+    /* 2つのネジ（上部左右） - 大型化 */
+  .control-panel::before,
+  .control-panel::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: 
+      /* 細い十字溝 - 中心に配置 */
+      linear-gradient(to right, transparent 7px, #222 7px, #222 9px, transparent 9px),
+      linear-gradient(to bottom, transparent 7px, #222 7px, #222 9px, transparent 9px),
+      radial-gradient(circle, #888 30%, #666 60%, #444 100%);
+    border-radius: 50%;
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.6),
+      inset 0 -1px 2px rgba(255, 255, 255, 0.1),
+      0 1px 3px rgba(0, 0, 0, 0.3);
+    z-index: 10;
   }
   
-  .card {
-    @apply bg-white rounded-xl shadow-md overflow-hidden;
+  .control-panel::before {
+    top: 12px;
+    left: 12px;
   }
   
-  .section {
-    @apply py-16 md:py-24;
+  .control-panel::after {
+    top: 12px;
+    right: 12px;
+  }
+    /* 4つのネジ（四隅）- 追加クラス */
+  .control-panel-screws {
+    position: relative;
+    padding: 20px; /* ネジとコンテンツの間にスペースを確保 */
+  }  .control-panel-screws::before,
+  .control-panel-screws::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: 
+      /* シンプルなメタリックネジ - 線なし */
+      radial-gradient(circle, #888 30%, #666 60%, #444 100%);
+    border-radius: 50%;
+    box-shadow: 
+      /* 自然な円形の内側影 */
+      inset 1px 1px 3px rgba(0, 0, 0, 0.5),
+      inset -1px -1px 1px rgba(255, 255, 255, 0.1),
+      /* 外側の影 */
+      0 1px 3px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+  }
+  
+  .control-panel-screws::before {
+    top: 12px;
+    left: 12px;
+  }
+  
+  .control-panel-screws::after {
+    top: 12px;
+    right: 12px;
+  }  /* 底部のネジ用 - 大型化 */
+  .control-panel-screws .bottom-screw-left,
+  .control-panel-screws .bottom-screw-right {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: 
+      /* シンプルなメタリックネジ - 線なし */
+      radial-gradient(circle, #888 30%, #666 60%, #444 100%);
+    border-radius: 50%;
+    box-shadow: 
+      /* 自然な円形の内側影 */
+      inset 1px 1px 3px rgba(0, 0, 0, 0.5),
+      inset -1px -1px 1px rgba(255, 255, 255, 0.1),
+      /* 外側の影 */
+      0 1px 3px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+    bottom: 12px;
+  }
+  
+  .control-panel-screws .bottom-screw-left {
+    left: 12px;
+  }
+  
+  .control-panel-screws .bottom-screw-right {
+    right: 12px;
+  }
+  
+  /* メタリックプレート効果 */
+  .metal-plate {
+    background: linear-gradient(145deg, #5a5a5a, #3a3a3a);
+    border: 1px solid #777;
+    box-shadow: 
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+      0 1px 3px rgba(0, 0, 0, 0.2);
+    position: relative;
+  }
+  
+  /* 金属の質感を表現するテクスチャ */
+  .brushed-metal {
+    background: 
+      linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.03) 25%, 
+        transparent 50%, 
+        rgba(255, 255, 255, 0.03) 75%, 
+        transparent 100%
+      ),
+      linear-gradient(145deg, #505050, #404040);
+    background-size: 4px 100%, 100% 100%;
+  }
+  
+  /* 制御盤の警告ランプ効果 */
+  .status-indicator {
+    position: relative;
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #333;
+    box-shadow: 
+      inset 0 1px 2px rgba(0, 0, 0, 0.3),
+      0 0 8px rgba(255, 255, 255, 0.1);
+  }
+  
+  .status-indicator.green {
+    background: radial-gradient(circle, #66BB6A, #4CAF50);
+  }
+  
+  .status-indicator.blue {
+    background: radial-gradient(circle, #42A5F5, #2196F3);
+  }
+  
+  .status-indicator.yellow {
+    background: radial-gradient(circle, #FFCA28, #FFC107);
+  }
+  
+  .status-indicator.red {
+    background: radial-gradient(circle, #EF5350, #F44336);
+  }
+  
+  /* 制御盤のラベル板 */
+  .control-label {
+    background: linear-gradient(145deg, #383838, #2a2a2a);
+    border: 1px solid #555;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #e0e0e0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  
+  /* 制御盤のボタン押下効果 */
+  .control-button {
+    background: linear-gradient(145deg, #505050, #404040);
+    border: 2px solid #666;
+    transition: all 0.1s ease;
+    box-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  
+  .control-button:active {
+    transform: translateY(1px);
+    box-shadow: 
+      0 1px 2px rgba(0, 0, 0, 0.3),
+      inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* 制御盤のベント（通気口）模様 */
+  .control-vent {
+    background: 
+      repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.1) 2px,
+        rgba(0, 0, 0, 0.1) 4px
+      ),
+      linear-gradient(145deg, #454545, #3a3a3a);
+  }
+  
+  /* 金属の質感を表現するテクスチャ */
+  .brushed-metal {
+    background: 
+      linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.03) 25%, 
+        transparent 50%, 
+        rgba(255, 255, 255, 0.03) 75%, 
+        transparent 100%
+      ),
+      linear-gradient(145deg, #505050, #404040);
+    background-size: 4px 100%, 100% 100%;
+  }
+    .section {
+    @apply py-12 md:py-16 relative;
   }
   
   .container {
-    @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl;
+    @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl;
   }
   
   .grid-auto-fit {
-    @apply grid grid-cols-auto-fill-300 gap-6;
+    @apply grid grid-cols-auto-fill-300 gap-4;
   }
-  
-  /* Gurido特有のコンポーネント */
+    /* 制御盤特有のコンポーネント */
   .section-colored {
-    @apply py-16 md:py-24 px-4 md:px-8;
+    @apply py-12 md:py-16 px-4 md:px-8 relative;
+    background: linear-gradient(180deg, #404040 0%, #353535 100%);
+    border-top: 1px solid #555555;
+    border-bottom: 1px solid #555555;
   }
   
   .section-primary {
-    @apply bg-primary text-white;
+    @apply bg-dark text-primary;
+    background: linear-gradient(180deg, #404040 0%, #353535 100%);
+    border-top: 1px solid #555555;
+    border-bottom: 1px solid #555555;
   }
   
   .section-secondary {
-    @apply bg-secondary text-white;
+    @apply bg-dark text-secondary;
+    background: linear-gradient(180deg, #353535 0%, #404040 100%);
+    border-top: 1px solid #555555;
+    border-bottom: 1px solid #555555;
   }
   
   .section-accent {
-    @apply bg-accent text-black;
+    @apply bg-panel text-accent;
+    background: linear-gradient(180deg, #454545 0%, #404040 100%);
+    border-top: 1px solid #555555;
+    border-bottom: 1px solid #555555;
   }
   
   .section-dark {
-    @apply bg-dark text-white;
+    @apply bg-dark text-primary;
+    background: linear-gradient(180deg, #353535 0%, #404040 100%);
   }
   
   .section-light {
-    @apply bg-light text-black;
+    @apply bg-light text-primary;
+    background: linear-gradient(180deg, #505050 0%, #454545 100%);
   }
-  
   .handwritten-title {
     font-family: 'KikaiChokokuJIS', 'Shippori Antique', sans-serif;
-    @apply text-5xl md:text-7xl lg:text-8xl tracking-wide;
+    @apply text-3xl md:text-4xl lg:text-5xl tracking-wide;
+    color: #e0e0e0;
+    font-weight: bold;
+  }  /* 制御盤風のテキスト効果 - グローなし */
+  .led-text {
+    color: #e0e0e0;
+    font-weight: 500;
+  }
+  
+  /* 制御盤の状態表示テキスト */
+  .text-led-green {
+    color: #66BB6A;
+    font-weight: 600;
   }
 
+  .text-led-blue {
+    color: #42A5F5;
+    font-weight: 600;
+  }
+
+  .text-led-yellow {
+    color: #FFCA28;
+    font-weight: 600;
+  }
+
+  .text-led-red {
+    color: #EF5350;
+    font-weight: 600;
+  }
+
+  /* 制御盤LED状態のボーダーカラー */
+  .border-led-green {
+    border-color: #66BB6A;
+  }
+
+  .border-led-blue {
+    border-color: #42A5F5;
+  }
+
+  .border-led-yellow {
+    border-color: #FFCA28;
+  }
+
+  .border-led-red {
+    border-color: #EF5350;
+  }
+  /* 制御盤のパネル区切り線効果 */
+  .scan-lines::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 8px,
+      rgba(255, 255, 255, 0.02) 8px,
+      rgba(255, 255, 255, 0.02) 9px
+    );
+    pointer-events: none;
+  }
+  
+  /* チケット購入ボタンの特別スタイル */
+  .ticket-button {
+    position: relative;
+    background: linear-gradient(145deg, #00AA55, #008844);
+    border: 3px solid #00CC66;
+    box-shadow: 
+      0 4px 15px rgba(0, 204, 102, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+  }
+  
+  .ticket-button:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 
+      0 6px 20px rgba(0, 204, 102, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+  }
+  
+  .ticket-button:active {
+    transform: translateY(0) scale(1.02);
+    box-shadow: 
+      0 2px 10px rgba(0, 204, 102, 0.3),
+      inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* チケットボタンの緊急感を演出するパルス効果（控えめ） */
+  .ticket-button::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    background: linear-gradient(45deg, transparent, rgba(0, 204, 102, 0.1), transparent);
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  
+  .ticket-button:hover::before {
+    opacity: 1;
+  }
+    /* より本格的なネジの装飾 */
+  .control-panel-screw-enhanced {
+    position: relative;
+    padding: 24px; /* より大きなスペース */
+  }
+    /* 大型でリアルなネジ */  .control-panel-screw-enhanced::before,
+  .control-panel-screw-enhanced::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;    background: 
+      /* シンプルなメタリックネジ - 線なし */
+      radial-gradient(circle at 30% 30%, #aaa 20%, #888 40%, #666 70%, #444 100%);
+    border-radius: 50%;
+    border: 2px solid #555;    box-shadow: 
+      /* 自然な円形の内側影 */
+      inset 2px 2px 4px rgba(0, 0, 0, 0.5),
+      inset -1px -1px 2px rgba(255, 255, 255, 0.1),
+      /* 外側の影 */
+      0 2px 4px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+  }
+  
+  .control-panel-screw-enhanced::before {
+    top: 16px;
+    left: 16px;
+  }
+  
+  .control-panel-screw-enhanced::after {
+    top: 16px;
+    right: 16px;
+  }
+  /* 底部のネジ用要素も大型化 */
+  .control-panel-screw-enhanced .bottom-screw-left,
+  .control-panel-screw-enhanced .bottom-screw-right {
+    position: absolute;
+    width: 20px;
+    height: 20px;    background: 
+      /* シンプルなメタリックネジ - 線なし */
+      radial-gradient(circle at 30% 30%, #aaa 20%, #888 40%, #666 70%, #444 100%);
+    border-radius: 50%;
+    border: 2px solid #555;    box-shadow: 
+      /* 自然な円形の内側影 */
+      inset 2px 2px 4px rgba(0, 0, 0, 0.5),
+      inset -1px -1px 2px rgba(255, 255, 255, 0.1),
+      /* 外側の影 */
+      0 2px 4px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+    bottom: 16px;
+  }
+  
+  .control-panel-screw-enhanced .bottom-screw-left {
+    left: 16px;
+  }
+  
+  .control-panel-screw-enhanced .bottom-screw-right {
+    right: 16px;
+  }
 }
 
 @layer utilities {
@@ -124,21 +516,41 @@
   .text-balance {
     text-wrap: balance;
   }
-  
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
+    .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background: linear-gradient(45deg, #4CAF50, #42A5F5);
   }
-  
-  .bg-grid {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.05'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3Cpath d='M6 5V0H5v5H0v1h5v94h1V6h94V5H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    .bg-grid {
+    background-image: 
+      linear-gradient(rgba(76, 175, 80, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(76, 175, 80, 0.08) 1px, transparent 1px);
+    background-size: 20px 20px;
   }
-  
-  /* Gurido特有のユーティリティ */
+    /* 制御盤特有のユーティリティ */
   .text-huge {
-    @apply text-6xl md:text-8xl lg:text-9xl;
+    @apply text-4xl md:text-5xl lg:text-6xl;
+    font-weight: bold;
+  }    .text-handwritten {
+    @apply font-kikai tracking-wide;
+    color: #e0e0e0;
+    font-weight: 500;
+  }    .border-led {
+    border: 1px solid #666666;
+    background: linear-gradient(145deg, #454545, #3a3a3a);
   }
   
-  .text-handwritten {
-    @apply handwritten tracking-wide;
+  .glow-primary {
+    background: linear-gradient(145deg, #454545, #3a3a3a);
+    border: 1px solid #666666;
+  }
+  
+  .glow-secondary {
+    background: linear-gradient(145deg, #454545, #3a3a3a);
+    border: 1px solid #666666;
+  }
+  
+  .glow-accent {
+    background: linear-gradient(145deg, #454545, #3a3a3a);
+    border: 1px solid #666666;
   }
 }

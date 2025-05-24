@@ -3,21 +3,22 @@
     <div class="w-full mx-auto">
       <div
         x-data="{ open: false }"
-        class="relative flex flex-col w-full p-4 mx-auto bg-dark text-white md:items-center md:justify-between md:flex-row"
+        class="relative flex flex-col w-full p-3 mx-auto bg-panel text-white border-b border-metallic md:items-center md:justify-between md:flex-row"
+        style="background: linear-gradient(145deg, #454545, #3a3a3a); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);"
       >
         <div
           class="flex flex-row items-center justify-between md:justify-start"
         >
           <a
-            class="text-white hover:text-white/70 gap-4 items-center tracking-tighter inline-flex ml-2 text-xl font-kikai"
+            class="text-white hover:text-primary gap-4 items-center tracking-tight inline-flex ml-2 text-lg font-kikai font-bold"
             href="/" title="link to main page"
           >
           TechRAMEN Conference
           </a><button
             @click="open = !open"
-            class="inline-flex items-center justify-center p-2 text-white hover:text-primary focus:outline-none focus:text-white md:hidden"
+            class="inline-flex items-center justify-center p-2 text-white hover:text-primary focus:outline-none focus:text-primary md:hidden border border-metallic rounded"
             ><svg
-              class="w-6 h-6"
+              class="w-5 h-5"
               stroke="currentColor"
               fill="none"
               viewBox="0 0 24 24"
@@ -38,18 +39,18 @@
           >
         </div><nav
           :class="{'flex': open, 'hidden': !open}"
-          class="flex-col flex-grow hidden py-12 md:py-0 md:flex md:items-end justify-center md:flex-row"
+          class="flex-col flex-grow hidden py-8 md:py-0 md:flex md:items-end justify-center md:flex-row"
         >
           <ul
             class="space-y-2 list-none text-sm text-white md:space-y-0 md:ml-auto items-center md:inline-flex justify-center text-center md:text-left gap-6"
           >
             <li>
-              <a href="#abstract" class="hover:text-primary shrink-0"> About</a>
+              <a href="#abstract" class="hover:text-primary shrink-0 transition-colors duration-200 font-medium"> About</a>
             </li>
             <li>
-              <a href="#speakers" class="hover:text-primary shrink-0"> Speakers</a>
+              <a href="#speakers" class="hover:text-primary shrink-0 transition-colors duration-200 font-medium"> Speakers</a>
             </li><li>
-              <a href="#supports" class="hover:text-primary shrink-0"> Supports</a>
+              <a href="#supports" class="hover:text-primary shrink-0 transition-colors duration-200 font-medium"> Supports</a>
           </ul>
         </nav>
       </div>
