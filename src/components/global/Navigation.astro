@@ -3,20 +3,22 @@
     <div class="w-full mx-auto">
       <div
         x-data="{ open: false }"
-        class="relative flex flex-col w-full p-3 mx-auto bg-panel text-white border-b border-metallic md:items-center md:justify-between md:flex-row"
-        style="background: linear-gradient(145deg, #454545, #3a3a3a); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);"
+        class="relative flex flex-col w-full p-3 mx-auto bg-panel text-gray-800 border-b border-yellow-200 md:items-center md:justify-between md:flex-row"
+        style="background: linear-gradient(145deg, #FFFEF9, #FAF8F5); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);"
       >
         <div
           class="flex flex-row items-center justify-between md:justify-start"
         >
           <a
-            class="text-white hover:text-primary gap-4 items-center tracking-tight inline-flex ml-2 text-lg font-kikai font-bold"
+            class="text-gray-800 hover:text-led-blue gap-4 items-center tracking-tight inline-flex ml-2 text-lg font-kikai font-bold"
             href="/" title="link to main page"
           >
+          <!-- LED Status Indicator -->
+          <div class="led-indicator led-sm led-green led-pulse mr-2"></div>
           TechRAMEN Conference
           </a><button
             @click="open = !open"
-            class="inline-flex items-center justify-center p-2 text-white hover:text-primary focus:outline-none focus:text-primary md:hidden border border-metallic rounded"
+            class="inline-flex items-center justify-center p-2 text-gray-800 hover:text-led-blue focus:outline-none focus:text-led-blue md:hidden border border-yellow-200 rounded"
             ><svg
               class="w-5 h-5"
               stroke="currentColor"
@@ -42,15 +44,24 @@
           class="flex-col flex-grow hidden py-8 md:py-0 md:flex md:items-end justify-center md:flex-row"
         >
           <ul
-            class="space-y-2 list-none text-sm text-white md:space-y-0 md:ml-auto items-center md:inline-flex justify-center text-center md:text-left gap-6"
+            class="space-y-2 list-none text-sm text-gray-800 md:space-y-0 md:ml-auto items-center md:inline-flex justify-center text-center md:text-left gap-6"
           >
             <li>
-              <a href="#abstract" class="hover:text-primary shrink-0 transition-colors duration-200 font-medium"> About</a>
+              <a href="#abstract" class="hover:text-led-blue shrink-0 transition-colors duration-200 font-medium"> About</a>
             </li>
             <li>
-              <a href="#speakers" class="hover:text-primary shrink-0 transition-colors duration-200 font-medium"> Speakers</a>
+              <a href="#speakers" class="hover:text-led-blue shrink-0 transition-colors duration-200 font-medium"> Speakers</a>
             </li><li>
-              <a href="#supports" class="hover:text-primary shrink-0 transition-colors duration-200 font-medium"> Supports</a>
+              <a href="#supports" class="hover:text-led-blue shrink-0 transition-colors duration-200 font-medium"> Supports</a>
+            </li>
+            <!-- System Status LEDs -->
+            <li class="hidden md:block">
+              <div class="led-strip">
+                <div class="led-indicator led-sm led-blue led-pulse"></div>
+                <div class="led-indicator led-sm led-green"></div>
+                <div class="led-indicator led-sm led-yellow led-blink"></div>
+              </div>
+            </li>
           </ul>
         </nav>
       </div>

@@ -5,8 +5,8 @@
   <div class="container">
     <!-- セクションタイトル -->
     <div class="text-center mb-8">
-      <h2 class="handwritten-title text-2xl md:text-3xl text-white mb-2 font-kikai">
-        参加申し込み
+      <h2 class="text-center mb-2">
+        <span class="title-plate title-plate-large">参加申し込み</span>
       </h2>
       <p class="text-led-green text-sm font-kikai">
         TechRAMEN 2025への参加をお待ちしています
@@ -14,16 +14,34 @@
     </div>
 
     <!-- メインのチケット購入ボタン -->
-    <div class="flex justify-center mb-8">
+    <div class="flex justify-center mb-8 relative">
+      <!-- LED装飾パネル -->
+      <div class="absolute -left-12 top-1/2 transform -translate-y-1/2 hidden md:block">
+        <div class="led-strip">
+          <div class="led-indicator led-sm led-green led-pulse"></div>
+          <div class="led-indicator led-sm led-green"></div>
+          <div class="led-indicator led-sm led-green led-pulse"></div>
+        </div>
+      </div>
+      
       <a 
         href="#" 
         target="_blank" 
         rel="noopener noreferrer" 
-        class="btn btn-primary text-xl px-12 py-6 flex items-center gap-3 ticket-button text-white font-bold"
+        class="btn btn-primary text-xl px-12 py-6 flex items-center gap-3 ticket-button text-gray-800 font-bold"
       >
         <ion-icon name="ticket-outline" class="text-2xl"></ion-icon>
         チケットを購入
       </a>
+      
+      <!-- LED装飾パネル -->
+      <div class="absolute -right-12 top-1/2 transform -translate-y-1/2 hidden md:block">
+        <div class="led-strip">
+          <div class="led-indicator led-sm led-green led-pulse"></div>
+          <div class="led-indicator led-sm led-green"></div>
+          <div class="led-indicator led-sm led-green led-pulse"></div>
+        </div>
+      </div>
     </div>
 
     <!-- サブリンク -->

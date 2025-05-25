@@ -19,13 +19,12 @@ const eventDayStaff = staffList.filter((staff: Staff) => staff.type === '当日�
 import StaffSection from './staff/StaffSection.astro';
 ---
 
-<div id="staff-list">
-  {coreStaff.length > 0 && 
+<div id="staff-list">  {coreStaff.length > 0 && 
     <StaffSection 
       title="コアスタッフ" 
       staffList={coreStaff} 
-      sectionClass="section-primary" 
-      textColorClass="text-white" 
+      sectionClass="section-light" 
+      textColorClass="text-gray-800" 
     />
   }
   
@@ -33,17 +32,17 @@ import StaffSection from './staff/StaffSection.astro';
     <StaffSection 
       title="サポートスタッフ" 
       staffList={supportStaff} 
-      sectionClass="section-secondary" 
-      textColorClass="text-white" 
+      sectionClass="section-light" 
+      textColorClass="text-gray-800" 
     />
   }
   
-  {eventDayStaff.length > 0 && 
+  {eventDayStaff.length > 0 &&
     <StaffSection 
       title="当日スタッフ" 
       staffList={eventDayStaff} 
-      sectionClass="section-accent" 
-      textColorClass="text-black" 
+      sectionClass="section-light" 
+      textColorClass="text-gray-800" 
     />
   }
 </div>

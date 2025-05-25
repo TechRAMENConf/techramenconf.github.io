@@ -5,25 +5,39 @@ import PersonalSponsorImage from "./PersonalSponsorImage.astro";
 
 <section class="section-colored section-accent" id="personal-sponsors">
   <div class="container">
-    <h2 class="handwritten-title text-center text-accent mb-12 led-text">
-      ラーメン応援団
+    <h2 class="text-center mb-12">
+      <span class="title-plate title-plate-xl">ラーメン応援団</span>
     </h2>
     
-    <div class="card p-8 md:p-12 max-w-4xl mx-auto glow-accent">
+    <div class="card p-8 md:p-12 max-w-4xl mx-auto">
+      <!-- Sponsor Status Panel -->
+      <div class="led-panel mb-6 flex justify-center">
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2">
+            <div class="led-indicator led-sm led-red led-pulse"></div>
+            <span class="text-xs font-mono text-gray-600">SUPPORT ACTIVE</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="led-indicator led-sm led-green"></div>
+            <span class="text-xs font-mono text-gray-600">MEMBERS: {personalSponsors.length}</span>
+          </div>
+        </div>
+      </div>
+      
       <div class="flex flex-wrap justify-center gap-4">
         {
           personalSponsors.map((sponsor) => (
             <div class="relative group">
               {sponsor.twitterUrl ? (
-                <a href={sponsor.twitterUrl} class="block transition-transform hover:scale-110 glow-primary">
+                <a href={sponsor.twitterUrl} class="block transition-transform hover:scale-110">
                   <PersonalSponsorImage avatarUrl={sponsor.avatarUrl} />
                 </a>
               ) : (
-                <div class="transition-transform hover:scale-110 glow-primary">
+                <div class="transition-transform hover:scale-110">
                   <PersonalSponsorImage avatarUrl={sponsor.avatarUrl} />
                 </div>
               )}
-              <div class="absolute z-10 p-2 -mt-2 text-sm text-primary bg-panel rounded-lg opacity-0 transition-opacity duration-300 group-hover:opacity-100 left-1/2 transform -translate-x-1/2 top-full border border-primary/30 led-text">
+              <div class="absolute z-10 p-2 -mt-2 text-sm text-gray-800 bg-white rounded-lg opacity-0 transition-opacity duration-300 group-hover:opacity-100 left-1/2 transform -translate-x-1/2 top-full border border-yellow-200 shadow-lg">
                 {sponsor.userName}
               </div>
             </div>
@@ -32,10 +46,10 @@ import PersonalSponsorImage from "./PersonalSponsorImage.astro";
       </div>
       
       <div class="mt-12 text-center">
-        <p class="text-accent/80 mb-6 font-kikai">
+        <p class="text-gray-700 mb-6 font-kikai">
           個人スポンサーとして応援していただける方を募集しています
         </p>
-        <a href="https://note.com/tomio2480/n/n9280fae6ab29?magazine_key=m8fb20b0824ea" class="btn btn-primary led-text">
+        <a href="https://note.com/tomio2480/n/n9280fae6ab29?magazine_key=m8fb20b0824ea" class="btn btn-primary">
           スポンサーになる
         </a>
       </div>
