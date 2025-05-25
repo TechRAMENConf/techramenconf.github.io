@@ -1,5 +1,5 @@
 {
-  "name": "techramen-design-test", // CIシステムが期待するWorker名に合わせる
+  "name": "techramen-design-test-white", // CIシステムが期待するWorker名に合わせる
   "compatibility_date": "2025-05-24", // 今日の日付（2025-05-24）以降の日付
   "assets": {
     "directory": "./dist" // Astroのビルド出力ディレクトリ
