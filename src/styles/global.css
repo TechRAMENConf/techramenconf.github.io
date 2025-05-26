@@ -166,7 +166,6 @@
       inset 0 -1px 0 rgba(0,0,0,0.1),
       0 1px 3px rgba(0,0,0,0.1);
   }
-
   .led-strip {
     display: flex;
     gap: 4px;
@@ -175,6 +174,93 @@
     border-radius: 12px;
     border: 1px solid #444;
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+  }
+  /* テープ風装飾（修正版） */
+  .tape-correction {
+    position: relative;
+    display: inline-block;
+    padding: 4px 8px;
+    margin: 0 2px;
+    background: linear-gradient(135deg, 
+      #fff9c4 0%, 
+      #ffeb3b 25%, 
+      #fff59d 50%, 
+      #ffeb3b 75%, 
+      #fff9c4 100%);
+    border: 1px solid #fbc02d;
+    border-radius: 4px;
+    box-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    transform: rotate(-1deg);
+    transition: all 0.2s ease;
+  }
+
+  .tape-correction:hover {
+    transform: rotate(0deg) scale(1.02);
+    box-shadow: 
+      0 3px 6px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+  }
+
+  .tape-correction::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    right: 2px;
+    bottom: 2px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  .tape-correction::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    background: radial-gradient(circle, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.05) 70%, transparent 100%);
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    z-index: 1;
+  }  .tape-correction .tape-text {
+    position: relative;
+    z-index: 2;
+    color: #2c2c2c !important;
+    font-weight: 700;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
+    font-size: inherit;
+    font-family: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "MS PMincho", serif !important;
+  }
+  /* tape-correctionクラス自体に明朝体を適用 */
+  .tape-correction {
+    position: relative;
+    display: inline-block;
+    padding: 4px 8px;
+    margin: 0 2px;
+    background: linear-gradient(135deg, 
+      #fff9c4 0%, 
+      #ffeb3b 25%, 
+      #fff59d 50%, 
+      #ffeb3b 75%, 
+      #fff9c4 100%);
+    border: 1px solid #fbc02d;
+    border-radius: 4px;
+    box-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    transform: rotate(-1deg);
+    transition: all 0.2s ease;
+    font-family: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "MS PMincho", serif !important;
+    font-weight: 700;
+    color: #2c2c2c !important;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
   }
 
   /* 制御盤風のコンポーネントスタイル */
