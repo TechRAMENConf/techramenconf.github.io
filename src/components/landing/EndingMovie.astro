@@ -2,4 +2,25 @@
 import { YouTube } from "@astro-community/astro-embed-youtube";
 ---
 
-<YouTube id="46OSy4JOiFo" />
+<div class="w-full flex justify-center">
+  <div class="w-full max-w-4xl">
+    <div class="aspect-video w-full">
+      <YouTube id="46OSy4JOiFo" />
+    </div>
+  </div>
+</div>
+
+<style>
+  /* YouTubeコンポーネントを強制的に中央揃えにし、アスペクト比を維持 */
+  :global(lite-youtube) {
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 auto !important;
+    display: block !important;
+  }
+  
+  :global(lite-youtube iframe) {
+    width: 100% !important;
+    height: 100% !important;
+  }
+</style>
