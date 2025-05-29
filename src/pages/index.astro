@@ -7,6 +7,8 @@ import SponsorshipOffers from "@/components/landing/SponsorshipOffers.astro"
 import ExternalLinks from "@/components/landing/ExternalLinks.astro"
 import Personalsponsors from "@/components/landing/PersonalSponsors.astro";
 import Corporatesponsors from "@/components/landing/CorporateSponsors.astro";
+import EndingMovie from "@/components/landing/EndingMovie.astro";
+import StaffList from "@/components/landing/StaffList.astro";
 ---
 <BaseLayout>
   <Abstract />
@@ -16,4 +18,15 @@ import Corporatesponsors from "@/components/landing/CorporateSponsors.astro";
   <SponsorshipOffers />
   <Personalsponsors />
   <Corporatesponsors />
+  <StaffList />
+  <section class="section-colored section-secondary overflow-hidden relative control-panel control-panel-screw-enhanced">
+    <div class="container">
+      <h2 class="text-center mb-4">
+        <span class="title-plate title-plate-xl">2024 ENDING MOVIE</span>
+      </h2>
+      <div class="max-w-3xl mx-auto">
+        <EndingMovie />
+      </div>
+    </div>
+  </section>
 </BaseLayout>
