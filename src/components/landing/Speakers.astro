@@ -10,16 +10,18 @@ const speakerProfiles = await Astro.glob('@/pages/Speakers/*.md');
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
       {speakerProfiles.map((profile) => (
-        <div class="card control-panel control-panel-screw-enhanced overflow-hidden">
+        <div class="card control-panel control-panel-screw-enhanced">
           <div class="bottom-screw-left"></div>
           <div class="bottom-screw-right"></div>
           
-          <div class="relative">
-            <img 
-              src={profile.frontmatter.image} 
-              alt={profile.frontmatter.name} 
-              class="w-full h-80 object-cover object-top" 
-            />
+          <div class="relative p-4">
+            <div class="speaker-frame-border">
+              <img 
+                src={profile.frontmatter.image} 
+                alt={profile.frontmatter.name} 
+                class="w-full h-80 object-cover object-top rounded-lg" 
+              />
+            </div>
           </div>
           <div class="pt-4 pl-4">
               <h3 class="text-lg text-led-green font-kikai font-bold">{profile.frontmatter.name}</h3>
@@ -50,3 +52,27 @@ const speakerProfiles = await Astro.glob('@/pages/Speakers/*.md');
     </div>
   </div>
 </section>
+
+<style>
+  .speaker-frame-border {
+    position: relative;
+    padding: 16px; /* ボーダーの太さ */
+    background: #374151; /* 基本的なグレー色 */
+    border-radius: 32px; /* 外側の角丸 */
+    box-shadow:
+      -3px -3px 6px rgba(255, 255, 255, 0.2),
+      3px 3px 8px rgba(0, 0, 0, 0.4),
+      inset -2px -2px 4px rgba(255, 255, 255, 0.1),
+      inset 2px 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .speaker-frame-border img {
+    border-radius: 16px; /* 内側の画像の角丸 */
+    display: block;
+    width: 100%;
+    /* 画像自体には影を付けない（平面に保つ） */
+    box-shadow: none;
+    position: relative;
+    z-index: 1;
+  }
+</style>
