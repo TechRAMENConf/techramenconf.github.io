@@ -1,6 +1,9 @@
 ---
-import personalSponsors from "../data/personal_sponsors.json";
+import { getPersonalSponsors } from "../../utils/csvData";
 import PersonalSponsorImage from "./PersonalSponsorImage.astro";
+
+// Fetch personal sponsors from CSV data
+const personalSponsors = await getPersonalSponsors();
 ---
 
 <section class="section-colored section-accent" id="personal-sponsors">
@@ -29,7 +32,7 @@ import PersonalSponsorImage from "./PersonalSponsorImage.astro";
           personalSponsors.map((sponsor) => (
             <div class="relative group">
               {sponsor.twitterUrl ? (
-                <a href={sponsor.twitterUrl} class="block transition-transform hover:scale-110">
+                <a href={sponsor.twitterUrl} class="block transition-transform hover:scale-110" target="_blank" rel="noopener noreferrer">
                   <PersonalSponsorImage avatarUrl={sponsor.avatarUrl} />
                 </a>
               ) : (
@@ -38,7 +41,10 @@ import PersonalSponsorImage from "./PersonalSponsorImage.astro";
                 </div>
               )}
               <div class="absolute z-10 p-2 -mt-2 text-sm text-gray-800 bg-white rounded-lg opacity-0 transition-opacity duration-300 group-hover:opacity-100 left-1/2 transform -translate-x-1/2 top-full border border-yellow-200 shadow-lg">
-                {sponsor.userName}
+                {sponsor.displayName || sponsor.userName}
+                {sponsor.comment && (
+                  <div class="text-xs text-gray-600 mt-1">{sponsor.comment}</div>
+                )}
               </div>
             </div>
           ))
