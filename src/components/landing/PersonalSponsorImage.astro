@@ -4,7 +4,7 @@ const { avatarUrl } = Astro.props;
 
 {
   avatarUrl === "/avatar_default.jpg" || avatarUrl.includes("default-avatar.png") ? (
-    <img src="/avatar_default.jpg" class="rounded-full w-16 h-16 opacity-60" />
+    <img src="/avatar_default.jpg" class="rounded-full w-16 h-16 opacity-60" alt="Default Avatar" />
   ) : avatarUrl.startsWith('/avatars/') ? (
     <img
       src={"https://fortee.jp" + avatarUrl}
@@ -14,6 +14,7 @@ const { avatarUrl } = Astro.props;
     <img
       src={avatarUrl.startsWith('http') ? avatarUrl : "https://fortee.jp/" + avatarUrl}
       class="rounded-full w-16 h-16"
+      alt="{Astro.props.avatarUrl}"
     />
   )
 }
