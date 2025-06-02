@@ -21,15 +21,29 @@ const uniqueSponsors = corporatesponsors.filter(
 
 <section class="section-colored section-secondary" id="corporate-sponsors">
   <div class="container">
-    <h2 class="handwritten-title text-center text-white mb-12">
-      ラーメン応援法人団
+    <h2 class="text-center mb-12">
+      <span class="title-plate title-plate-xl">ラーメン法人<span class="tape-correction">応援</span>団</span>
     </h2>
     
     <div class="card p-8 md:p-12 max-w-4xl mx-auto">
+      <!-- Corporate Status Panel -->
+      <div class="led-panel mb-6 flex justify-center">
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2">
+            <div class="led-indicator led-sm led-blue led-pulse"></div>
+            <span class="text-xs font-mono text-gray-600">CORPORATE</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="led-indicator led-sm led-yellow"></div>
+            <span class="text-xs font-mono text-gray-600">ORGANIZATIONS: {uniqueSponsors.length}</span>
+          </div>
+        </div>
+      </div>
+      
       {
         uniqueSponsors.map((sponsor) => (
           <div class="mb-8">
-            <h3 class="text-xl mb-4 text-black">{sponsor.userName} </h3>
+            <h3 class="text-xl mb-4 text-gray-800 font-kikai">{sponsor.userName} </h3>
             <div class="flex flex-wrap gap-4">
               {Array.from({ length: uniqueCounts[sponsor.userName] }).map(
                 () => (
@@ -37,7 +51,7 @@ const uniqueSponsors = corporatesponsors.filter(
                     <a href={sponsor.url} class="block transition-transform hover:scale-110">
                       <img
                         src={sponsor.avatarUrl}
-                        class="w-24 h-24 object-cover rounded-lg"
+                        class="w-24 h-24 object-cover rounded-lg border border-yellow-200"
                         alt={sponsor.userName}
                       />
                     </a>
@@ -50,11 +64,11 @@ const uniqueSponsors = corporatesponsors.filter(
       }
       
       <div class="mt-12 text-center">
-        <p class="text-gray-700 mb-6">
-          企業スポンサーとして応援していただける企業様を募集しています
+        <p class="text-gray-700 mb-6 font-kikai">
+          いわゆる "法人スポンサー" 的な形で<span class="tape-correction">応援</span>していただける法人さまを募集しています
         </p>
         <a href="https://note.com/tomio2480/n/n9280fae6ab29?magazine_key=m8fb20b0824ea" class="btn btn-primary">
-          スポンサーになる
+          <span class="tape-correction">応援</span>法人になる
         </a>
       </div>
     </div>

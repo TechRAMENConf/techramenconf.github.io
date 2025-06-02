@@ -29,6 +29,7 @@
   
   h1, h2, h3, h4, h5, h6 {
     @apply font-display;
+    color: #1A1A1A;
   }
   
   .handwritten {
@@ -46,70 +47,728 @@
 }
 
 @layer components {
-  /* Gurido風のコンポーネントスタイル */
-  .btn {
-    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg font-medium transition-colors duration-200;
+  /* LEDインジケーター装飾 */
+  .led-indicator {
+    position: relative;
+    display: inline-block;
+    border-radius: 50%;
+    border: 2px solid #444;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), #333);
+    box-shadow: 
+      0 0 0 1px rgba(0,0,0,0.3),
+      inset 0 1px 0 rgba(255,255,255,0.3),
+      inset 0 -1px 0 rgba(0,0,0,0.3);
   }
-  
-  .btn-primary {
-    @apply bg-primary text-white hover:bg-primary/90;
+  .led-sm {
+    width: 10px;
+    height: 10px;
+  }
+
+  .led-md {
+    width: 14px;
+    height: 14px;
+  }
+
+  .led-lg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .led-xl {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* LED Color Variants */
+  .led-red {
+    background: radial-gradient(circle at 30% 30%, #ff6b6b, #cc0000);
+    box-shadow: 
+      0 0 0 1px rgba(0,0,0,0.3),
+      0 0 8px rgba(255, 0, 0, 0.6),
+      inset 0 1px 0 rgba(255,255,255,0.3),
+      inset 0 -1px 0 rgba(0,0,0,0.3);
+  }
+
+  .led-green {
+    background: radial-gradient(circle at 30% 30%, #51cf66, #2b8a3e);
+    box-shadow: 
+      0 0 0 1px rgba(0,0,0,0.3),
+      0 0 8px rgba(0, 255, 0, 0.6),
+      inset 0 1px 0 rgba(255,255,255,0.3),
+      inset 0 -1px 0 rgba(0,0,0,0.3);
+  }
+
+  .led-blue {
+    background: radial-gradient(circle at 30% 30%, #339af0, #1864ab);
+    box-shadow: 
+      0 0 0 1px rgba(0,0,0,0.3),
+      0 0 8px rgba(0, 100, 255, 0.6),
+      inset 0 1px 0 rgba(255,255,255,0.3),
+      inset 0 -1px 0 rgba(0,0,0,0.3);
+  }
+
+  .led-yellow {
+    background: radial-gradient(circle at 30% 30%, #ffd43b, #fd7e14);
+    box-shadow: 
+      0 0 0 1px rgba(0,0,0,0.3),
+      0 0 8px rgba(255, 255, 0, 0.6),
+      inset 0 1px 0 rgba(255,255,255,0.3),
+      inset 0 -1px 0 rgba(0,0,0,0.3);
+  }
+
+  .led-orange {
+    background: radial-gradient(circle at 30% 30%, #ff8cc8, #d6336c);
+    box-shadow: 
+      0 0 0 1px rgba(0,0,0,0.3),
+      0 0 8px rgba(255, 165, 0, 0.6),
+      inset 0 1px 0 rgba(255,255,255,0.3),
+      inset 0 -1px 0 rgba(0,0,0,0.3);
+  }
+
+  .led-off {
+    background: radial-gradient(circle at 30% 30%, #666, #333);
+    box-shadow: 
+      0 0 0 1px rgba(0,0,0,0.3),
+      inset 0 1px 0 rgba(255,255,255,0.2),
+      inset 0 -1px 0 rgba(0,0,0,0.4);
+  }
+
+  /* LED点滅アニメーション */
+  .led-blink {
+    animation: led-blink 2s infinite;
+  }
+
+  .led-pulse {
+    animation: led-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes led-blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.3; }
+  }
+
+  @keyframes led-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(0.95); }
+  }
+
+  /* LEDパネル装飾 */
+  .led-panel {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 12px;
+    background: linear-gradient(145deg, #F5F3F0, #FFFEF9);
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 
+      inset 0 1px 0 rgba(255,255,255,0.5),
+      inset 0 -1px 0 rgba(0,0,0,0.1),
+      0 1px 3px rgba(0,0,0,0.1);
+  }
+  .led-strip {
+    display: flex;
+    gap: 4px;
+    padding: 4px 8px;
+    background: #2a2a2a;
+    border-radius: 12px;
+    border: 1px solid #444;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+  }
+  /* テープ風装飾（修正版） */
+  .tape-correction {
+    position: relative;
+    display: inline-block;
+    padding: 4px 8px;
+    margin: 0 2px;
+    background: linear-gradient(135deg, 
+      #fff9c4 0%, 
+      #ffeb3b 25%, 
+      #fff59d 50%, 
+      #ffeb3b 75%, 
+      #fff9c4 100%);
+    border: 1px solid #fbc02d;
+    border-radius: 4px;
+    box-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    transform: rotate(-1deg);
+    transition: all 0.2s ease;
+  }
+
+  .tape-correction:hover {
+    transform: rotate(0deg) scale(1.02);
+    box-shadow: 
+      0 3px 6px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+  }
+
+  .tape-correction::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    right: 2px;
+    bottom: 2px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  .tape-correction::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    background: radial-gradient(circle, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.05) 70%, transparent 100%);
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    z-index: 1;
+  }  .tape-correction .tape-text {
+    position: relative;
+    z-index: 2;
+    color: #2c2c2c !important;
+    font-weight: 700;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
+    font-size: inherit;
+    font-family: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "MS PMincho", serif !important;
+  }
+  /* tape-correctionクラス自体に明朝体を適用 */
+  .tape-correction {
+    position: relative;
+    display: inline-block;
+    padding: 4px 8px;
+    margin: 0 2px;
+    background: linear-gradient(135deg, 
+      #fff9c4 0%, 
+      #ffeb3b 25%, 
+      #fff59d 50%, 
+      #ffeb3b 75%, 
+      #fff9c4 100%);
+    border: 1px solid #fbc02d;
+    border-radius: 4px;
+    box-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    transform: rotate(-1deg);
+    transition: all 0.2s ease;
+    font-family: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "MS PMincho", serif !important;
+    font-weight: 700;
+    color: #2c2c2c !important;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
+  }
+
+  /* 制御盤風のコンポーネントスタイル */
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded font-medium transition-all duration-200 border;
+    background: linear-gradient(145deg, #FFFEF9, #FAF8F5);
+    border: 1px solid #E8E5E0;
+    color: #333333;
+    font-size: 0.875rem;
+    box-shadow: inset 0 1px 0 rgba(255, 254, 249, 1), 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+    .btn-primary {
+    @apply bg-panel text-primary border-metallic hover:bg-light;
+    background: linear-gradient(145deg, #FFFEF9, #FAF8F5);
+    color: #00AA55;
   }
   
   .btn-secondary {
-    @apply bg-secondary text-white hover:bg-secondary/90;
+    @apply bg-panel text-secondary border-metallic hover:bg-light;
+    background: linear-gradient(145deg, #FFFEF9, #FAF8F5);
+    color: #0088BB;
   }
   
   .btn-outline {
-    @apply border-2 border-primary text-primary hover:bg-primary hover:text-white;
+    @apply border border-metallic hover:bg-light;
+    background: linear-gradient(145deg, #FDFCFA, #F5F3F0);
+    color: #333333;
+  }    .card {
+    @apply bg-panel rounded border border-metallic overflow-hidden;
+    background: linear-gradient(145deg, #FFFEF9, #FDFCFA);
+    box-shadow: inset 0 1px 0 rgba(255, 254, 249, 1), 0 2px 4px rgba(0, 0, 0, 0.05);
+    position: relative;
+    color: #333333;
+  }/* 制御盤の蓋装飾 */  .control-panel {
+    position: relative;
+    background: linear-gradient(145deg, #FFFEF9, #FAF8F5);
+    border: 2px solid #E8E5E0;
+    color: #333333;
+    box-shadow: 
+      inset 0 1px 0 rgba(255, 254, 249, 1),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.05),
+      0 2px 6px rgba(0, 0, 0, 0.05);
+    padding: 16px; /* ネジとコンテンツの間にスペースを確保 */
+  }/* 2つのネジ（上部左右） - 大型化 */
+  .control-panel::before,
+  .control-panel::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;    background: 
+      /* 細い十字溝 - 中心に配置 */
+      linear-gradient(to right, transparent 7px, #AAA 7px, #AAA 9px, transparent 9px),
+      linear-gradient(to bottom, transparent 7px, #AAA 7px, #AAA 9px, transparent 9px),
+      radial-gradient(circle, #FAF8F5 30%, #F0EDE8 60%, #E8E5E0 100%);
+    border-radius: 50%;
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.15),
+      inset 0 -1px 2px rgba(255, 255, 255, 1),
+      0 1px 3px rgba(0, 0, 0, 0.05);
+    z-index: 10;
   }
   
-  .card {
-    @apply bg-white rounded-xl shadow-md overflow-hidden;
+  .control-panel::before {
+    top: 12px;
+    left: 12px;
   }
   
-  .section {
-    @apply py-16 md:py-24;
+  .control-panel::after {
+    top: 12px;
+    right: 12px;
+  }
+    /* 4つのネジ（四隅）- 追加クラス */
+  .control-panel-screws {
+    position: relative;
+    padding: 20px; /* ネジとコンテンツの間にスペースを確保 */
+  }  .control-panel-screws::before,
+  .control-panel-screws::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: 
+      /* シンプルなメタリックネジ - ほぼ白 */
+      radial-gradient(circle, #F5F5F5 30%, #E8E8E8 60%, #D8D8D8 100%);
+    border-radius: 50%;
+    box-shadow: 
+      /* 自然な円形の内側影 */
+      inset 1px 1px 3px rgba(0, 0, 0, 0.1),
+      inset -1px -1px 1px rgba(255, 255, 255, 1),
+      /* 外側の影 */
+      0 1px 3px rgba(0, 0, 0, 0.05);
+    z-index: 10;
+  }
+  
+  .control-panel-screws::before {
+    top: 12px;
+    left: 12px;
+  }
+  
+  .control-panel-screws::after {
+    top: 12px;
+    right: 12px;
+  }  /* 底部のネジ用 - 大型化 */
+  .control-panel-screws .bottom-screw-left,
+  .control-panel-screws .bottom-screw-right {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: 
+      /* シンプルなメタリックネジ - ほぼ白 */
+      radial-gradient(circle, #F5F5F5 30%, #E8E8E8 60%, #D8D8D8 100%);
+    border-radius: 50%;
+    box-shadow: 
+      /* 自然な円形の内側影 */
+      inset 1px 1px 3px rgba(0, 0, 0, 0.1),
+      inset -1px -1px 1px rgba(255, 255, 255, 1),
+      /* 外側の影 */
+      0 1px 3px rgba(0, 0, 0, 0.05);
+    z-index: 10;
+    bottom: 12px;
+  }
+  
+  .control-panel-screws .bottom-screw-left {
+    left: 12px;
+  }
+  
+  .control-panel-screws .bottom-screw-right {
+    right: 12px;
+  }
+  /* メタリックプレート効果 */  .metal-plate {
+    background: linear-gradient(145deg, #FFFEF9, #FAF8F5);
+    border: 1px solid #E8E5E0;
+    color: #333333;
+    box-shadow: 
+      inset 0 1px 0 rgba(255, 254, 249, 1),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.03),
+      0 1px 3px rgba(0, 0, 0, 0.05);
+    position: relative;
+  }
+  
+  /* 金属の質感を表現するテクスチャ */
+  .brushed-metal {
+    background: 
+      linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.8) 25%, 
+        transparent 50%, 
+        rgba(255, 255, 255, 0.8) 75%, 
+        transparent 100%
+      ),
+      linear-gradient(145deg, #FFFFFF, #F8F8F8);
+    background-size: 4px 100%, 100% 100%;
+  }
+  
+  /* 制御盤の警告ランプ効果 */
+  .status-indicator {
+    position: relative;
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #333;
+    box-shadow: 
+      inset 0 1px 2px rgba(0, 0, 0, 0.3),
+      0 0 8px rgba(255, 255, 255, 0.1);
+  }
+  
+  .status-indicator.green {
+    background: radial-gradient(circle, #66BB6A, #4CAF50);
+  }
+  
+  .status-indicator.blue {
+    background: radial-gradient(circle, #42A5F5, #2196F3);
+  }
+  
+  .status-indicator.yellow {
+    background: radial-gradient(circle, #FFCA28, #FFC107);
+  }
+  
+  .status-indicator.red {
+    background: radial-gradient(circle, #EF5350, #F44336);
+  }  /* 制御盤のラベル板 */  .control-label {
+    background: linear-gradient(145deg, #FFFEF9, #F5F3F0);
+    border: 1px solid #E8E5E0;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #333333;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: inset 0 1px 0 rgba(255, 254, 249, 1);
+  }  /* タイトル用の白いプレートスタイル */
+  .title-plate {
+    display: inline-block;
+    background: linear-gradient(145deg, #FFFFFF, #F8F8F8);
+    border: 2px solid #E0E0E0;
+    padding: 12px 24px;
+    margin: 8px 0;
+    color: #1A1A1A !important;
+    font-family: 'KikaiChokokuJIS', 'Shippori Antique', sans-serif;
+    font-weight: bold;
+    position: relative;
+    box-shadow: 
+      inset 0 1px 0 rgba(255, 255, 255, 1),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.05),
+      0 2px 4px rgba(0, 0, 0, 0.08),
+      /* プレート自体の立体感 */
+      inset 2px 2px 4px rgba(0, 0, 0, 0.06),
+      inset -2px -2px 4px rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+    /* 凹んだエンボス効果 - 文字が深く彫り込まれたような効果 */
+    text-shadow: 
+      /* メインの凹み効果 - 上から光が当たっているように */
+      0 1px 0 rgba(255, 255, 255, 0.9),
+      0 -1px 0 rgba(0, 0, 0, 0.4),
+      1px 0 0 rgba(255, 255, 255, 0.6),
+      -1px 0 0 rgba(0, 0, 0, 0.2),
+      /* 深い影で彫り込み感を強調 */
+      0 2px 4px rgba(0, 0, 0, 0.2),
+      /* 細かいディテールの影 */
+      0 1px 2px rgba(0, 0, 0, 0.15);
+  }
+
+  .title-plate-large {
+    padding: 16px 32px;
+    font-size: 1.5rem;
+  }
+
+  .title-plate-xl {
+    padding: 20px 40px;
+    font-size: 2rem;
+  }
+
+  .title-plate-2xl {
+    padding: 24px 48px;
+    font-size: 2.5rem;
+  }
+  /* 制御盤のボタン押下効果 */  .control-button {
+    background: linear-gradient(145deg, #FFFEF9, #FAF8F5);
+    border: 2px solid #E8E5E0;
+    color: #333333;
+    transition: all 0.1s ease;
+    box-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.05),
+      inset 0 1px 0 rgba(255, 254, 249, 1);
+  }
+  
+  .control-button:active {
+    transform: translateY(1px);
+    box-shadow: 
+      0 1px 2px rgba(0, 0, 0, 0.05),
+      inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  /* 制御盤のベント（通気口）模様 */
+  .control-vent {
+    background: 
+      repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.02) 2px,
+        rgba(0, 0, 0, 0.02) 4px
+      ),
+      linear-gradient(145deg, #FFFFFF, #F8F8F8);
+  }
+  
+  /* 金属の質感を表現するテクスチャ */
+  .brushed-metal {
+    background: 
+      linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.8) 25%, 
+        transparent 50%, 
+        rgba(255, 255, 255, 0.8) 75%, 
+        transparent 100%
+      ),
+      linear-gradient(145deg, #FFFFFF, #F8F8F8);
+    background-size: 4px 100%, 100% 100%;
+  }
+    .section {
+    @apply py-12 md:py-16 relative;
   }
   
   .container {
-    @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl;
+    @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl;
   }
   
   .grid-auto-fit {
-    @apply grid grid-cols-auto-fill-300 gap-6;
+    @apply grid grid-cols-auto-fill-300 gap-4;
+  }  /* 制御盤特有のコンポーネント */  .section-colored {
+    @apply py-12 md:py-16 px-4 md:px-8 relative;
+    background: linear-gradient(180deg, #FFFEF9 0%, #FAF8F5 100%);
+    border-top: 1px solid #F5F3F0;
+    border-bottom: 1px solid #F5F3F0;
+    color: #1A1A1A;
   }
-  
-  /* Gurido特有のコンポーネント */
-  .section-colored {
-    @apply py-16 md:py-24 px-4 md:px-8;
-  }
-  
   .section-primary {
-    @apply bg-primary text-white;
+    @apply bg-dark text-primary;
+    background: linear-gradient(180deg, #FFFEF9 0%, #FAF8F5 100%);
+    border-top: 1px solid #F5F3F0;
+    border-bottom: 1px solid #F5F3F0;
+    color: #1A1A1A;
   }
   
-  .section-secondary {
-    @apply bg-secondary text-white;
+  /* セクション内のテキスト色を強制的に黒色にするクラス */
+  .text-force-black {
+    color: #1A1A1A !important;
   }
   
-  .section-accent {
-    @apply bg-accent text-black;
+  .text-force-gray-700 {
+    color: #374151 !important;
   }
   
-  .section-dark {
-    @apply bg-dark text-white;
+  .text-force-gray-800 {
+    color: #1F2937 !important;
   }
-  
-  .section-light {
-    @apply bg-light text-black;
+    .section-secondary {
+    @apply bg-dark text-secondary;
+    background: linear-gradient(180deg, #FAF8F5 0%, #FFFEF9 100%);
+    border-top: 1px solid #F5F3F0;
+    border-bottom: 1px solid #F5F3F0;
+    color: #1A1A1A;
   }
-  
-  .handwritten-title {
+    .section-accent {
+    @apply bg-panel text-accent;
+    background: linear-gradient(180deg, #FDFCFA 0%, #FFFEF9 100%);
+    border-top: 1px solid #F5F3F0;
+    border-bottom: 1px solid #F5F3F0;
+    color: #1A1A1A;
+  }
+    .section-dark {
+    @apply bg-dark text-primary;
+    background: linear-gradient(180deg, #FAF8F5 0%, #FFFEF9 100%);
+    color: #1A1A1A;
+  }
+    .section-light {
+    @apply bg-light text-primary;
+    background: linear-gradient(180deg, #FDFCFA 0%, #FFFEF9 100%);
+    color: #1A1A1A;
+  }}.handwritten-title {
     font-family: 'KikaiChokokuJIS', 'Shippori Antique', sans-serif;
-    @apply text-5xl md:text-7xl lg:text-8xl tracking-wide;
+    @apply text-3xl md:text-4xl lg:text-5xl tracking-wide;
+    color: #000000;
+    font-weight: bold;
+  }/* 制御盤風のテキスト効果 - グローなし */
+  .led-text {
+    color: #333333;
+    font-weight: 500;
+  }
+  
+  /* 制御盤の状態表示テキスト */
+  .text-led-green {
+    color: #66BB6A;
+    font-weight: 600;
   }
 
-}
+  .text-led-blue {
+    color: #42A5F5;
+    font-weight: 600;
+  }
+
+  .text-led-yellow {
+    color: #FFCA28;
+    font-weight: 600;
+  }
+
+  .text-led-red {
+    color: #EF5350;
+    font-weight: 600;
+  }
+
+  /* 制御盤LED状態のボーダーカラー */
+  .border-led-green {
+    border-color: #66BB6A;
+  }
+
+  .border-led-blue {
+    border-color: #42A5F5;
+  }
+
+  .border-led-yellow {
+    border-color: #FFCA28;
+  }
+
+  .border-led-red {
+    border-color: #EF5350;
+  }
+  /* 制御盤のパネル区切り線効果 */
+  .scan-lines::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 8px,
+      rgba(255, 255, 255, 0.02) 8px,
+      rgba(255, 255, 255, 0.02) 9px
+    );
+    pointer-events: none;
+  }
+    /* チケット購入ボタンの特別スタイル */
+  .ticket-button {
+    position: relative;
+    background: linear-gradient(145deg, #00AA55, #008844);
+    border: 3px solid #00CC66;
+    color: #FFFFFF !important;
+    box-shadow: 
+      0 4px 15px rgba(0, 204, 102, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+  }
+  
+  .ticket-button:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 
+      0 6px 20px rgba(0, 204, 102, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+  }
+  
+  .ticket-button:active {
+    transform: translateY(0) scale(1.02);
+    box-shadow: 
+      0 2px 10px rgba(0, 204, 102, 0.3),
+      inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* チケットボタンの緊急感を演出するパルス効果（控えめ） */
+  .ticket-button::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    background: linear-gradient(45deg, transparent, rgba(0, 204, 102, 0.1), transparent);
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  
+  .ticket-button:hover::before {
+    opacity: 1;
+  }
+    /* より本格的なネジの装飾 */
+  .control-panel-screw-enhanced {
+    position: relative;
+    padding: 24px; /* より大きなスペース */
+  }
+    /* 大型でリアルなネジ */  .control-panel-screw-enhanced::before,
+  .control-panel-screw-enhanced::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;    background: 
+      /* シンプルなメタリックネジ - ほぼ白 */
+      radial-gradient(circle at 30% 30%, #FFFFFF 20%, #F5F5F5 40%, #E8E8E8 70%, #D8D8D8 100%);
+    border-radius: 50%;
+    border: 2px solid #E0E0E0;    box-shadow: 
+      /* 自然な円形の内側影 */
+      inset 2px 2px 4px rgba(0, 0, 0, 0.08),
+      inset -1px -1px 2px rgba(255, 255, 255, 1),
+      /* 外側の影 */
+      0 2px 4px rgba(0, 0, 0, 0.03);
+    z-index: 10;
+  }
+  
+  .control-panel-screw-enhanced::before {
+    top: 16px;
+    left: 16px;
+  }
+  
+  .control-panel-screw-enhanced::after {
+    top: 16px;
+    right: 16px;
+  }  /* 底部のネジ用要素も大型化 */
+  .control-panel-screw-enhanced .bottom-screw-left,
+  .control-panel-screw-enhanced .bottom-screw-right {
+    position: absolute;
+    width: 20px;
+    height: 20px;    background: 
+      /* シンプルなメタリックネジ - ほぼ白 */
+      radial-gradient(circle at 30% 30%, #FFFFFF 20%, #F5F5F5 40%, #E8E8E8 70%, #D8D8D8 100%);
+    border-radius: 50%;
+    border: 2px solid #E0E0E0;    box-shadow: 
+      /* 自然な円形の内側影 */
+      inset 2px 2px 4px rgba(0, 0, 0, 0.08),
+      inset -1px -1px 2px rgba(255, 255, 255, 1),
+      /* 外側の影 */
+      0 2px 4px rgba(0, 0, 0, 0.03);
+    z-index: 10;
+    bottom: 16px;
+  }
+  
+  .control-panel-screw-enhanced .bottom-screw-left {
+    left: 16px;
+  }
+  
+  .control-panel-screw-enhanced .bottom-screw-right {
+    right: 16px;
+  }
+
 
 @layer utilities {
   .chivo-mono {
@@ -124,21 +783,41 @@
   .text-balance {
     text-wrap: balance;
   }
-  
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
+    .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background: linear-gradient(45deg, #4CAF50, #42A5F5);
   }
-  
-  .bg-grid {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.05'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3Cpath d='M6 5V0H5v5H0v1h5v94h1V6h94V5H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    .bg-grid {
+    background-image: 
+      linear-gradient(rgba(76, 175, 80, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(76, 175, 80, 0.08) 1px, transparent 1px);
+    background-size: 20px 20px;
   }
-  
-  /* Gurido特有のユーティリティ */
+    /* 制御盤特有のユーティリティ */
   .text-huge {
-    @apply text-6xl md:text-8xl lg:text-9xl;
+    @apply text-4xl md:text-5xl lg:text-6xl;
+    font-weight: bold;
+  }  .text-handwritten {
+    @apply font-kikai tracking-wide;
+    color: #333333;
+    font-weight: 500;
+  }  .border-led {
+    border: 1px solid #E0E0E0;
+    background: linear-gradient(145deg, #FFFFFF, #F8F8F8);
   }
   
-  .text-handwritten {
-    @apply handwritten tracking-wide;
+  .glow-primary {
+    background: linear-gradient(145deg, #FFFFFF, #F8F8F8);
+    border: 1px solid #E0E0E0;
+  }
+  
+  .glow-secondary {
+    background: linear-gradient(145deg, #FFFFFF, #F8F8F8);
+    border: 1px solid #E0E0E0;
+  }
+  
+  .glow-accent {
+    background: linear-gradient(145deg, #FFFFFF, #F8F8F8);
+    border: 1px solid #E0E0E0;
   }
 }

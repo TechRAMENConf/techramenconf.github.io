@@ -1,0 +1,63 @@
+---
+interface Staff {
+  name: string;
+  link_url: string;
+  avatar_url: string;
+  type: string;
+}
+
+interface Props {
+  title: string;
+  staffList: Staff[];
+  sectionClass: string;
+  textColorClass: string;
+}
+
+const { title, staffList, sectionClass, textColorClass } = Astro.props;
+
+// 序列をつけたくないのでスタッフをランダムに並び替え
+const randomizedStaffList = [...staffList].sort(() => Math.random() - 0.5);
+---
+
+<section class={`section-colored ${sectionClass}`} id={title.replace(/\s+/g, '-').toLowerCase()}>
+  <div class="container">
+    <h2 class="text-center mb-12">
+      <span class="title-plate title-plate-xl">{title}</span>
+    </h2>
+    
+    <div class="card p-8 md:p-12 max-w-4xl mx-auto">
+      <!-- Staff Status Panel -->
+      <div class="led-panel mb-6 flex justify-center">
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2">
+            <div class="led-indicator led-sm led-orange led-blink"></div>
+            <span class="text-xs font-mono text-gray-600">{title.toUpperCase()}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="led-indicator led-sm led-green"></div>
+            <span class="text-xs font-mono text-gray-600">COUNT: {staffList.length}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex flex-wrap gap-4">
+        {
+          randomizedStaffList.map((staff) => (
+            <div class="relative group">
+              <a href={staff.link_url || '#'} target="_blank" rel="noopener noreferrer" class="block transition-transform hover:scale-110">
+                <img
+                  src={staff.avatar_url}
+                  class="w-24 h-24 object-cover rounded-full border-4 border-yellow-200"
+                  alt={staff.name}
+                />
+              </a>
+              <div class="absolute z-10 p-2 -mt-2 text-sm text-gray-800 bg-white rounded-lg opacity-0 transition-opacity duration-300 group-hover:opacity-100 left-1/2 transform -translate-x-1/2 top-full whitespace-nowrap border border-yellow-200 shadow-lg">
+                {staff.name}
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>

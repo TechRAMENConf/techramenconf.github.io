@@ -4,12 +4,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        black: "#0f1014",
-        primary: "#FF6B35", // オレンジ - Gurido風のプライマリカラー
-        secondary: "#2EC4B6", // ティール - Gurido風のセカンダリカラー
-        accent: "#FFBC42", // イエロー - アクセントカラー
-        dark: "#1B1B1E", // ダークグレー - 背景色
-        light: "#F9F9F9", // ライトグレー - 明るい背景色
+        black: "#2A2A2A",
+        primary: "#00CC66", // 緑LED - 制御盤のメインカラー
+        secondary: "#0099CC", // 青LED - セカンダリカラー
+        accent: "#CC9900", // 黄色LED - 警告・アクセントカラー
+        danger: "#CC3333", // 赤LED - エラー・緊急カラー
+        dark: "#FAF8F5", // 暖かいオフホワイト（日焼けした色調）
+        light: "#FDFCFA", // より明るい暖かいオフホワイト
+        panel: "#FFFEF9", // クリーム色がかった白
+        metallic: "#F5F3F0", // 暖かい薄いベージュ
+        grid: "#00CC66", // グリッド線の色
       },
       borderRadius: {
         "4xl": "2rem",

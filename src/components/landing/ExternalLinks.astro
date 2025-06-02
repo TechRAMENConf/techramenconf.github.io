@@ -1,43 +1,82 @@
 ---
 ---
 
-<section class="section-colored section-light py-12">
+<section class="section-colored section-light py-10">
   <div class="container">
-    <div class="flex flex-col md:flex-row justify-center items-center gap-6">
+    <!-- セクションタイトル -->
+    <div class="text-center mb-8">
+      <h2 class="text-center mb-2">
+        <span class="title-plate title-plate-large">
+          <span class="tape-correction">参加</span>申し込み
+        </span>
+      </h2>
+      <p class="text-led-green text-sm font-kikai">
+        TechRAMEN 2025 Conferenceへの<span class="tape-correction">参加</span>をお待ちしています
+      </p>
+    </div>
+
+    <!-- メインのチケット購入ボタン -->
+    <div class="flex justify-center mb-8 relative">
+      <!-- LED装飾パネル -->
+      <div class="absolute -left-12 top-1/2 transform -translate-y-1/2 hidden md:block">
+        <div class="led-strip">
+          <div class="led-indicator led-sm led-green led-pulse"></div>
+          <div class="led-indicator led-sm led-green"></div>
+          <div class="led-indicator led-sm led-green led-pulse"></div>
+        </div>
+      </div>
+      
       <a 
         href="#" 
         target="_blank" 
         rel="noopener noreferrer" 
-        class="btn btn-primary text-lg px-8 py-4 flex items-center gap-2"
+        class="btn btn-primary text-xl px-12 py-6 flex items-center gap-3 ticket-button text-gray-800 font-bold"
       >
         <ion-icon name="ticket-outline" class="text-2xl"></ion-icon>
         チケットを購入
       </a>
+      
+      <!-- LED装飾パネル -->
+      <div class="absolute -right-12 top-1/2 transform -translate-y-1/2 hidden md:block">
+        <div class="led-strip">
+          <div class="led-indicator led-sm led-green led-pulse"></div>
+          <div class="led-indicator led-sm led-green"></div>
+          <div class="led-indicator led-sm led-green led-pulse"></div>
+        </div>
+      </div>
+    </div>
 
+    <!-- サブリンク -->
+    <div class="flex flex-col sm:flex-row justify-center items-center gap-4 p-2">
       <a 
-        href="https://note.com/techramenconf/m/m8fb20b0824ea" 
+        href="https://note.com/techramenconf/m/m0938ea0596c0" 
         target="_blank" 
         rel="noopener noreferrer" 
-        class="btn btn-secondary text-lg px-8 py-4 flex items-center gap-2"
+        class="btn btn-secondary text-sm px-4 py-2 flex items-center gap-2 control-button"
       >
-        <span class="[&>svg]:h-6 [&>svg]:w-6">
+        <span class="[&>svg]:h-4 [&>svg]:w-4">
           <svg width="493" height="493" viewBox="0 0 493 493" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="1" y="1" width="490.2" height="490.2" rx="104" fill="white"/>
-            <path d="M139.2 141.7C180.4 141.7 236.8 139.6 277.3 140.7C331.6 142.1 352.1 165.8 352.8 224.2C353.5 257.3 352.8 351.9 352.8 351.9H294C294 269.1 294.3 255.4 294 229.3C293.3 206.3 286.8 195.4 269.1 193.3C250.4 191.2 198 193 198 193V352H139.2V141.7Z" fill="#040000"/>
-            <rect x="1" y="1" width="490.2" height="490.2" rx="104" stroke="#EBEBEB" stroke-width="2"/>
+            <!-- 正方形の角丸背景 -->
+            <rect x="1" y="1" width="491" height="491" rx="104" fill="#FFFFFF" stroke="#333333" stroke-width="3"/>
+            <!-- nのアイコン -->
+            <path d="M139.2 141.7C180.4 141.7 236.8 139.6 277.3 140.7C331.6 142.1 352.1 165.8 352.8 224.2C353.5 257.3 352.8 351.9 352.8 351.9H294C294 269.1 294.3 255.4 294 229.3C293.3 206.3 286.8 195.4 269.1 193.3C250.4 191.2 198 193 198 193V352H139.2V141.7Z" fill="#000000"/>
           </svg>
         </span>
         公式 note
       </a>
       
       <a 
-        href="https://twitter.com/techramenconf" 
+        href="https://x.com/techramenconf" 
         target="_blank" 
         rel="noopener noreferrer" 
-        class="btn btn-outline text-lg px-8 py-4 flex items-center gap-2"
+        class="btn btn-outline text-sm px-4 py-2 flex items-center gap-2 control-button"
       >
-        <ion-icon name="logo-twitter" class="text-2xl"></ion-icon>
-        Twitter
+        <span class="[&>svg]:h-4 [&>svg]:w-4">
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+        </span>
+        公式 X
       </a>
     </div>
   </div>
