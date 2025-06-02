@@ -1,5 +1,8 @@
 ---
-const speakerProfiles = await Astro.glob('@/pages/Speakers/*.md');
+const speakerProfilesGlob = import.meta.glob('@/pages/Speakers/*.md');
+const speakerProfiles = await Promise.all(
+  Object.values(speakerProfilesGlob).map((getProfile) => getProfile())
+);
 ---
 
 <section class="section-colored section-secondary" id="speakers">
