@@ -1,12 +1,12 @@
 import Papa from 'papaparse';
-import fs from 'fs';
+import { promises as fs } from 'fs';
 import path from 'path';
 
 export async function getPersonalSponsors() {
   try {
     // Read CSV file from public directory
     const csvPath = path.join(process.cwd(), 'public', 'techramen-24-conf-all-20240727-212901.csv');
-    let csvContent = fs.readFileSync(csvPath, 'utf-8');
+    let csvContent = await fs.readFile(csvPath, 'utf-8');
     
     // Remove BOM if present
     if (csvContent.charCodeAt(0) === 0xFEFF) {
