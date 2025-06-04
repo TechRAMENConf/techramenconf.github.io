@@ -1,0 +1,467 @@
+---
+import Parser from 'rss-parser';
+
+const parser = new Parser();
+let items = [];
+
+try {
+  const feed = await parser.parseURL('https://note.com/techramenconf/m/m0938ea0596c0/rss');
+  items = feed.items.slice(0, 5); // 最新5件を表示
+} catch (error) {
+  console.error('RSS feed fetch error:', error);
+}
+---
+
+<div class="led-board-container">
+  <div class="led-board">
+    <div class="led-screen">
+      <div class="led-content">
+        <div class="feed-ticker" id="feed-ticker">
+          <div class="ticker-content" id="ticker-content">
+            {items.map((item, index) => (
+              <span class="ticker-item" data-index={index} key={index}>
+                <span class="ticker-date">{new Date(item.pubDate).toLocaleDateString('ja-JP')}</span>
+                <span class="ticker-separator">●</span>
+                <a href={item.link} target="_blank" rel="noopener noreferrer" class="ticker-link">
+                  {item.title}
+                </a>
+                {index < items.length - 1 && <span class="ticker-separator">　◆　</span>}
+              </span>
+            ))}
+            {/* 連続スクロールのため同じコンテンツを複製 */}
+            {items.map((item, index) => (
+              <span class="ticker-item ticker-clone" data-index={index} key={`clone-${index}`}>
+                <span class="ticker-date">{new Date(item.pubDate).toLocaleDateString('ja-JP')}</span>
+                <span class="ticker-separator">●</span>
+                <a href={item.link} target="_blank" rel="noopener noreferrer" class="ticker-link">
+                  {item.title}
+                </a>
+                {index < items.length - 1 && <span class="ticker-separator">　◆　</span>}
+              </span>
+            ))}
+            {items.length === 0 && (
+              <span class="no-feed">フィードを読み込めませんでした</span>
+            )}
+          </div>
+        </div>
+      </div>
+      <div class="led-dots"></div>
+    </div>
+    <div class="ticker-navigation">
+      {items.map((_, index) => (
+        <button 
+          class="nav-dot" 
+          data-target={index}
+          aria-label={`記事 ${index + 1} へ移動`}
+        ></button>
+      ))}
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const ticker = document.getElementById('ticker-content');
+    const tickerParent = document.getElementById('feed-ticker');
+    const navDots = document.querySelectorAll('.nav-dot');
+    let isPaused = false;
+    let animationId = null;
+    let currentPosition = 0;
+
+    // 各記事の位置を記録
+    const getItemPositions = () => {
+      const items = document.querySelectorAll('.ticker-item:not(.ticker-clone)');
+      const positions = [];
+      items.forEach((item, index) => {
+        const rect = item.getBoundingClientRect();
+        const parentRect = tickerParent.getBoundingClientRect();
+        positions.push({
+          index,
+          offset: item.offsetLeft
+        });
+      });
+      return positions;
+    };
+
+    // ナビゲーションドットのクリックイベント
+    navDots.forEach((dot, index) => {
+      dot.addEventListener('click', () => {
+        const items = document.querySelectorAll('.ticker-item:not(.ticker-clone)');
+        if (items[index]) {
+          // アニメーションを停止
+          isPaused = true;
+          ticker.style.animation = 'none';
+          
+          // 現在位置を取得
+          const computedStyle = window.getComputedStyle(ticker);
+          const matrix = new WebKitCSSMatrix(computedStyle.transform);
+          currentPosition = matrix.m41;
+          
+          // ターゲット位置を計算
+          const targetItem = items[index];
+          const targetOffset = targetItem.offsetLeft;
+          
+          // スムーズに移動
+          ticker.style.transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+          ticker.style.transform = `translateX(-${targetOffset}px)`;
+          
+          // アクティブなドットを更新
+          navDots.forEach(d => d.classList.remove('active'));
+          dot.classList.add('active');
+          
+          // 5秒後にアニメーション再開
+          setTimeout(() => {
+            if (isPaused) {
+              isPaused = false;
+              ticker.style.transition = '';
+              // 現在の位置を保持してアニメーション再開
+              const tickerWidth = ticker.scrollWidth / 2; // 複製があるので半分
+              const remainingDistance = tickerWidth - targetOffset;
+              const remainingTime = (remainingDistance / tickerWidth) * 30; // 30秒の比率計算
+              
+              const newKeyframes = `
+                @keyframes scroll-resume {
+                  from {
+                    transform: translateX(-${targetOffset}px);
+                  }
+                  to {
+                    transform: translateX(-${tickerWidth}px);
+                  }
+                }
+              `;
+              const style = document.createElement('style');
+              style.textContent = newKeyframes;
+              document.head.appendChild(style);
+              ticker.style.animation = `scroll-resume ${remainingTime}s linear`;
+              
+              // アニメーション終了後、通常のループに戻る
+              ticker.addEventListener('animationend', function handleEnd() {
+                ticker.removeEventListener('animationend', handleEnd);
+                ticker.style.animation = 'scroll-left 30s linear infinite';
+                style.remove();
+              });
+            }
+          }, 5000);
+        }
+      });
+    });
+
+    // 最初のドットをアクティブに
+    if (navDots.length > 0) {
+      navDots[0].classList.add('active');
+    }
+
+    // ホバーで一時停止
+    ticker.addEventListener('mouseenter', () => {
+      if (!isPaused) {
+        ticker.style.animationPlayState = 'paused';
+      }
+    });
+
+    ticker.addEventListener('mouseleave', () => {
+      if (!isPaused) {
+        ticker.style.animationPlayState = 'running';
+      }
+    });
+
+    // タッチデバイス対応
+    let touchStartX = 0;
+    tickerParent.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+      ticker.style.animationPlayState = 'paused';
+    });
+
+    tickerParent.addEventListener('touchend', () => {
+      if (!isPaused) {
+        ticker.style.animationPlayState = 'running';
+      }
+    });
+  });
+</script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DotGothic16&display=swap');
+
+  .led-board-container {
+    @apply mx-auto my-8 max-w-4xl;
+  }
+
+  .led-board {
+    @apply relative;
+    background: #000;
+    border: 3px solid #333;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 
+      inset 0 0 20px rgba(0, 0, 0, 0.8),
+      0 0 40px rgba(255, 200, 0, 0.3);
+  }
+
+  .led-screen {
+    @apply relative overflow-hidden;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+    border: 2px solid #222;
+    border-radius: 4px;
+    padding: 20px;
+    position: relative;
+  }
+
+  .led-screen::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(255, 255, 255, 0.01) 3px,
+        rgba(255, 255, 255, 0.01) 6px
+      );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .led-content {
+    @apply relative z-10;
+    font-family: 'DotGothic16', monospace;
+    color: #ffcc00;
+    text-shadow: 
+      0 0 10px rgba(255, 200, 0, 0.9),
+      0 0 20px rgba(255, 200, 0, 0.6),
+      0 0 30px rgba(255, 200, 0, 0.3);
+  }
+
+
+  .feed-ticker {
+    @apply overflow-hidden relative;
+    height: 60px;
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 10%,
+      black 90%,
+      transparent
+    );
+  }
+
+  .ticker-content {
+    @apply flex items-center whitespace-nowrap;
+    animation: scroll-left 30s linear infinite;
+    font-size: 24px;
+    line-height: 60px;
+  }
+
+  .ticker-item {
+    @apply inline-flex items-center;
+  }
+
+  .ticker-date {
+    @apply text-amber-400;
+    font-size: 20px;
+  }
+
+  .ticker-separator {
+    @apply mx-4 text-amber-600;
+  }
+
+  .ticker-link {
+    @apply hover:text-yellow-300 transition-colors;
+    text-decoration: none;
+  }
+
+  .no-feed {
+    @apply text-center;
+    animation: led-blink 1s ease-in-out infinite;
+  }
+
+  .led-dots {
+    @apply absolute inset-0 pointer-events-none;
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.3) 2px,
+        rgba(0, 0, 0, 0.3) 4px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.3) 2px,
+        rgba(0, 0, 0, 0.3) 4px
+      );
+    mix-blend-mode: multiply;
+  }
+
+  @keyframes scroll-left {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+
+  @keyframes led-pulse {
+    0%, 100% {
+      opacity: 1;
+      filter: brightness(1);
+    }
+    50% {
+      opacity: 0.9;
+      filter: brightness(1.2);
+    }
+  }
+
+  @keyframes led-blink {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  .ticker-navigation {
+    @apply flex justify-center items-center gap-3 mt-6 p-3;
+    background: #000;
+    border: 2px solid #222;
+    border-radius: 20px;
+    box-shadow: 
+      inset 0 2px 10px rgba(0, 0, 0, 0.8),
+      0 0 20px rgba(0, 0, 0, 0.5);
+  }
+
+  .nav-dot {
+    @apply w-3 h-3 cursor-pointer transition-all relative rounded-full;
+    border: 1px solid #333;
+    position: relative;
+    opacity: 0.8;
+  }
+
+
+  /* カラフルなLED色の割り当て */
+  .nav-dot:nth-child(1) {
+    background-color: #ff0040;
+    border-color: #660018;
+    box-shadow: 
+      0 0 10px #ff0040,
+      0 0 20px #ff004080,
+      inset -2px -2px 4px rgba(0, 0, 0, 0.5),
+      inset 2px 2px 4px rgba(255, 255, 255, 0.4),
+      0 2px 5px rgba(0, 0, 0, 0.6);
+  }
+
+  .nav-dot:nth-child(2) {
+    background-color: #00ff40;
+    border-color: #006618;
+    box-shadow: 
+      0 0 10px #00ff40,
+      0 0 20px #00ff4080,
+      inset -2px -2px 4px rgba(0, 0, 0, 0.5),
+      inset 2px 2px 4px rgba(255, 255, 255, 0.4),
+      0 2px 5px rgba(0, 0, 0, 0.6);
+  }
+
+  .nav-dot:nth-child(3) {
+    background-color: #0080ff;
+    border-color: #003366;
+    box-shadow: 
+      0 0 10px #0080ff,
+      0 0 20px #0080ff80,
+      inset -2px -2px 4px rgba(0, 0, 0, 0.5),
+      inset 2px 2px 4px rgba(255, 255, 255, 0.4),
+      0 2px 5px rgba(0, 0, 0, 0.6);
+  }
+
+  .nav-dot:nth-child(4) {
+    background-color: #ff00ff;
+    border-color: #660066;
+    box-shadow: 
+      0 0 10px #ff00ff,
+      0 0 20px #ff00ff80,
+      inset -2px -2px 4px rgba(0, 0, 0, 0.5),
+      inset 2px 2px 4px rgba(255, 255, 255, 0.4),
+      0 2px 5px rgba(0, 0, 0, 0.6);
+  }
+
+  .nav-dot:nth-child(5) {
+    background-color: #ffff00;
+    border-color: #666600;
+    box-shadow: 
+      0 0 10px #ffff00,
+      0 0 20px #ffff0080,
+      inset -2px -2px 4px rgba(0, 0, 0, 0.5),
+      inset 2px 2px 4px rgba(255, 255, 255, 0.4),
+      0 2px 5px rgba(0, 0, 0, 0.6);
+  }
+
+  .nav-dot::before {
+    content: '';
+    @apply absolute inset-0 rounded-full;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3), transparent 40%);
+    pointer-events: none;
+  }
+
+  .nav-dot:hover {
+    transform: scale(1.05);
+    filter: brightness(1.2);
+  }
+
+  .nav-dot.active {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+
+  @keyframes led-flicker {
+    0%, 100% {
+      opacity: 0.8;
+    }
+    10% {
+      opacity: 0.6;
+    }
+    20% {
+      opacity: 0.9;
+    }
+    30% {
+      opacity: 0.7;
+    }
+    40% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+    60% {
+      opacity: 0.9;
+    }
+    70% {
+      opacity: 0.7;
+    }
+    80% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 0.8;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .ticker-content {
+      font-size: 18px;
+    }
+    
+    .ticker-date {
+      font-size: 16px;
+    }
+    
+    .led-title {
+      @apply text-2xl;
+    }
+  }
+</style>

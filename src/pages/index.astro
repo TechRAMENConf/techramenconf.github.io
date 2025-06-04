@@ -9,11 +9,17 @@ import Personalsponsors from "@/components/landing/PersonalSponsors.astro";
 import Corporatesponsors from "@/components/landing/CorporateSponsors.astro";
 import EndingMovie from "@/components/landing/EndingMovie.astro";
 import StaffList from "@/components/landing/StaffList.astro";
+import NoteFeed from "@/components/landing/NoteFeed.astro";
 ---
 <BaseLayout>
   <Abstract />
   <ExternalLinks />
   <Information />
+  <section class="section-colored section-secondary overflow-hidden relative control-panel control-panel-screw-enhanced">
+    <div class="container">
+      <NoteFeed />
+    </div>
+  </section>
   <Speakers />
   <SponsorshipOffers />
   <Personalsponsors />
