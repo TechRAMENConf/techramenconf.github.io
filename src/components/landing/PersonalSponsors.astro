@@ -1,6 +1,8 @@
 ---
-import personalSponsors from "../data/personal_sponsors.json";
 import PersonalSponsorImage from "./PersonalSponsorImage.astro";
+
+const response = await fetch("https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLi4qZEtEEtwkvO0RuEBsucmt_DDvWqVvAnx10HZlhYWC5rCYbxZ0S6CTJvh8CCvxnaUCwe5hWIlE7ypWoaLUWx8gLTUWzFp6HtItMLsPnm1vzDReEFhywQEtDi_sRBwBzFKCqmqSZS3Pd6O_OeU20jY-PpXMWsNlXSG8pOaLTGM0tTdVoSRMTd332rT-LOmQvDloyZEoGzTYdmHCXclAtxTasXK9JPwem1PSvITZM1JlyQFJEFrmgXZDffXB6iQcpGUPwRrSjp127KXAOTx1Rw3nHmf5Q&lib=MVjftlbc82jMzH7kGATESZo3bqMwcDZRK");
+const personalSponsors = await response.json();
 ---
 
 <section class="section-colored section-accent" id="personal-sponsors">
