@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marquee Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #f0f0f0;
+            font-family: sans-serif;
+        }
+
+        .test-container {
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+        }
+
+        /* Original (broken) version */
+        .board-display-original {
+            background: #0a0a0a;
+            height: 80px;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid #333;
+            margin-bottom: 20px;
+        }
+
+        .marquee-container-original {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            white-space: nowrap;
+            animation: scroll-left-original 10s linear infinite;
+        }
+
+        .marquee-content-original {
+            display: inline-block;
+            padding-left: 100%;
+            color: #00ff00;
+            font-size: 24px;
+        }
+
+        @keyframes scroll-left-original {
+            0% {
+                transform: translateX(0) translateY(-50%);
+            }
+            100% {
+                transform: translateX(-50%) translateY(-50%);
+            }
+        }
+
+        /* Fixed version */
+        .board-display-fixed {
+            background: #0a0a0a;
+            height: 80px;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid #333;
+        }
+
+        .marquee-container-fixed {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            white-space: nowrap;
+            display: flex;
+            animation: scroll-left-fixed 10s linear infinite;
+        }
+
+        .marquee-content-fixed {
+            display: flex;
+            padding-right: 50px;
+            color: #00ff00;
+            font-size: 24px;
+        }
+
+        @keyframes scroll-left-fixed {
+            0% {
+                transform: translateX(100%) translateY(-50%);
+            }
+            100% {
+                transform: translateX(-100%) translateY(-50%);
+            }
+        }
+
+        .marquee-item {
+            display: inline-block;
+            margin-right: 40px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Marquee Animation Test</h1>
+
+    <div class="test-container">
+        <h2>Original (Broken) Version:</h2>
+        <div class="board-display-original">
+            <div class="marquee-container-original">
+                <div class="marquee-content-original">
+                    <span class="marquee-item">お知らせ1: テストメッセージ ★</span>
+                    <span class="marquee-item">お知らせ2: これはテストです ★</span>
+                    <span class="marquee-item">お知らせ3: スクロールテスト ★</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>Fixed Version:</h2>
+        <div class="board-display-fixed">
+            <div class="marquee-container-fixed">
+                <div class="marquee-content-fixed">
+                    <span class="marquee-item">お知らせ1: テストメッセージ ★</span>
+                    <span class="marquee-item">お知らせ2: これはテストです ★</span>
+                    <span class="marquee-item">お知らせ3: スクロールテスト ★</span>
+                </div>
+                <div class="marquee-content-fixed">
+                    <span class="marquee-item">お知らせ1: テストメッセージ ★</span>
+                    <span class="marquee-item">お知らせ2: これはテストです ★</span>
+                    <span class="marquee-item">お知らせ3: スクロールテスト ★</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p>The fixed version should show a continuous, seamless scroll from right to left.</p>
+</body>
+</html>

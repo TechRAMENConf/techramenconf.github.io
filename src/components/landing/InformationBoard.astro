@@ -1,0 +1,486 @@
+---
+// お知らせ情報を配列で管理
+const announcements = [
+  {
+    date: '2025/6/3',
+    message: 'TechRAMEN 2025 Conferenceの公式サイトをリニューアルしました！'
+  },
+  {
+    date: '2025/5/8',
+    message: 'TechRAMEN 2025 Conferenceの開催が決定しました！ 日程：2025年7月26日（土） 場所：旭川リサーチセンター'
+  },
+  {
+    date: '2024/11/17',
+    message: '2024年カンファレンス開催報告を公開しました。大勢の方のご参加、ありがとうございました！'
+  },
+  {
+    date: '2024/7/30',
+    message: '2024年カンファレンスのムービーを公開しました！ 幕間動画 | エンディング'
+  }
+];
+---
+
+<section class="section-colored section-accent" id="information-board">
+  <div class="container">
+    <h2 class="text-center mb-8">
+      <span class="title-plate title-plate-xl">お知らせ</span>
+    </h2>
+    <div class="electric-board-frame">
+      <div class="electric-board">
+        <div class="board-header">
+          <div class="led-status-bar">
+            <div class="led-indicator led-lg led-red led-pulse"></div>
+            <div class="led-indicator led-lg led-yellow led-blink"></div>
+            <div class="led-indicator led-lg led-green led-pulse"></div>
+          </div>
+          <span class="board-title font-kikai">INFORMATION</span>
+        </div>
+        
+        <div class="board-display">
+          <div class="marquee-container">
+            <div class="marquee-content">
+              {announcements.map((item, index) => (
+                <span class="marquee-item">
+                  <span class="led-date">{item.date}</span>
+                  <span class="led-separator">●</span>
+                  <span class="led-message">{item.message}</span>
+                  {index < announcements.length - 1 && <span class="led-separator">　◆　</span>}
+                </span>
+              ))}
+            </div>
+            
+            <!-- 複製してシームレスループを作る -->
+            <div class="marquee-content">
+              {announcements.map((item, index) => (
+                <span class="marquee-item">
+                  <span class="led-date">{item.date}</span>
+                  <span class="led-separator">●</span>
+                  <span class="led-message">{item.message}</span>
+                  {index < announcements.length - 1 && <span class="led-separator">　◆　</span>}
+                </span>
+              ))}
+            </div>
+            <!-- 3つ目の複製でより滑らかに -->
+            <div class="marquee-content">
+              {announcements.map((item, index) => (
+                <span class="marquee-item">
+                  <span class="led-date">{item.date}</span>
+                  <span class="led-separator">●</span>
+                  <span class="led-message">{item.message}</span>
+                  {index < announcements.length - 1 && <span class="led-separator">　◆　</span>}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+        
+        <div class="board-navigation">
+          {announcements.map((_, index) => (
+            <button 
+              class="nav-dot" 
+              data-target={index}
+              aria-label={`お知らせ ${index + 1} へ移動`}
+            ></button>
+          ))}
+        </div>
+        
+        <div class="board-footer">
+          <div class="pixel-grid"></div>
+          <a href="/2024" class="board-link font-kikai">
+            <span class="led-text">▶ 2024年アーカイブ</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const marqueeContainer = document.querySelector('.marquee-container');
+    const navDots = document.querySelectorAll('.nav-dot');
+    const marqueeContents = document.querySelectorAll('.marquee-content');
+    let isPaused = false;
+    let animationDuration = 90; // アニメーション時間（秒）
+    
+    // ナビゲーションドットのクリックイベント
+    navDots.forEach((dot, index) => {
+      dot.addEventListener('click', () => {
+        // アニメーションを停止
+        isPaused = true;
+        marqueeContainer.style.animation = 'none';
+        
+        // 現在の位置を取得
+        const computedStyle = window.getComputedStyle(marqueeContainer);
+        const matrix = new WebKitCSSMatrix(computedStyle.transform);
+        const currentX = matrix.m41;
+        
+        // 最初のmarquee-content内の対象アイテムを取得
+        const firstContent = marqueeContents[0];
+        const targetItems = firstContent.querySelectorAll('.marquee-item');
+        
+        if (targetItems[index]) {
+          const targetItem = targetItems[index];
+          const targetOffset = targetItem.offsetLeft + firstContent.offsetLeft;
+          
+          // スムーズに移動
+          marqueeContainer.style.transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+          marqueeContainer.style.transform = `translateX(-${targetOffset}px) translateY(-50%)`;
+          
+          // アクティブなドットを更新
+          navDots.forEach(d => d.classList.remove('active'));
+          dot.classList.add('active');
+          
+          // 5秒後にアニメーション再開
+          setTimeout(() => {
+            if (isPaused) {
+              isPaused = false;
+              marqueeContainer.style.transition = '';
+              
+              // 現在の位置から再開するアニメーションを作成
+              const totalWidth = marqueeContents[0].scrollWidth;
+              const remainingDistance = totalWidth - targetOffset;
+              const remainingTime = (remainingDistance / totalWidth) * animationDuration;
+              
+              // 動的なキーフレームを作成
+              const styleSheet = document.createElement('style');
+              styleSheet.textContent = `
+                @keyframes scroll-resume-${index} {
+                  from {
+                    transform: translateX(-${targetOffset}px) translateY(-50%);
+                  }
+                  to {
+                    transform: translateX(-${totalWidth}px) translateY(-50%);
+                  }
+                }
+              `;
+              document.head.appendChild(styleSheet);
+              
+              marqueeContainer.style.animation = `scroll-resume-${index} ${remainingTime}s linear`;
+              
+              // アニメーション終了後、通常のループに戻る
+              marqueeContainer.addEventListener('animationend', function handleEnd() {
+                marqueeContainer.removeEventListener('animationend', handleEnd);
+                marqueeContainer.style.animation = 'scroll-left 90s linear infinite';
+                styleSheet.remove();
+              });
+            }
+          }, 5000);
+        }
+      });
+    });
+    
+    // 最初のドットをアクティブに
+    if (navDots.length > 0) {
+      navDots[0].classList.add('active');
+    }
+    
+    // ホバーで一時停止
+    marqueeContainer.addEventListener('mouseenter', () => {
+      if (!isPaused) {
+        marqueeContainer.style.animationPlayState = 'paused';
+      }
+    });
+    
+    marqueeContainer.addEventListener('mouseleave', () => {
+      if (!isPaused) {
+        marqueeContainer.style.animationPlayState = 'running';
+      }
+    });
+  });
+</script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DotGothic16&display=swap');
+
+  .electric-board-frame {
+    background: #1a1a1a;
+    border-radius: 12px;
+    padding: 8px;
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.8),
+      0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+
+  .electric-board {
+    background: #000;
+    border: 3px solid #333;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .board-header {
+    background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border-bottom: 2px solid #444;
+  }
+
+  .led-status-bar {
+    display: flex;
+    gap: 8px;
+  }
+
+  .board-title {
+    font-family: 'DotGothic16', monospace;
+    color: #ff6b00;
+    font-size: 1.2rem;
+    text-shadow: 0 0 10px #ff6b00;
+    letter-spacing: 0.2em;
+  }
+
+  .board-display {
+    background: #0a0a0a;
+    height: 80px;
+    overflow: hidden;
+    position: relative;
+    border-top: 1px solid #222;
+    border-bottom: 1px solid #222;
+  }
+
+  .marquee-container {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    white-space: nowrap;
+    display: flex;
+    animation: scroll-left 90s linear infinite;
+  }
+
+  .marquee-content {
+    display: flex;
+    padding-right: 100px;
+    white-space: nowrap;
+  }
+
+  .marquee-item {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 50px;
+    font-size: 1.5rem;
+    line-height: 1.6;
+    white-space: nowrap;
+  }
+
+  .led-date {
+    font-family: 'DotGothic16', monospace;
+    color: #ffcc00;
+    text-shadow: 
+      0 0 10px rgba(255, 200, 0, 0.9),
+      0 0 20px rgba(255, 200, 0, 0.6);
+    letter-spacing: 0.05em;
+    font-size: 1.3rem;
+  }
+
+  .led-message {
+    font-family: 'DotGothic16', monospace;
+    color: #ffcc00;
+    text-shadow: 
+      0 0 10px rgba(255, 200, 0, 0.9),
+      0 0 20px rgba(255, 200, 0, 0.6);
+    letter-spacing: 0.05em;
+  }
+
+  .led-separator {
+    font-family: 'DotGothic16', monospace;
+    color: #ff9900;
+    margin: 0 15px;
+    font-size: 1.5rem;
+    text-shadow: 0 0 8px rgba(255, 153, 0, 0.8);
+  }
+
+  .board-navigation {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #0a0a0a;
+    border-top: 1px solid #222;
+  }
+
+  .nav-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    opacity: 0.8;
+  }
+
+  .nav-dot::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3), transparent 40%);
+    pointer-events: none;
+  }
+
+  .nav-dot:hover {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+  }
+
+  .nav-dot.active {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+
+  /* カラフルなLED色の割り当て */
+  .nav-dot:nth-child(1) {
+    background-color: #ff0040;
+    border: 1px solid #660018;
+    box-shadow: 
+      0 0 10px #ff0040,
+      0 0 20px #ff004080,
+      inset -2px -2px 4px rgba(0, 0, 0, 0.5),
+      inset 2px 2px 4px rgba(255, 255, 255, 0.4);
+  }
+
+  .nav-dot:nth-child(2) {
+    background-color: #00ff40;
+    border: 1px solid #006618;
+    box-shadow: 
+      0 0 10px #00ff40,
+      0 0 20px #00ff4080,
+      inset -2px -2px 4px rgba(0, 0, 0, 0.5),
+      inset 2px 2px 4px rgba(255, 255, 255, 0.4);
+  }
+
+  .nav-dot:nth-child(3) {
+    background-color: #0080ff;
+    border: 1px solid #003366;
+    box-shadow: 
+      0 0 10px #0080ff,
+      0 0 20px #0080ff80,
+      inset -2px -2px 4px rgba(0, 0, 0, 0.5),
+      inset 2px 2px 4px rgba(255, 255, 255, 0.4);
+  }
+
+  .nav-dot:nth-child(4) {
+    background-color: #ffff00;
+    border: 1px solid #666600;
+    box-shadow: 
+      0 0 10px #ffff00,
+      0 0 20px #ffff0080,
+      inset -2px -2px 4px rgba(0, 0, 0, 0.5),
+      inset 2px 2px 4px rgba(255, 255, 255, 0.4);
+  }
+
+  .board-footer {
+    background: linear-gradient(180deg, #1a1a1a 0%, #2a2a2a 100%);
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 2px solid #444;
+  }
+
+  .pixel-grid {
+    width: 60px;
+    height: 20px;
+    background-image: 
+      repeating-linear-gradient(90deg, #444 0, #444 1px, transparent 1px, transparent 3px),
+      repeating-linear-gradient(0deg, #444 0, #444 1px, transparent 1px, transparent 3px);
+    opacity: 0.5;
+  }
+
+  .board-link {
+    font-family: 'DotGothic16', monospace;
+    color: #00ff00;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+  }
+
+  .board-link:hover {
+    color: #00ff88;
+    text-shadow: 0 0 15px #00ff88;
+  }
+
+  /* LEDインジケーター */
+  .led-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    position: relative;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+
+  .led-indicator.led-lg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .led-indicator.led-red {
+    background: radial-gradient(circle at 30% 30%, #ff6666, #cc0000);
+  }
+
+  .led-indicator.led-yellow {
+    background: radial-gradient(circle at 30% 30%, #ffff66, #cccc00);
+  }
+
+  .led-indicator.led-green {
+    background: radial-gradient(circle at 30% 30%, #66ff66, #00cc00);
+  }
+
+  .led-pulse {
+    animation: led-pulse 2s ease-in-out infinite;
+  }
+
+  .led-blink {
+    animation: led-blink 1s step-end infinite;
+  }
+
+  @keyframes scroll-left {
+    0% {
+      transform: translateX(0) translateY(-50%);
+    }
+    100% {
+      transform: translateX(-50%) translateY(-50%);
+    }
+  }
+
+  @keyframes led-pulse {
+    0%, 100% {
+      opacity: 0.3;
+      box-shadow: 0 0 5px currentColor;
+    }
+    50% {
+      opacity: 1;
+      box-shadow: 0 0 20px currentColor;
+    }
+  }
+
+  @keyframes led-blink {
+    0%, 50% {
+      opacity: 1;
+      box-shadow: 0 0 15px currentColor;
+    }
+    51%, 100% {
+      opacity: 0.3;
+      box-shadow: none;
+    }
+  }
+
+  /* レスポンシブ対応 */
+  @media (max-width: 768px) {
+    .board-display {
+      height: 60px;
+    }
+    
+    .marquee-item {
+      font-size: 1.2rem;
+    }
+    
+    .separator {
+      font-size: 1.4rem;
+      margin: 0 15px;
+    }
+  }
+</style>
