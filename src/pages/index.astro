@@ -1,7 +1,6 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Abstract from "@/components/landing/Abstract.astro";
-import Information from "@/components/landing/Information.astro";
 import Speakers from "@/components/landing/Speakers.astro";
 import SponsorshipOffers from "@/components/landing/SponsorshipOffers.astro"
 import ExternalLinks from "@/components/landing/ExternalLinks.astro"
@@ -9,15 +8,16 @@ import Personalsponsors from "@/components/landing/PersonalSponsors.astro";
 import Corporatesponsors from "@/components/landing/CorporateSponsors.astro";
 import EndingMovie from "@/components/landing/EndingMovie.astro";
 import StaffList from "@/components/landing/StaffList.astro";
-import NoteFeed from "@/components/landing/NoteFeed.astro";
+import InformationBoard from "@/components/landing/InformationBoard.astro";
+import NoteFeedInfo from "@/components/landing/NoteFeedInfo.astro";
 ---
 <BaseLayout>
   <Abstract />
   <ExternalLinks />
-  <Information />
+  <InformationBoard />
   <section class="section-colored section-secondary overflow-hidden relative control-panel control-panel-screw-enhanced">
     <div class="container">
-      <NoteFeed />
+      <NoteFeedInfo />
     </div>
   </section>
   <Speakers />
