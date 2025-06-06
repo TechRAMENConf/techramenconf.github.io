@@ -79,6 +79,10 @@ const ledColors = ['led-green', 'led-blue', 'led-yellow', 'led-red'];
   }
 
   /* スクロールバーのスタイリング */
+  .note-feed-scroll {
+    scrollbar-width: thin; /* Firefox: thin scrollbar */
+    scrollbar-color: #00ff00 rgba(0, 0, 0, 0.1); /* Firefox: thumb and track colors */
+  }
   .note-feed-scroll::-webkit-scrollbar {
     width: 8px;
   }
