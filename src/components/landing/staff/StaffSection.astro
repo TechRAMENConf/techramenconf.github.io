@@ -45,11 +45,21 @@ const randomizedStaffList = [...staffList].sort(() => Math.random() - 0.5);
           randomizedStaffList.map((staff) => (
             <div class="relative group">
               <a href={staff.link_url || '#'} target="_blank" rel="noopener noreferrer" class="block transition-transform hover:scale-110">
-                <img
-                  src={staff.avatar_url}
-                  class="w-24 h-24 object-cover rounded-full border-4 border-yellow-200"
-                  alt={staff.name}
-                />
+                {
+                  !staff.avatar_url || staff.avatar_url.trim() === '' ? (
+                    <img
+                      src="/avatar_default.jpg"
+                      class="w-24 h-24 object-cover rounded-full opacity-60"
+                      alt={staff.name}
+                    />
+                  ) : (
+                    <img
+                      src={staff.avatar_url}
+                      class="w-24 h-24 object-cover rounded-full"
+                      alt={staff.name}
+                    />
+                  )
+                }
               </a>
               <div class="absolute z-10 p-2 -mt-2 text-sm text-gray-800 bg-white rounded-lg opacity-0 transition-opacity duration-300 group-hover:opacity-100 left-1/2 transform -translate-x-1/2 top-full whitespace-nowrap border border-yellow-200 shadow-lg">
                 {staff.name}
