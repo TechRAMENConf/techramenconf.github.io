@@ -71,9 +71,12 @@ const ledColors = ['led-green', 'led-blue', 'led-yellow', 'led-red'];
 </section>
 
 <style>
+  :root {
+    --note-feed-max-height: 500px;
+  }
   /* スクロール可能なコンテナ */
   .note-feed-scroll {
-    max-height: 500px;
+    max-height: var(--note-feed-max-height);
     overflow-y: auto;
     padding-right: 8px;
   }
@@ -81,7 +84,7 @@ const ledColors = ['led-green', 'led-blue', 'led-yellow', 'led-red'];
   /* スクロールバーのスタイリング */
   .note-feed-scroll {
     scrollbar-width: thin; /* Firefox: thin scrollbar */
-    scrollbar-color: #00ff00 rgba(0, 0, 0, 0.1); /* Firefox: thumb and track colors */
+    scrollbar-color: #333 rgba(0, 0, 0, 0.1); /* Firefox: thumb and track colors */
   }
   .note-feed-scroll::-webkit-scrollbar {
     width: 8px;
