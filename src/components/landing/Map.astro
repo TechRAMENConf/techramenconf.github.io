@@ -173,19 +173,61 @@
           kmzLayer.addTo(map);
           
           // クリックイベントの設定
-          kmzLayer.on('click', (e) => {
-            if (e.feature && e.feature.properties) {
-              const properties = e.feature.properties;
-              const popup = new maplibregl.Popup({ offset: 25 })
+          map.on('click', (e) => {
+            // KMZレイヤーが存在しない場合は処理を終了
+            if (!kmzLayer) return;
+            
+            // クリック位置のフィーチャーを取得
+            const features = map.queryRenderedFeatures(e.point, {
+              layers: ['recommend-map-points', 'recommend-map-lines', 'recommend-map-fills', 'recommend-map-icon-points']
+            });
+            
+            if (features.length > 0) {
+              const feature = features[0];
+              const properties = feature.properties;
+              
+              // 属性情報をHTMLに整形
+              let popupContent = '<div class="kmz-popup">';
+              
+              // 名前を表示
+              if (properties.name) {
+                popupContent += `<h4 class="font-bold text-base mb-2">${properties.name}</h4>`;
+              }
+              
+              // 説明を表示
+              if (properties.description) {
+                popupContent += `<p class="text-sm mb-2">${properties.description}</p>`;
+              }
+              
+              // その他の属性を表示
+              popupContent += '<div class="text-xs text-gray-600 mt-2">';
+              for (const [key, value] of Object.entries(properties)) {
+                if (key !== 'name' && key !== 'description' && key !== '_style' && value) {
+                  const displayKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
+                  popupContent += `<p><strong>${displayKey}:</strong> ${value}</p>`;
+                }
+              }
+              popupContent += '</div>';
+              popupContent += '</div>';
+              
+              // ポップアップを作成して表示
+              new maplibregl.Popup({ 
+                offset: 25,
+                maxWidth: '300px'
+              })
                 .setLngLat(e.lngLat)
-                .setHTML(`
-                  <div class="kmz-popup">
-                    <h4 class="font-bold text-base mb-2">${properties.name || 'スポット情報'}</h4>
-                    ${properties.description ? `<p class="text-sm">${properties.description}</p>` : ''}
-                  </div>
-                `)
+                .setHTML(popupContent)
                 .addTo(map);
             }
+          });
+          
+          // マウスカーソルをポインターに変更
+          map.on('mouseenter', 'recommend-map-points', () => {
+            map.getCanvas().style.cursor = 'pointer';
+          });
+          
+          map.on('mouseleave', 'recommend-map-points', () => {
+            map.getCanvas().style.cursor = '';
           });
           
           console.log('KMZレイヤーを追加しました');
