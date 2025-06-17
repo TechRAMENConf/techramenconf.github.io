@@ -1,0 +1,225 @@
+---
+// 地図コンポーネント - MapLibre GL JSを使用
+---
+
+<section class="section-colored section-primary" id="map">
+  <div class="container">
+    <h2 class="text-center mb-8">
+      <span class="title-plate title-plate-xl">周辺マップ</span>
+    </h2>
+    <div class="card control-panel-screw-enhanced p-8 md:p-8 max-w-6xl mx-auto">
+      <!-- Map Status Panel -->
+      <div class="led-panel mb-6 flex justify-center">
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2">
+            <div class="led-indicator led-sm led-green led-pulse"></div>
+            <span class="text-xs font-mono text-gray-600">MAP LOADING</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="led-indicator led-sm led-blue"></div>
+            <span class="text-xs font-mono text-gray-600">LOCATION READY</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="led-indicator led-sm led-yellow"></div>
+            <span class="text-xs font-mono text-gray-600">RECOMMEND SPOTS</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 地図コンテナ -->
+      <div id="map-container" class="w-full h-[500px] rounded-lg overflow-hidden relative">
+        <div id="map-loading" class="absolute inset-0 flex items-center justify-center bg-gray-100">
+          <div class="text-center">
+            <div class="led-indicator led-green led-pulse mb-4"></div>
+            <p class="font-mono text-sm text-gray-600">地図を読み込み中...</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 会場情報 -->
+      <div class="mt-6 text-center">
+        <h3 class="text-lg font-kikai mb-2">旭川リサーチセンター</h3>
+        <p class="text-sm text-gray-600 font-mono">〒078-8801 北海道旭川市緑が丘東1条3丁目1-6</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  #map-container {
+    border: 2px solid #e0e0e0;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* MapLibre GL JSのコントロールのスタイル調整 */
+  :global(.maplibregl-ctrl-group) {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #00ff00;
+    border-radius: 8px;
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+  }
+  
+  :global(.maplibregl-ctrl-group button) {
+    border-color: #00ff00;
+  }
+  
+  :global(.maplibregl-ctrl-group button:hover) {
+    background-color: rgba(0, 255, 0, 0.1);
+  }
+  
+  :global(.maplibregl-popup-content) {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #00ff00;
+    border-radius: 8px;
+    box-shadow: 0 0 12px rgba(0, 255, 0, 0.5);
+    padding: 16px;
+    font-family: 'Comic Neue', cursive;
+  }
+  
+  :global(.maplibregl-popup-anchor-bottom .maplibregl-popup-tip) {
+    border-top-color: #00ff00;
+  }
+  
+  /* KMZポップアップのスタイル */
+  :global(.kmz-popup) {
+    max-width: 250px;
+  }
+  
+  :global(.kmz-popup h4) {
+    color: #00cc00;
+    text-shadow: 0 0 4px rgba(0, 255, 0, 0.3);
+  }
+</style>
+
+<script>
+  import maplibregl from 'maplibre-gl';
+  import { KMZLayer } from 'maplibre-gl-kmz-layer';
+  
+  // 会場の座標（旭川リサーチセンター）
+  const venueCoordinates: [number, number] = [142.393959, 43.7246968];
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    const mapContainer = document.getElementById('map-container');
+    const loadingElement = document.getElementById('map-loading');
+    
+    if (!mapContainer) return;
+    
+    try {
+      // 地図の初期化
+      const map = new maplibregl.Map({
+        container: 'map-container',
+        style: {
+          version: 8,
+          sources: {
+            osm: {
+              type: 'raster',
+              tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+              tileSize: 256,
+              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }
+          },
+          layers: [{
+            id: 'osm',
+            type: 'raster',
+            source: 'osm'
+          }]
+        },
+        center: venueCoordinates,
+        zoom: 10,
+        attributionControl: true
+      });
+      
+      // 地図の読み込み完了時
+      map.on('load', () => {
+        // ローディング表示を非表示
+        if (loadingElement) {
+          loadingElement.style.display = 'none';
+        }
+        
+        // ナビゲーションコントロールを追加
+        map.addControl(new maplibregl.NavigationControl(), 'top-right');
+        
+        // フルスクリーンコントロールを追加
+        map.addControl(new maplibregl.FullscreenControl(), 'top-right');
+        
+        // KMZレイヤーを追加
+        try {
+          const kmzLayer = new KMZLayer({
+            url: '/TechRAMEN25Conf - もろもろオススメ MAP.kmz',
+            id: 'recommend-map',
+            interactive: true,
+            pointOptions: {
+              iconSize: 0.1,
+              iconColor: '#ffff00',
+              iconOpacity: 0.8,
+              textColor: '#000000',
+              textSize: 12,
+              textOffset: [0, 1.5]
+            },
+            lineOptions: {
+              lineColor: '#00ff00',
+              lineWidth: 3,
+              lineOpacity: 0.8
+            },
+            polygonOptions: {
+              fillColor: '#00ccff',
+              fillOpacity: 0.3,
+              outlineColor: '#0099cc',
+              outlineWidth: 2
+            }
+          });
+          
+          // KMZレイヤーを地図に追加
+          kmzLayer.addTo(map);
+          
+          // クリックイベントの設定
+          kmzLayer.on('click', (e) => {
+            if (e.feature && e.feature.properties) {
+              const properties = e.feature.properties;
+              const popup = new maplibregl.Popup({ offset: 25 })
+                .setLngLat(e.lngLat)
+                .setHTML(`
+                  <div class="kmz-popup">
+                    <h4 class="font-bold text-base mb-2">${properties.name || 'スポット情報'}</h4>
+                    ${properties.description ? `<p class="text-sm">${properties.description}</p>` : ''}
+                  </div>
+                `)
+                .addTo(map);
+            }
+          });
+          
+          console.log('KMZレイヤーを追加しました');
+        } catch (kmzError) {
+          console.error('KMZレイヤーの追加に失敗しました:', kmzError);
+        }
+      });
+      
+      // エラーハンドリング
+      map.on('error', (e) => {
+        console.error('Map error:', e);
+        if (loadingElement) {
+          loadingElement.innerHTML = `
+            <div class="text-center">
+              <div class="led-indicator led-red led-blink mb-4"></div>
+              <p class="font-mono text-sm text-red-600">地図の読み込みに失敗しました</p>
+            </div>
+          `;
+        }
+      });
+      
+    } catch (error) {
+      console.error('Map initialization error:', error);
+      if (loadingElement) {
+        loadingElement.innerHTML = `
+          <div class="text-center">
+            <div class="led-indicator led-red led-blink mb-4"></div>
+            <p class="font-mono text-sm text-red-600">地図の初期化に失敗しました</p>
+          </div>
+        `;
+      }
+    }
+  });
+</script>
+
+<!-- MapLibre GL JSのスタイルシート -->
+<link href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css" rel="stylesheet" />
