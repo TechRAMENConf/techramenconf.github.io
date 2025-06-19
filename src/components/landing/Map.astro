@@ -1,0 +1,731 @@
+---
+// 地図コンポーネント - MapLibre GL JSを使用
+---
+
+<section class="section-colored section-primary" id="map">
+  <div class="container">
+    <h2 class="text-center mb-8">
+      <span class="title-plate title-plate-xl">周辺マップ</span>
+    </h2>
+    <div class="card control-panel-screw-enhanced p-8 md:p-8 max-w-6xl mx-auto">
+      <!-- Map Status Panel -->
+      <div class="led-panel mb-6 flex justify-center">
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2">
+            <div class="led-indicator led-sm led-green led-pulse"></div>
+            <span class="text-xs font-mono text-gray-600">MAP LOADING</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="led-indicator led-sm led-blue"></div>
+            <span class="text-xs font-mono text-gray-600">LOCATION READY</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="led-indicator led-sm led-yellow"></div>
+            <span class="text-xs font-mono text-gray-600">RECOMMEND SPOTS</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- フィルタリングコントロール -->
+      <div id="filter-controls" class="mb-4 p-4 bg-gray-100 rounded-lg border-2 border-gray-300">
+        <div id="filter-checkboxes" class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+          <!-- チェックボックスはJavaScriptで動的に生成 -->
+        </div>
+      </div>
+      
+      <!-- 地図コンテナ -->
+      <div id="map-container" class="w-full h-[500px] rounded-lg overflow-hidden relative">
+        <div id="map-loading" class="absolute inset-0 flex items-center justify-center bg-gray-100">
+          <div class="text-center">
+            <div class="led-indicator led-green led-pulse mb-4"></div>
+            <p class="font-mono text-sm text-gray-600">地図を読み込み中...</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 会場情報 -->
+      <div class="mt-6 text-center">
+        <h3 class="text-lg font-kikai mb-2">旭川リサーチセンター</h3>
+        <p class="text-sm text-gray-600 font-mono">〒078-8801 北海道旭川市緑が丘東1条3丁目1-6</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  #map-container {
+    border: 2px solid #e0e0e0;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* MapLibre GL JSのコントロールのスタイル調整 */
+  :global(.maplibregl-ctrl-group) {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #00ff00;
+    border-radius: 8px;
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+  }
+  
+  :global(.maplibregl-ctrl-group button) {
+    border-color: #00ff00;
+  }
+  
+  :global(.maplibregl-ctrl-group button:hover) {
+    background-color: rgba(0, 255, 0, 0.1);
+  }
+  
+  :global(.maplibregl-popup-content) {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #00ff00;
+    border-radius: 8px;
+    box-shadow: 0 0 12px rgba(0, 255, 0, 0.5);
+    padding: 16px;
+    font-family: 'Comic Neue', cursive;
+  }
+  
+  :global(.maplibregl-popup-anchor-bottom .maplibregl-popup-tip) {
+    border-top-color: #00ff00;
+  }
+  
+  /* KMZポップアップのスタイル */
+  :global(.kmz-popup) {
+    max-width: 250px;
+  }
+  
+  :global(.kmz-popup h4) {
+    color: #00cc00;
+    text-shadow: 0 0 4px rgba(0, 255, 0, 0.3);
+  }
+  
+  /* MAPアプリで開くボタンのスタイル */
+  :global(.map-app-button) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 8px 12px;
+    background: linear-gradient(145deg, #00ff00, #00cc00);
+    color: #000;
+    border: 2px solid #00aa00;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: bold;
+    font-family: 'Comic Neue', cursive;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 255, 0, 0.3);
+  }
+  
+  :global(.map-app-button:hover) {
+    background: linear-gradient(145deg, #00cc00, #00aa00);
+    box-shadow: 0 4px 8px rgba(0, 255, 0, 0.5);
+    transform: translateY(-1px);
+  }
+  
+  :global(.map-app-button:active) {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 255, 0, 0.3);
+  }
+  
+  /* フィルターコントロールのスタイル */
+  #filter-controls {
+    background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* カスタムチェックボックス */
+  .filter-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  
+  .filter-checkbox input[type="checkbox"] {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #666;
+    border-radius: 3px;
+    background: #fff;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+  }
+  
+  .filter-checkbox input[type="checkbox"]:checked {
+    background: #00ff00;
+    border-color: #00cc00;
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+  }
+  
+  .filter-checkbox input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: -2px;
+    left: 2px;
+    color: #000;
+    font-weight: bold;
+    font-size: 12px;
+  }
+  
+  .filter-checkbox span {
+    font-family: 'Comic Neue', cursive;
+    color: #333;
+  }
+  
+  .filter-checkbox:hover input[type="checkbox"] {
+    border-color: #00ff00;
+  }
+</style>
+
+<script>
+  import maplibregl from 'maplibre-gl';
+  import { KMZLayer } from 'maplibre-gl-kmz-layer';
+  
+  // 会場の座標（旭川リサーチセンター）
+  const venueCoordinates: [number, number] = [142.393959, 43.7246968];
+  
+  // フィルターカテゴリーと色の定義
+  const filterCategories = new Map();
+  let kmzLayerRef = null;
+  let mapRef = null;
+  
+  // フィルター状態を管理
+  const activeFilters = new Set();
+  
+  // MAPアプリで開く関数をグローバルスコープに定義
+  (window as any).openInMapApp = function(lat: number, lng: number, placeName: string) {
+    // デバイスの判定
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    
+    let mapUrl = '';
+    
+    if (isIOS) {
+      // iOSデバイスの場合はApple Mapsを優先
+      mapUrl = `maps://maps.apple.com/?ll=${lat},${lng}&q=${placeName}`;
+      // フォールバックとしてhttpsも試す
+      window.location.href = mapUrl;
+      setTimeout(() => {
+        window.location.href = `https://maps.apple.com/?ll=${lat},${lng}&q=${placeName}`;
+      }, 500);
+    } else {
+      // AndroidまたはPCの場合はGoogle Mapsを使用
+      mapUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+      window.open(mapUrl, '_blank');
+    }
+  };
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    const mapContainer = document.getElementById('map-container');
+    const loadingElement = document.getElementById('map-loading');
+    const filterCheckboxesContainer = document.getElementById('filter-checkboxes');
+    
+    if (!mapContainer) return;
+    
+    try {
+      // 地図の初期化
+      const map = new maplibregl.Map({
+        container: 'map-container',
+        style: {
+          version: 8,
+          sources: {
+            osm: {
+              type: 'raster',
+              tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+              tileSize: 256,
+              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }
+          },
+          layers: [{
+            id: 'osm',
+            type: 'raster',
+            source: 'osm'
+          }]
+        },
+        center: venueCoordinates,
+        zoom: 10,
+        attributionControl: true
+      });
+      
+      mapRef = map;
+      
+      // 地図の読み込み完了時
+      map.on('load', () => {
+        // ローディング表示を非表示
+        if (loadingElement) {
+          loadingElement.style.display = 'none';
+        }
+        
+        // ナビゲーションコントロールを追加
+        map.addControl(new maplibregl.NavigationControl(), 'top-right');
+        
+        // フルスクリーンコントロールを追加
+        map.addControl(new maplibregl.FullscreenControl(), 'top-right');
+        
+        // KMZレイヤーを追加
+        try {
+          const kmzLayer = new KMZLayer({
+            url: '/TechRAMEN25Conf - もろもろオススメ MAP.kmz',
+            id: 'recommend-map',
+            interactive: true,
+            pointOptions: {
+              iconSize: 0.1,
+              iconColor: '#ffff00',
+              iconOpacity: 0.8,
+              textColor: '#000000',
+              textSize: 12,
+              textOffset: [0, 1.5]
+            },
+            lineOptions: {
+              lineColor: '#00ff00',
+              lineWidth: 3,
+              lineOpacity: 0.8
+            },
+            polygonOptions: {
+              fillColor: '#00ccff',
+              fillOpacity: 0.3,
+              outlineColor: '#0099cc',
+              outlineWidth: 2
+            }
+          });
+          
+          // KMZレイヤーを地図に追加
+          kmzLayer.addTo(map);
+          kmzLayerRef = kmzLayer;
+          
+          // カテゴリー数を更新する関数
+          function updateCategoryCounts() {
+            const visibleFeatures = map.queryRenderedFeatures({ layers: ['recommend-map-points', 'recommend-map-icon-points'] });
+            const visibleCounts = new Map();
+            
+            // 表示中のフィーチャーをカテゴリーごとにカウント
+            visibleFeatures.forEach(feature => {
+              if (feature.properties) {
+                let category = 'その他';
+                const iconStyle = feature.properties._style || '';
+                
+                let iconPath = '';
+                if (typeof iconStyle === 'object' && iconStyle.icon) {
+                  iconPath = iconStyle.icon;
+                } else if (typeof iconStyle === 'string') {
+                  iconPath = iconStyle;
+                }
+                
+                const iconMatch = iconPath.match(/icon-(\d+)\.png/);
+                if (iconMatch) {
+                  const iconNumber = parseInt(iconMatch[1]);
+                  
+                  if ([1, 2, 3].includes(iconNumber)) {
+                    category = '主要拠点';
+                  } else if ([4, 5, 6, 12, 13, 15, 16, 17].includes(iconNumber)) {
+                    category = '飲食店';
+                  } else if ([7, 8, 9, 11].includes(iconNumber)) {
+                    category = '温泉';
+                  } else if (iconNumber === 10) {
+                    category = 'ラーメン';
+                  } else if (iconNumber === 14) {
+                    category = '観光';
+                  }
+                }
+                
+                visibleCounts.set(category, (visibleCounts.get(category) || 0) + 1);
+              }
+            });
+            
+            // カウント表示を更新
+            visibleCounts.forEach((count, category) => {
+              const categoryId = category.replace(/\s+/g, '-');
+              const checkbox = document.querySelector(`#filter-${categoryId}`);
+              if (checkbox) {
+                const label = checkbox.closest('label');
+                const span = label?.querySelector('span');
+                if (span) {
+                  const totalCount = filterCategories.get(category)?.length || 0;
+                  span.textContent = `${category} (${count})`;
+                }
+              }
+            });
+          }
+          
+          // KMZデータが読み込まれた後にフィルターを作成
+          // タイムアウトを使用してKMZレイヤーが完全に読み込まれるのを待つ
+          setTimeout(() => {
+            // 全フィーチャーを取得（ビューポート外も含む）
+            // 注: querySourceFeaturesが使えない場合は、大きめのバウンディングボックスで取得
+            const bounds = map.getBounds();
+            const sw = bounds.getSouthWest();
+            const ne = bounds.getNorthEast();
+            
+            // バウンディングボックスを拡大して全フィーチャーを取得
+            const expandedBounds = [
+              [sw.lng - 1, sw.lat - 1],
+              [ne.lng + 1, ne.lat + 1]
+            ];
+            
+            const features = map.queryRenderedFeatures(undefined, { 
+              layers: ['recommend-map-points', 'recommend-map-icon-points'] 
+            });
+            
+            
+            // カテゴリーごとにフィーチャーを分類
+            features.forEach(feature => {
+              if (feature.properties) {
+                
+                // アイコン番号でカテゴリーを判定
+                let category = 'その他';
+                const iconStyle = feature.properties._style || '';
+                
+                // _styleがオブジェクトの場合、iconプロパティを取得
+                let iconPath = '';
+                if (typeof iconStyle === 'object' && iconStyle.icon) {
+                  iconPath = iconStyle.icon;
+                } else if (typeof iconStyle === 'string') {
+                  iconPath = iconStyle;
+                }
+                
+                // アイコン番号を抽出（例: "images/icon-13.png" から 13）
+                const iconMatch = iconPath.match(/icon-(\d+)\.png/);
+                if (iconMatch) {
+                  const iconNumber = parseInt(iconMatch[1]);
+                  
+                  // アイコン番号に基づいてカテゴリーを設定
+                  if ([1, 2, 3].includes(iconNumber)) {
+                    category = '主要拠点';
+                  } else if ([4, 5, 6, 12, 13, 15, 16, 17].includes(iconNumber)) {
+                    category = '飲食店';
+                  } else if ([7, 8, 9, 11].includes(iconNumber)) {
+                    category = '温泉';
+                  } else if (iconNumber === 10) {
+                    category = 'ラーメン';
+                  } else if (iconNumber === 14) {
+                    category = '観光';
+                  }
+                }
+                
+                if (!filterCategories.has(category)) {
+                  filterCategories.set(category, []);
+                }
+                filterCategories.get(category).push(feature);
+                
+                // フィーチャーにカテゴリー情報を追加（フィルタリング用）
+                // 注: この追加は実際のレイヤーには反映されない可能性がある
+                feature.properties._category = category;
+              }
+            });
+            
+            
+            // フィルターチェックボックスを生成
+            if (filterCheckboxesContainer && filterCategories.size > 0) {
+              filterCheckboxesContainer.innerHTML = '';
+              
+              // activeFiltersを初期化
+              activeFilters.clear();
+              
+              // 全て表示チェックボックス
+              const allLabel = document.createElement('label');
+              allLabel.className = 'filter-checkbox';
+              allLabel.innerHTML = `
+                <input type="checkbox" id="filter-all" checked>
+                <span>すべて表示</span>
+              `;
+              filterCheckboxesContainer.appendChild(allLabel);
+              
+              // カテゴリーごとのチェックボックス
+              filterCategories.forEach((features, category) => {
+                const label = document.createElement('label');
+                label.className = 'filter-checkbox';
+                const categoryId = category.replace(/\s+/g, '-'); // スペースをハイフンに置換
+                label.innerHTML = `
+                  <input type="checkbox" id="filter-${categoryId}" value="${category}" checked>
+                  <span>${category} (0)</span>
+                `;
+                filterCheckboxesContainer.appendChild(label);
+                activeFilters.add(category);
+              });
+              
+              // チェックボックスのイベントリスナー
+              filterCheckboxesContainer.addEventListener('change', (e) => {
+                const target = e.target as HTMLInputElement;
+                if (target.type !== 'checkbox') return;
+                
+                if (target.id === 'filter-all') {
+                  // 全て表示/非表示
+                  const checkboxes = filterCheckboxesContainer.querySelectorAll('input[type="checkbox"]:not(#filter-all)');
+                  checkboxes.forEach((cb: HTMLInputElement) => {
+                    cb.checked = target.checked;
+                    const categoryValue = cb.value;
+                    if (target.checked) {
+                      activeFilters.add(categoryValue);
+                    } else {
+                      activeFilters.delete(categoryValue);
+                    }
+                  });
+                } else if (target.value) {
+                  // 個別カテゴリー
+                  const categoryValue = target.value;
+                  if (target.checked) {
+                    activeFilters.add(categoryValue);
+                  } else {
+                    activeFilters.delete(categoryValue);
+                  }
+                  
+                  // 全て表示チェックボックスの状態を更新
+                  const allCheckbox = document.getElementById('filter-all') as HTMLInputElement;
+                  if (allCheckbox) {
+                    const categoryCheckboxes = filterCheckboxesContainer.querySelectorAll('input[type="checkbox"]:not(#filter-all)');
+                    const allChecked = Array.from(categoryCheckboxes).every((cb: HTMLInputElement) => cb.checked);
+                    allCheckbox.checked = allChecked;
+                  }
+                }
+                
+                // フィルターを適用
+                applyFilters();
+              });
+              
+              // 初期状態でフィルターを適用（全て表示）
+              applyFilters();
+              
+              // 初期カウントを更新
+              setTimeout(() => {
+                updateCategoryCounts();
+              }, 100);
+              
+              // ズームやパン時にカウントを更新
+              map.on('moveend', () => {
+                updateCategoryCounts();
+              });
+              
+              // データ読み込み完了時にもカウントを更新
+              map.on('data', (e) => {
+                if (e.isSourceLoaded && e.sourceId === 'recommend-map') {
+                  setTimeout(() => {
+                    updateCategoryCounts();
+                  }, 100);
+                }
+              });
+            }
+          }, 2000); // 2秒待機
+          
+          // フィルター適用関数
+          function applyFilters() {
+            if (!mapRef) return;
+            
+            
+            // レイヤーの表示/非表示を制御
+            ['recommend-map-points', 'recommend-map-icon-points'].forEach(layerId => {
+              if (mapRef.getLayer(layerId)) {
+                if (activeFilters.size === 0) {
+                  // 何も選択されていない場合は非表示
+                  mapRef.setLayoutProperty(layerId, 'visibility', 'none');
+                } else {
+                  // 一部選択の場合はフィルターを適用
+                  mapRef.setLayoutProperty(layerId, 'visibility', 'visible');
+                  
+                  // _style属性を使用してフィルターを作成
+                  const conditions = [];
+                  activeFilters.forEach(category => {
+                      if (category === '主要拠点') {
+                        conditions.push(['any',
+                          ['in', 'icon-1.png', ['get', 'icon', ['get', '_style']]],
+                          ['in', 'icon-2.png', ['get', 'icon', ['get', '_style']]],
+                          ['in', 'icon-3.png', ['get', 'icon', ['get', '_style']]]
+                        ]);
+                      } else if (category === '飲食店') {
+                        conditions.push(['any',
+                          ['in', 'icon-4.png', ['get', 'icon', ['get', '_style']]],
+                          ['in', 'icon-5.png', ['get', 'icon', ['get', '_style']]],
+                          ['in', 'icon-6.png', ['get', 'icon', ['get', '_style']]],
+                          ['in', 'icon-12.png', ['get', 'icon', ['get', '_style']]],
+                          ['in', 'icon-13.png', ['get', 'icon', ['get', '_style']]],
+                          ['in', 'icon-15.png', ['get', 'icon', ['get', '_style']]],
+                          ['in', 'icon-16.png', ['get', 'icon', ['get', '_style']]],
+                          ['in', 'icon-17.png', ['get', 'icon', ['get', '_style']]]
+                        ]);
+                      } else if (category === '温泉') {
+                        conditions.push(['any',
+                          ['in', 'icon-7.png', ['get', 'icon', ['get', '_style']]],
+                          ['in', 'icon-8.png', ['get', 'icon', ['get', '_style']]],
+                          ['in', 'icon-9.png', ['get', 'icon', ['get', '_style']]],
+                          ['in', 'icon-11.png', ['get', 'icon', ['get', '_style']]]
+                        ]);
+                      } else if (category === 'ラーメン') {
+                        conditions.push(['in', 'icon-10.png', ['get', 'icon', ['get', '_style']]]);
+                      } else if (category === '観光') {
+                        conditions.push(['in', 'icon-14.png', ['get', 'icon', ['get', '_style']]]);
+                      } else if (category === 'その他') {
+                        // 指定されたアイコン以外
+                        conditions.push(['all',
+                          ['!', ['in', 'icon-1.png', ['get', 'icon', ['get', '_style']]]],
+                          ['!', ['in', 'icon-2.png', ['get', 'icon', ['get', '_style']]]],
+                          ['!', ['in', 'icon-3.png', ['get', 'icon', ['get', '_style']]]],
+                          ['!', ['in', 'icon-4.png', ['get', 'icon', ['get', '_style']]]],
+                          ['!', ['in', 'icon-5.png', ['get', 'icon', ['get', '_style']]]],
+                          ['!', ['in', 'icon-6.png', ['get', 'icon', ['get', '_style']]]],
+                          ['!', ['in', 'icon-7.png', ['get', 'icon', ['get', '_style']]]],
+                          ['!', ['in', 'icon-8.png', ['get', 'icon', ['get', '_style']]]],
+                          ['!', ['in', 'icon-9.png', ['get', 'icon', ['get', '_style']]]],
+                          ['!', ['in', 'icon-10.png', ['get', 'icon', ['get', '_style']]]],
+                          ['!', ['in', 'icon-11.png', ['get', 'icon', ['get', '_style']]]],
+                          ['!', ['in', 'icon-12.png', ['get', 'icon', ['get', '_style']]]],
+                          ['!', ['in', 'icon-13.png', ['get', 'icon', ['get', '_style']]]],
+                          ['!', ['in', 'icon-14.png', ['get', 'icon', ['get', '_style']]]],
+                          ['!', ['in', 'icon-15.png', ['get', 'icon', ['get', '_style']]]],
+                          ['!', ['in', 'icon-16.png', ['get', 'icon', ['get', '_style']]]],
+                          ['!', ['in', 'icon-17.png', ['get', 'icon', ['get', '_style']]]]
+                        ]);
+                      }
+                  });
+                  
+                  if (conditions.length > 0) {
+                    const filter = conditions.length === 1 ? conditions[0] : ['any', ...conditions];
+                    try {
+                      // フィルターを適用
+                      mapRef.setLayoutProperty(layerId, 'visibility', 'visible');
+                      mapRef.setFilter(layerId, filter);
+                    } catch (err) {
+                      console.error('Filter error:', err);
+                    }
+                  } else {
+                    // 条件がない場合は非表示
+                    mapRef.setLayoutProperty(layerId, 'visibility', 'none');
+                  }
+                }
+              }
+            });
+          }
+          
+          // クリックイベントの設定
+          map.on('click', (e) => {
+            // KMZレイヤーが存在しない場合は処理を終了
+            if (!kmzLayer) return;
+            
+            // クリック位置のフィーチャーを取得
+            const features = map.queryRenderedFeatures(e.point, {
+              layers: ['recommend-map-points', 'recommend-map-lines', 'recommend-map-fills', 'recommend-map-icon-points']
+            });
+            
+            if (features.length > 0) {
+              const feature = features[0];
+              const properties = feature.properties;
+              
+              
+              // 属性情報をHTMLに整形
+              let popupContent = '<div class="kmz-popup">';
+              
+              // 名前を表示
+              if (properties.name) {
+                popupContent += `<h4 class="font-bold text-base mb-2">${properties.name}</h4>`;
+              }
+              
+              // 説明を表示
+              if (properties.description) {
+                popupContent += `<p class="text-sm mb-2">${properties.description}</p>`;
+              }
+              
+              
+              // その他の属性を表示
+              popupContent += '<div class="text-xs text-gray-600 mt-2">';
+              for (const [key, value] of Object.entries(properties)) {
+                if (key !== 'name' && key !== 'description' && key !== '_style' && value) {
+                  const displayKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
+                  popupContent += `<p><strong>${displayKey}:</strong> ${value}</p>`;
+                }
+              }
+              popupContent += '</div>';
+              
+              // MAPアプリで開くボタンを追加
+              // フィーチャーの実際の座標を取得
+              let lat, lng;
+              
+              if (feature.geometry.type === 'Point') {
+                // ポイントの場合は直接座標を取得
+                lng = feature.geometry.coordinates[0];
+                lat = feature.geometry.coordinates[1];
+              } else if (feature.geometry.type === 'LineString' || feature.geometry.type === 'Polygon') {
+                // ラインやポリゴンの場合はクリック位置を使用
+                lat = e.lngLat.lat;
+                lng = e.lngLat.lng;
+              } else {
+                // その他の場合もクリック位置を使用
+                lat = e.lngLat.lat;
+                lng = e.lngLat.lng;
+              }
+              
+              const placeName = encodeURIComponent(properties.name || '地点');
+              
+              // Google Maps URLスキーム（iOS/Android対応）
+              const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+              
+              // Apple Maps URLスキーム（iOS）
+              const appleMapsUrl = `https://maps.apple.com/?ll=${lat},${lng}&q=${placeName}`;
+              
+              popupContent += `
+                <div class="mt-3 pt-3 border-t border-gray-200">
+                  <button onclick="openInMapApp(${lat}, ${lng}, '${placeName}')" class="map-app-button">
+                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    MAPアプリで開く
+                  </button>
+                </div>
+              `;
+              
+              popupContent += '</div>';
+              
+              // ポップアップを作成して表示
+              new maplibregl.Popup({ 
+                offset: 25,
+                maxWidth: '300px'
+              })
+                .setLngLat(e.lngLat)
+                .setHTML(popupContent)
+                .addTo(map);
+            }
+          });
+          
+          // マウスカーソルをポインターに変更
+          map.on('mouseenter', 'recommend-map-points', () => {
+            map.getCanvas().style.cursor = 'pointer';
+          });
+          
+          map.on('mouseleave', 'recommend-map-points', () => {
+            map.getCanvas().style.cursor = '';
+          });
+        } catch (kmzError) {
+          console.error('KMZレイヤーの追加に失敗しました:', kmzError);
+        }
+      });
+      
+      // エラーハンドリング
+      map.on('error', (e) => {
+        console.error('Map error:', e);
+        if (loadingElement) {
+          loadingElement.innerHTML = `
+            <div class="text-center">
+              <div class="led-indicator led-red led-blink mb-4"></div>
+              <p class="font-mono text-sm text-red-600">地図の読み込みに失敗しました</p>
+            </div>
+          `;
+        }
+      });
+      
+    } catch (error) {
+      console.error('Map initialization error:', error);
+      if (loadingElement) {
+        loadingElement.innerHTML = `
+          <div class="text-center">
+            <div class="led-indicator led-red led-blink mb-4"></div>
+            <p class="font-mono text-sm text-red-600">地図の初期化に失敗しました</p>
+          </div>
+        `;
+      }
+    }
+  });
+</script>
+
+<!-- MapLibre GL JSのスタイルシート -->
+<link href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css" rel="stylesheet" />
