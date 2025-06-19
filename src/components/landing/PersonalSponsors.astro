@@ -28,7 +28,7 @@ const personalSponsors = await response.json();
       
       <div class="flex flex-wrap justify-center gap-4">
         {
-          personalSponsors.map((sponsor) => (
+          personalSponsors.map((sponsor: any) => (
             <div class="relative group">
               {sponsor.twitterUrl ? (
                 <a href={sponsor.twitterUrl} class="block transition-transform hover:scale-110">

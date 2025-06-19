@@ -2,7 +2,7 @@
 import Parser from 'rss-parser';
 
 const parser = new Parser();
-let items = [];
+let items: any[] = [];
 
 try {
   const feed = await parser.parseURL('https://note.com/techramenconf/m/m0938ea0596c0/rss');
