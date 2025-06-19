@@ -188,9 +188,9 @@
   const venueCoordinates: [number, number] = [142.393959, 43.7246968];
   
   // フィルターカテゴリーと色の定義
-  const filterCategories = new Map();
-  let kmzLayerRef = null;
-  let mapRef = null;
+  const filterCategories = new Map<string, any[]>();
+  let kmzLayerRef: any = null;
+  let mapRef: any = null;
   
   // フィルター状態を管理
   const activeFilters = new Set();
@@ -247,7 +247,9 @@
         },
         center: venueCoordinates,
         zoom: 10,
-        attributionControl: true
+        attributionControl: {
+          compact: true
+        }
       });
       
       mapRef = map;
@@ -269,28 +271,8 @@
         try {
           const kmzLayer = new KMZLayer({
             url: '/TechRAMEN25Conf - もろもろオススメ MAP.kmz',
-            id: 'recommend-map',
-            interactive: true,
-            pointOptions: {
-              iconSize: 0.1,
-              iconColor: '#ffff00',
-              iconOpacity: 0.8,
-              textColor: '#000000',
-              textSize: 12,
-              textOffset: [0, 1.5]
-            },
-            lineOptions: {
-              lineColor: '#00ff00',
-              lineWidth: 3,
-              lineOpacity: 0.8
-            },
-            polygonOptions: {
-              fillColor: '#00ccff',
-              fillOpacity: 0.3,
-              outlineColor: '#0099cc',
-              outlineWidth: 2
-            }
-          });
+            id: 'recommend-map'
+          } as any);
           
           // KMZレイヤーを地図に追加
           kmzLayer.addTo(map);
@@ -408,7 +390,7 @@
                 if (!filterCategories.has(category)) {
                   filterCategories.set(category, []);
                 }
-                filterCategories.get(category).push(feature);
+                filterCategories.get(category)?.push(feature);
                 
                 // フィーチャーにカテゴリー情報を追加（フィルタリング用）
                 // 注: この追加は実際のレイヤーには反映されない可能性がある
@@ -454,9 +436,10 @@
                 if (target.id === 'filter-all') {
                   // 全て表示/非表示
                   const checkboxes = filterCheckboxesContainer.querySelectorAll('input[type="checkbox"]:not(#filter-all)');
-                  checkboxes.forEach((cb: HTMLInputElement) => {
-                    cb.checked = target.checked;
-                    const categoryValue = cb.value;
+                  checkboxes.forEach((cb) => {
+                    const checkbox = cb as HTMLInputElement;
+                    checkbox.checked = target.checked;
+                    const categoryValue = checkbox.value;
                     if (target.checked) {
                       activeFilters.add(categoryValue);
                     } else {
@@ -476,7 +459,7 @@
                   const allCheckbox = document.getElementById('filter-all') as HTMLInputElement;
                   if (allCheckbox) {
                     const categoryCheckboxes = filterCheckboxesContainer.querySelectorAll('input[type="checkbox"]:not(#filter-all)');
-                    const allChecked = Array.from(categoryCheckboxes).every((cb: HTMLInputElement) => cb.checked);
+                    const allChecked = Array.from(categoryCheckboxes).every((cb) => (cb as HTMLInputElement).checked);
                     allCheckbox.checked = allChecked;
                   }
                 }
@@ -499,7 +482,7 @@
               });
               
               // データ読み込み完了時にもカウントを更新
-              map.on('data', (e) => {
+              map.on('data', (e: any) => {
                 if (e.isSourceLoaded && e.sourceId === 'recommend-map') {
                   setTimeout(() => {
                     updateCategoryCounts();
@@ -525,7 +508,7 @@
                   mapRef.setLayoutProperty(layerId, 'visibility', 'visible');
                   
                   // _style属性を使用してフィルターを作成
-                  const conditions = [];
+                  const conditions: any[] = [];
                   activeFilters.forEach(category => {
                       if (category === '主要拠点') {
                         conditions.push(['any',

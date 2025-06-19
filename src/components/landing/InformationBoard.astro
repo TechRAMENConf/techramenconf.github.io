@@ -97,11 +97,13 @@ const announcements = [
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const marqueeContainer = document.querySelector('.marquee-container');
+    const marqueeContainer = document.querySelector('.marquee-container') as HTMLElement;
     const navDots = document.querySelectorAll('.nav-dot');
     const marqueeContents = document.querySelectorAll('.marquee-content');
     let isPaused = false;
     let animationDuration = 90; // アニメーション時間（秒）
+    
+    if (!marqueeContainer) return;
     
     // ナビゲーションドットのクリックイベント
     navDots.forEach((dot, index) => {
@@ -120,8 +122,9 @@ const announcements = [
         const targetItems = firstContent.querySelectorAll('.marquee-item');
         
         if (targetItems[index]) {
-          const targetItem = targetItems[index];
-          const targetOffset = targetItem.offsetLeft + firstContent.offsetLeft;
+          const targetItem = targetItems[index] as HTMLElement;
+          const firstContentEl = firstContent as HTMLElement;
+          const targetOffset = targetItem.offsetLeft + firstContentEl.offsetLeft;
           
           // スムーズに移動
           marqueeContainer.style.transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
@@ -138,7 +141,7 @@ const announcements = [
               marqueeContainer.style.transition = '';
               
               // 現在の位置から再開するアニメーションを作成
-              const totalWidth = marqueeContents[0].scrollWidth;
+              const totalWidth = (marqueeContents[0] as HTMLElement).scrollWidth;
               const remainingDistance = totalWidth - targetOffset;
               const remainingTime = (remainingDistance / totalWidth) * animationDuration;
               

@@ -2,7 +2,7 @@
 import Parser from 'rss-parser';
 
 const parser = new Parser();
-let items = [];
+let items: any[] = [];
 
 try {
   const feed = await parser.parseURL('https://note.com/techramenconf/m/m0938ea0596c0/rss');
@@ -19,7 +19,7 @@ try {
         <div class="feed-ticker" id="feed-ticker">
           <div class="ticker-content" id="ticker-content">
             {items.map((item, index) => (
-              <span class="ticker-item" data-index={index} key={index}>
+              <span class="ticker-item" data-index={index}>
                 <span class="ticker-date">{new Date(item.pubDate).toLocaleDateString('ja-JP')}</span>
                 <span class="ticker-separator">●</span>
                 <a href={item.link} target="_blank" rel="noopener noreferrer" class="ticker-link">
@@ -30,7 +30,7 @@ try {
             ))}
             {/* 連続スクロールのため同じコンテンツを複製 */}
             {items.map((item, index) => (
-              <span class="ticker-item ticker-clone" data-index={index} key={`clone-${index}`}>
+              <span class="ticker-item ticker-clone" data-index={index}>
                 <span class="ticker-date">{new Date(item.pubDate).toLocaleDateString('ja-JP')}</span>
                 <span class="ticker-separator">●</span>
                 <a href={item.link} target="_blank" rel="noopener noreferrer" class="ticker-link">
@@ -61,23 +61,22 @@ try {
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const ticker = document.getElementById('ticker-content');
-    const tickerParent = document.getElementById('feed-ticker');
+    const ticker = document.getElementById('ticker-content') as HTMLElement;
+    const tickerParent = document.getElementById('feed-ticker') as HTMLElement;
     const navDots = document.querySelectorAll('.nav-dot');
     let isPaused = false;
-    let animationId = null;
-    let currentPosition = 0;
+    
+    if (!ticker || !tickerParent) return;
 
     // 各記事の位置を記録
     const getItemPositions = () => {
       const items = document.querySelectorAll('.ticker-item:not(.ticker-clone)');
-      const positions = [];
+      const positions: any[] = [];
       items.forEach((item, index) => {
-        const rect = item.getBoundingClientRect();
-        const parentRect = tickerParent.getBoundingClientRect();
+        const element = item as HTMLElement;
         positions.push({
           index,
-          offset: item.offsetLeft
+          offset: element.offsetLeft
         });
       });
       return positions;
@@ -95,10 +94,10 @@ try {
           // 現在位置を取得
           const computedStyle = window.getComputedStyle(ticker);
           const matrix = new WebKitCSSMatrix(computedStyle.transform);
-          currentPosition = matrix.m41;
+          const currentPosition = matrix.m41;
           
           // ターゲット位置を計算
-          const targetItem = items[index];
+          const targetItem = items[index] as HTMLElement;
           const targetOffset = targetItem.offsetLeft;
           
           // スムーズに移動
@@ -165,9 +164,7 @@ try {
     });
 
     // タッチデバイス対応
-    let touchStartX = 0;
     tickerParent.addEventListener('touchstart', (e) => {
-      touchStartX = e.touches[0].clientX;
       ticker.style.animationPlayState = 'paused';
     });
 
