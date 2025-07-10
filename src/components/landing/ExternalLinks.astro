@@ -16,9 +16,9 @@
     </div>
 
     <!-- メインのチケット購入ボタン -->
-    <div class="flex justify-center mb-8 relative">
+    <div class="flex flex-col sm:flex-row justify-center gap-4 mb-8 relative">
       <!-- LED装飾パネル -->
-      <div class="absolute -left-12 top-1/2 transform -translate-y-1/2 hidden md:block">
+      <div class="absolute -left-12 top-1/2 transform -translate-y-1/2 hidden lg:block">
         <div class="led-strip">
           <div class="led-indicator led-sm led-green led-pulse"></div>
           <div class="led-indicator led-sm led-green"></div>
@@ -36,8 +36,18 @@
         チケットを購入
       </a>
       
+      <a 
+        href="https://fortee.jp/techramen-25-conf/timetable" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        class="btn btn-secondary text-xl px-12 py-6 flex items-center gap-3 control-button text-gray-800 font-bold"
+      >
+        <ion-icon name="time-outline" class="text-2xl"></ion-icon>
+        タイムテーブル
+      </a>
+      
       <!-- LED装飾パネル -->
-      <div class="absolute -right-12 top-1/2 transform -translate-y-1/2 hidden md:block">
+      <div class="absolute -right-12 top-1/2 transform -translate-y-1/2 hidden lg:block">
         <div class="led-strip">
           <div class="led-indicator led-sm led-green led-pulse"></div>
           <div class="led-indicator led-sm led-green"></div>
