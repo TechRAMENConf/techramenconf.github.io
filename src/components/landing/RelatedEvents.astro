@@ -1,0 +1,143 @@
+---
+const relatedEvents = [
+  {
+    title: "合宿",
+    name: "【非公式】合宿イベント",
+    url: "https://fortee.jp/techramen-25-conf/ticket-shop/index/e9652237-b39d-4938-954c-3c8957cb0329"
+  },
+  {
+    title: "前前日祭",
+    name: "とみおめし #techramen25conf 前前夜祭",
+    url: "https://tomiobanquet.connpass.com/event/361310/"
+  },
+  {
+    title: "前日昼祭",
+    name: "函館本線沿線勉強会 ~HNSAdev~ @旭川 2号車 もくもく会",
+    url: "https://hnsadev.connpass.com/event/359673/"
+  },
+  {
+    title: "前日夜祭1",
+    name: "【旭川7/25】多田さんとのSpring勉強会！ #TechRamen25conf 非公式前夜祭",
+    url: "https://javado.connpass.com/event/361355/"
+  },
+  {
+    title: "前日夜祭2",
+    name: "hokkaido.js vol.03 x #techramen25conf 非公式前夜祭",
+    url: "https://hokkaido-js.connpass.com/event/358257/"
+  },
+  {
+    title: "前日懇親会",
+    name: "【非公式】#techramen25conf 前夜祭懇親会",
+    url: "https://techramenconf.connpass.com/event/359046/"
+  },
+  {
+    title: "後日祭",
+    name: "ゆるい #techramen25conf 非公式後日祭 - コントリビュートまつり+",
+    url: "https://asahikawa.connpass.com/event/361169/"
+  }
+];
+---
+
+<section class="section-dark py-16">
+  <div class="container">
+    <!-- セクションタイトル -->
+    <div class="text-center mb-10">
+      <h2 class="text-center mb-2">
+        <span class="title-plate title-plate-large">
+          関連イベント
+        </span>
+      </h2>
+      <p class="text-led-green text-sm font-kikai">
+        TechRAMEN 2025 Conference の前後に開催される関連イベント
+      </p>
+    </div>
+
+    <!-- イベントリスト -->
+    <div class="max-w-4xl mx-auto">
+      <div class="space-y-4">
+        {relatedEvents.map((event) => (
+          <div class="circuit-board-card p-4 sm:p-6">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <!-- イベント種別タグ -->
+              <div class="flex-shrink-0">
+                <span class="inline-block px-3 py-1 text-xs font-bold bg-led-green text-gray-900 circuit-board-border">
+                  {event.title}
+                </span>
+              </div>
+              
+              <!-- イベント名とリンク -->
+              <div class="flex-grow">
+                <a 
+                  href={event.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-led-green hover:text-led-orange transition-colors duration-200 font-bold text-sm sm:text-base inline-flex items-center gap-2 group"
+                >
+                  <span class="break-all">{event.name}</span>
+                  <ion-icon 
+                    name="open-outline" 
+                    class="flex-shrink-0 text-sm opacity-70 group-hover:opacity-100 transition-opacity"
+                  ></ion-icon>
+                </a>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- 注意事項 -->
+    <div class="mt-8 text-center">
+      <p class="text-xs text-gray-400 font-kikai">
+        ※ これらは非公式イベントです。詳細は各イベントページをご確認ください。
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .circuit-board-card {
+    background: rgba(255, 255, 240, 0.7);
+    border: 1px solid #333;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .circuit-board-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      linear-gradient(0deg, transparent 24%, rgba(51, 51, 51, 0.05) 25%, rgba(51, 51, 51, 0.05) 26%, transparent 27%, transparent 74%, rgba(51, 51, 51, 0.05) 75%, rgba(51, 51, 51, 0.05) 76%, transparent 77%, transparent),
+      linear-gradient(90deg, transparent 24%, rgba(51, 51, 51, 0.05) 25%, rgba(51, 51, 51, 0.05) 26%, transparent 27%, transparent 74%, rgba(51, 51, 51, 0.05) 75%, rgba(51, 51, 51, 0.05) 76%, transparent 77%, transparent);
+    background-size: 30px 30px;
+    pointer-events: none;
+  }
+
+  .circuit-board-border {
+    border: 1px solid currentColor;
+    position: relative;
+  }
+
+  .circuit-board-border::before,
+  .circuit-board-border::after {
+    content: '';
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: currentColor;
+  }
+
+  .circuit-board-border::before {
+    top: -2px;
+    left: -2px;
+  }
+
+  .circuit-board-border::after {
+    bottom: -2px;
+    right: -2px;
+  }
+</style>
