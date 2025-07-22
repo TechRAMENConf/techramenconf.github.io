@@ -310,5 +310,17 @@
 		"avatarUrl": "/e-fronpeer.png",
 		"screenName": "Eフロンピア合同会社",
 		"url": "https://corp.e-fronpeer.com/"
+	},
+	{
+		"userName": "FOSS4G Hokkaido",
+		"avatarUrl": "/foss4ghokkaido.jpg",
+		"screenName": "FOSS4G Hokkaido",
+		"url": "https://foss4g.hokkaido.jp/"
+	},
+	{
+		"userName": "FOSS4G Hokkaido",
+		"avatarUrl": "/foss4ghokkaido.jpg",
+		"screenName": "FOSS4G Hokkaido",
+		"url": "https://foss4g.hokkaido.jp/"
 	}
 ]
