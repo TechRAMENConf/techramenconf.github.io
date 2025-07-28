@@ -1,0 +1,52 @@
+---
+import { YouTube } from "@astro-community/astro-embed-youtube";
+---
+
+<h2 class="text-center mb-2">
+  <span class="title-plate title-plate-xl">Ending</span>
+</h2>
+<div class="w-full flex justify-center">
+  <div class="w-full max-w-4xl">
+    <div class="aspect-video w-full">
+      <YouTube id="AKwVIEAnOI0" />
+    </div>
+  </div>
+</div>
+
+
+<h2 class="text-center mb-2 mt-8">
+  <span class="title-plate title-plate-xl">Intermission</span>
+</h2>
+<div class="w-full flex justify-center">
+  <div class="w-full max-w-4xl">
+    <div class="aspect-video w-full">
+      <YouTube id="brYPLKBf5Po" />
+    </div>
+  </div>
+</div>
+
+<h2 class="text-center mb-2 mt-8">
+  <span class="title-plate title-plate-xl">Vlog</span>
+</h2>
+<div class="w-full flex justify-center">
+  <div class="w-full max-w-4xl">
+    <div class="aspect-video w-full">
+      <YouTube id="A3a97tl79oo" />
+    </div>
+  </div>
+</div>
+
+<style>
+  /* YouTubeコンポーネントを強制的に中央揃えにし、アスペクト比を維持 */
+  :global(lite-youtube) {
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 auto !important;
+    display: block !important;
+  }
+  
+  :global(lite-youtube iframe) {
+    width: 100% !important;
+    height: 100% !important;
+  }
+</style>
