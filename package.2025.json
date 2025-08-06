@@ -1,0 +1,20 @@
+{
+  "name": "techramenconf-2025",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev --config astro.config.2025.mjs",
+    "start": "astro dev --config astro.config.2025.mjs",
+    "build": "astro check && astro build --config astro.config.2025.mjs",
+    "preview": "astro preview --config astro.config.2025.mjs",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/sitemap": "^3.2.1",
+    "@astrojs/tailwind": "^5.1.2",
+    "astro": "^4.16.9",
+    "tailwindcss": "^3.4.13",
+    "typescript": "^5.6.3"
+  }
+}

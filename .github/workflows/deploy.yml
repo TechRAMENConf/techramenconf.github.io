@@ -21,12 +21,39 @@ jobs:
     steps:
       - name: Checkout your repository using git
         uses: actions/checkout@v4
-      - name: Install, build, and upload your site
-        uses: withastro/action@v2
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          # path: . # リポジトリ内のAstroプロジェクトのルートロケーション。(オプション)
-          node-version: 22 # サイト構築に使用するNodeのバージョン。デフォルトは18です。（オプション）
-          # package-manager: pnpm@latest # 依存関係のインストールとサイトのビルドに使用する Node パッケージマネージャ。ロックファイルに基づいて自動的に検出されます。(オプション)
+          node-version: 22
+          
+      - name: Install dependencies for root
+        run: npm ci
+        
+      - name: Install dependencies for 2025
+        run: cd 2025 && npm ci
+        
+      - name: Build root site (redirect page)
+        run: npm run build
+        
+      - name: Build 2025 site
+        run: cd 2025 && npm run build
+        
+      - name: Merge build outputs
+        run: |
+          mkdir -p dist/2025
+          cp -r 2025/dist/* dist/2025/
+          # Copy static assets that might be referenced with absolute paths
+          cp -r 2025/*.png dist/2025/ 2>/dev/null || true
+          cp -r 2025/*.jpg dist/2025/ 2>/dev/null || true
+          cp -r 2025/*.svg dist/2025/ 2>/dev/null || true
+          cp -r 2025/*.webmanifest dist/2025/ 2>/dev/null || true
+          cp -r 2025/fonts dist/2025/ 2>/dev/null || true
+          
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
 
   deploy:
     needs: build

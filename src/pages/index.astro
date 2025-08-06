@@ -1,42 +1,18 @@
 ---
-import BaseLayout from "@/layouts/BaseLayout.astro";
-import Abstract from "@/components/landing/Abstract.astro";
-import Speakers from "@/components/landing/Speakers.astro";
-import SponsorshipOffers from "@/components/landing/SponsorshipOffers.astro"
-import ExternalLinks from "@/components/landing/ExternalLinks.astro"
-import RelatedEvents from "@/components/landing/RelatedEvents.astro";
-import Personalsponsors from "@/components/landing/PersonalSponsors.astro";
-import Corporatesponsors from "@/components/landing/CorporateSponsors.astro";
-import EndingMovie from "@/components/landing/EndingMovie.astro";
-import StaffList from "@/components/landing/StaffList.astro";
-import InformationBoard from "@/components/landing/InformationBoard.astro";
-import NoteFeedInfo from "@/components/landing/NoteFeedInfo.astro";
-import Map from "@/components/landing/Map.astro";
+// Redirect to 2025 site
 ---
-<BaseLayout>
-  <Abstract />
-  <ExternalLinks />
-  <RelatedEvents />
-  <InformationBoard />
-  <section class="section-colored section-secondary overflow-hidden relative control-panel control-panel-screw-enhanced">
-    <div class="container">
-      <NoteFeedInfo />
-    </div>
-  </section>
-  <Speakers />
-  <SponsorshipOffers />
-  <Personalsponsors />
-  <Corporatesponsors />
-  <StaffList />
-  <Map />
-  <section class="section-colored section-secondary overflow-hidden relative control-panel control-panel-screw-enhanced">
-    <div class="container">
-      <h2 class="text-center mb-4">
-        <span class="title-plate title-plate-xl">2024 ENDING MOVIE</span>
-      </h2>
-      <div class="max-w-3xl mx-auto">
-        <EndingMovie />
-      </div>
-    </div>
-  </section>
-</BaseLayout>
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="0; url=/2025/">
+    <title>Redirecting...</title>
+    <script>
+        window.location.href = "/2025/";
+    </script>
+</head>
+<body>
+    <p>リダイレクト中... もし自動的に移動しない場合は <a href="/2025/">こちら</a> をクリックしてください。</p>
+</body>
+</html>
