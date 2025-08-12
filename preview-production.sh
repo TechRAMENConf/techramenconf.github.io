@@ -27,6 +27,7 @@ cp -r 2025/*.png dist/2025/ 2>/dev/null || true
 cp -r 2025/*.jpg dist/2025/ 2>/dev/null || true
 cp -r 2025/*.svg dist/2025/ 2>/dev/null || true
 cp -r 2025/*.webmanifest dist/2025/ 2>/dev/null || true
+cp -r 2025/*.kmz dist/2025/ 2>/dev/null || true
 cp -r 2025/fonts dist/2025/ 2>/dev/null || true
 
 echo "✅ ビルド完了！"
