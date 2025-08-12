@@ -4,6 +4,7 @@ import sitemap from "@astrojs/sitemap";
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://techramenconf.net/2025/',
+  site: 'https://techramenconf.net/',
+  base: '/2025',
   integrations: [tailwind()]
 })
