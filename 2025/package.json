@@ -5,11 +5,9 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
+    "build": "astro check && astro build",
     "preview": "astro preview",
-    "astro": "astro",
-    "dev:all": "./dev-local.sh",
-    "preview:production": "./preview-production.sh"
+    "astro": "astro"
   },
   "dependencies": {
     "@astro-community/astro-embed-youtube": "^0.5.6",
@@ -34,7 +32,6 @@
     "typescript": "^5.4.3"
   },
   "devDependencies": {
-    "http-server": "^14.1.1",
     "rss-parser": "^3.13.0"
   }
 }
