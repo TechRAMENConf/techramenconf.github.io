@@ -1,0 +1,19 @@
+{
+  "name": "techramen-conference-2026",
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/tailwind": "^6.0.0",
+    "astro": "^5.4.1",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.4.3"
+  }
+}
