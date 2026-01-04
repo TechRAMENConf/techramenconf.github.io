@@ -29,27 +29,35 @@ jobs:
           
       - name: Install dependencies for root
         run: npm ci
-        
+
       - name: Install dependencies for 2025
         run: cd 2025 && npm ci
-        
+
+      - name: Install dependencies for 2026
+        run: cd 2026 && npm ci
+
       - name: Build root site (redirect page)
         run: npm run build
-        
+
       - name: Build 2025 site
         run: cd 2025 && npm run build
-        
+
+      - name: Build 2026 site
+        run: cd 2026 && npm run build
+
       - name: Merge build outputs
         run: |
           mkdir -p dist/2025
           cp -r 2025/dist/* dist/2025/
-          # Copy static assets that might be referenced with absolute paths
+          # Copy static assets for 2025
           cp -r 2025/*.png dist/2025/ 2>/dev/null || true
           cp -r 2025/*.jpg dist/2025/ 2>/dev/null || true
           cp -r 2025/*.svg dist/2025/ 2>/dev/null || true
           cp -r 2025/*.webmanifest dist/2025/ 2>/dev/null || true
           cp -r 2025/*.kmz dist/2025/ 2>/dev/null || true
           cp -r 2025/fonts dist/2025/ 2>/dev/null || true
+          mkdir -p dist/2026
+          cp -r 2026/dist/* dist/2026/
           # Copy 2024 archive site
           cp -r public/2024 dist/ 2>/dev/null || true
           
