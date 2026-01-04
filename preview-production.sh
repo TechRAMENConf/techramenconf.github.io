@@ -5,7 +5,7 @@
 echo "🏗️  本番環境のビルドを作成中..."
 
 # クリーンビルド
-rm -rf dist 2025/dist
+rm -rf dist 2025/dist 2026/dist
 
 # ルートをビルド
 echo "📦 ルートサイトをビルド中..."
@@ -17,12 +17,21 @@ cd 2025
 npm run build
 cd ..
 
+# 2026サイトをビルド
+echo "📦 2026サイトをビルド中..."
+cd 2026
+npm run build
+cd ..
+
 # ビルド結果をマージ
 echo "🔀 ビルド結果をマージ中..."
 mkdir -p dist/2025
 cp -r 2025/dist/* dist/2025/
 
-# 静的アセットもコピー
+mkdir -p dist/2026
+cp -r 2026/dist/* dist/2026/
+
+# 静的アセットもコピー (2025)
 cp -r 2025/*.png dist/2025/ 2>/dev/null || true
 cp -r 2025/*.jpg dist/2025/ 2>/dev/null || true
 cp -r 2025/*.svg dist/2025/ 2>/dev/null || true
@@ -42,6 +51,8 @@ echo ""
 echo "🌐 アクセス方法:"
 echo "  http://localhost:8080"
 echo ""
-echo "  ルートにアクセスすると自動的に /2025/ にリダイレクトされます。"
+echo "  ルートにアクセスすると自動的に /2026/ にリダイレクトされます。"
+echo "  2025: http://localhost:8080/2025/"
+echo "  2026: http://localhost:8080/2026/"
 echo ""
 echo "🛑 終了するには Ctrl+C を押してください"

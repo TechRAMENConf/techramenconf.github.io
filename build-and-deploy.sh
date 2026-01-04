@@ -4,15 +4,15 @@
 echo "Building root redirect page..."
 npm run build
 
-# Build 2025 site
-echo "Building 2025 site..."
-cd 2025
+# Build 2026 site
+echo "Building 2026 site..."
+cd 2026
 npm run build
 cd ..
 
-# Copy 2025 build output to dist/2025
-echo "Copying 2025 build to main dist directory..."
-mkdir -p dist/2025
-cp -r 2025/dist/* dist/2025/
+# Copy 2026 build output to dist/2026
+echo "Copying 2026 build to main dist directory..."
+mkdir -p dist/2026
+cp -r 2026/dist/* dist/2026/
 
 echo "Build complete!"
