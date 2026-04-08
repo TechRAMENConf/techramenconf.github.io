@@ -9,11 +9,39 @@
     <style>
       body {
         padding: 2rem;
+        font-family: monospace;
       }
       h1 {
         font-size: 2em;
         font-weight: bold;
-        margin-bottom: 1em;
+        margin-bottom: 1.5em;
+        cursor: default;
+        display: inline-block;
+      }
+      dl {
+        display: grid;
+        grid-template-columns: max-content max-content auto;
+        gap: 0.5em 0;
+        align-items: baseline;
+      }
+      dt {
+        text-align: right;
+        color: #555;
+        cursor: default;
+      }
+      .sep {
+        padding: 0 0.5em;
+        color: #999;
+        user-select: none;
+      }
+      dd {
+        margin: 0;
+        cursor: default;
+      }
+      .links {
+        margin-top: 2rem;
+        display: flex;
+        gap: 1rem;
       }
       a {
         color: #0066cc;
@@ -25,18 +53,81 @@
     </style>
   </head>
   <body>
-    <h1>TechRAMEN 2026 Conference</h1>
+    <h1 class="scramble">TechRAMEN 2026 Conference</h1>
 
-    <p>pre event: 20, November, 2026</p>
-    <p>main event: 21, November, 2026</p>
-    <p>location: Furano, Hokkaido, Japan</p>
-    <p>
-      details: coming soon...
-    </p>
+    <dl>
+      <dt class="scramble">pre event</dt>
+      <span class="sep">:</span>
+      <dd class="scramble">20, November, 2026</dd>
 
-    <br>
-    <a href="../2024/">2024</a>
-    <br>
-    <a href="../2025/">2025</a>
+      <dt class="scramble">main event</dt>
+      <span class="sep">:</span>
+      <dd class="scramble">21, November, 2026</dd>
+
+      <dt class="scramble">location</dt>
+      <span class="sep">:</span>
+      <dd class="scramble">Furano, Hokkaido, Japan</dd>
+
+      <dt class="scramble">details</dt>
+      <span class="sep">:</span>
+      <dd class="scramble">coming soon...</dd>
+    </dl>
+
+    <div class="links">
+      <a href="../2024/">2024</a>
+      <a href="../2025/">2025</a>
+    </div>
+
+    <script>
+      import { animate } from 'animejs';
+
+      const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*?';
+
+      function randomChar() {
+        return CHARS[Math.floor(Math.random() * CHARS.length)];
+      }
+
+      document.querySelectorAll<HTMLElement>('.scramble').forEach(el => {
+        const original = el.textContent ?? '';
+        let anim: ReturnType<typeof animate> | null = null;
+
+        el.addEventListener('mouseenter', () => {
+          if (anim) anim.cancel();
+          const obj = { progress: 0 };
+          anim = animate(obj, {
+            progress: 1,
+            duration: 800,
+            ease: 'outQuad',
+            onUpdate: () => {
+              const len = original.length;
+              const revealed = Math.floor(obj.progress * len);
+              let result = '';
+              for (let i = 0; i < len; i++) {
+                if (original[i] === ' ') {
+                  result += ' ';
+                } else if (i < revealed) {
+                  result += original[i];
+                } else {
+                  result += randomChar();
+                }
+              }
+              el.textContent = result;
+            },
+            onComplete: () => {
+              el.textContent = original;
+              anim = null;
+            },
+          });
+        });
+
+        el.addEventListener('mouseleave', () => {
+          if (anim) {
+            anim.cancel();
+            anim = null;
+          }
+          el.textContent = original;
+        });
+      });
+    </script>
   </body>
 </html>
