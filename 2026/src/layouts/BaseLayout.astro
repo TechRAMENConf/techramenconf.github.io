@@ -71,6 +71,15 @@ const canonical = "https://techramenconf.net/2026/";
             result="noise"></feTurbulence>
           <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.8"></feDisplacementMap>
         </filter>
+        <filter id="torn">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.016"
+            numOctaves="3"
+            seed="4"
+            result="noise"></feTurbulence>
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="13"></feDisplacementMap>
+        </filter>
       </defs>
     </svg>
     <slot />

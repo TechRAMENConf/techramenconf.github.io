@@ -153,21 +153,31 @@ const roadmap = [
 <style>
   /* 各セクションは動く3Dの上に浮く「半透明の紙のシート」
      モバイルは不透明寄り＆ぼかし無し（毎フレームのblur再計算を避ける）。 */
+  /* ちぎり紙のシート: 背面に紙のスクラップ層(::before)を置き、縁を破る。
+     本文は .sheet に直接置くのでクッキリのまま。 */
   .sheet {
     position: relative;
-    background: rgba(247, 240, 226, 0.9);
-    border: 2.5px solid var(--ink);
-    border-radius: 20px 13px 22px 14px / 14px 22px 13px 20px;
-    box-shadow: 0 24px 48px -22px rgba(46, 40, 38, 0.55);
-    padding: clamp(1.6rem, 5vw, 3rem);
+    z-index: 0;
+    padding: clamp(1.9rem, 5.5vw, 3.2rem);
   }
-  /* デスクトップ(細いポインタ)のみフロストガラス化 */
-  @media (min-width: 720px) and (pointer: fine) {
-    .sheet {
-      background: rgba(247, 240, 226, 0.76);
-      -webkit-backdrop-filter: blur(6px) saturate(1.05);
-      backdrop-filter: blur(6px) saturate(1.05);
-    }
+  .sheet::before {
+    content: "";
+    position: absolute;
+    inset: -10px;
+    z-index: -1;
+    /* 紙: 半透明にして後ろの3Dを透かす + 暖色ムラ + 繊維 + 厚みムラ */
+    background-color: rgba(243, 234, 214, 0.64);
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='pf'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23pf)' opacity='0.14'/%3E%3C/svg%3E"),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='pm'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.013' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23pm)' opacity='0.1'/%3E%3C/svg%3E"),
+      radial-gradient(130% 130% at 25% 15%, rgba(207, 155, 62, 0.1), transparent 60%);
+    background-size: 200px 200px, 420px 420px, 100% 100%;
+    border-radius: 14px 9px 16px 10px / 10px 15px 9px 14px;
+    box-shadow:
+      0 24px 48px -22px rgba(46, 40, 38, 0.5),
+      inset 0 0 70px rgba(120, 88, 48, 0.09);
+    /* 縁を手でちぎったようにギザギザに */
+    filter: url(#torn);
   }
   /* セクションの上下に余白を増やし、シートの間から3Dの世界を覗かせる */
   .section {
@@ -249,9 +259,6 @@ const roadmap = [
   }
   /* main event を主役に: デスクトップで日付を特大化 */
   @media (min-width: 720px) {
-    .dates-grid > :nth-child(2) {
-      background: linear-gradient(180deg, var(--paper-card), #f7ecd6);
-    }
     .dates-grid > :nth-child(2) .day-card__date {
       font-size: clamp(2.6rem, 4.4vw, 3.6rem);
     }
