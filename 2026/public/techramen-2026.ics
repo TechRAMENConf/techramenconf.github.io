@@ -1,0 +1,26 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//TechRAMEN Conference//2026//JA
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:techramen-2026-pre@techramenconf.net
+DTSTAMP:20260101T000000Z
+DTSTART;VALUE=DATE:20261120
+DTEND;VALUE=DATE:20261121
+SUMMARY:TechRAMEN 2026 Conference (pre event)
+LOCATION:富良野, 北海道
+DESCRIPTION:TechRAMEN 2026 Conference pre event。詳細は順次公開。https://techramenconf.net/2026/
+URL:https://techramenconf.net/2026/
+END:VEVENT
+BEGIN:VEVENT
+UID:techramen-2026-main@techramenconf.net
+DTSTAMP:20260101T000000Z
+DTSTART;VALUE=DATE:20261121
+DTEND;VALUE=DATE:20261122
+SUMMARY:TechRAMEN 2026 Conference (main event)
+LOCATION:富良野, 北海道
+DESCRIPTION:TechRAMEN 2026 Conference main event。詳細は順次公開。https://techramenconf.net/2026/
+URL:https://techramenconf.net/2026/
+END:VEVENT
+END:VCALENDAR

@@ -13,6 +13,10 @@
     "@astrojs/check": "^0.9.9",
     "animejs": "^4.4.1",
     "astro": "^6.4.7",
+    "three": "^0.184.0",
     "typescript": "^6.0.3"
+  },
+  "devDependencies": {
+    "@types/three": "^0.184.1"
   }
 }

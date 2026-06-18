@@ -1,0 +1,78 @@
+---
+// 手描き風ラインアイコン（currentColorを継承。装飾なのでaria-hidden）
+type IconName = "calendar" | "plane" | "train" | "house" | "chevron-down";
+
+interface Props {
+  name: IconName;
+  size?: string;
+  class?: string;
+}
+
+const { name, size = "1em", class: className } = Astro.props;
+---
+
+<svg
+  class:list={["icon", className]}
+  width={size}
+  height={size}
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.8"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+  focusable="false"
+>
+  {
+    name === "calendar" && (
+      <>
+        <rect x="3.2" y="4.6" width="17.6" height="16" rx="2.4" />
+        <path d="M3.4 9.4 H20.6" />
+        <path d="M8 2.6 V6.4" />
+        <path d="M16 2.6 V6.4" />
+        <path d="M7.4 13 h3 M13.6 13 h3 M7.4 16.6 h3" />
+      </>
+    )
+  }
+  {
+    name === "plane" && (
+      <>
+        <path d="M21.5 2.6 L10.6 13.4" />
+        <path d="M21.5 2.6 L14.4 21.4 L10.6 13.4 L2.6 9.4 Z" />
+      </>
+    )
+  }
+  {
+    name === "train" && (
+      <>
+        <rect x="5" y="3.4" width="14" height="13.4" rx="3" />
+        <path d="M5.4 10 H18.6" />
+        <path d="M9 6.4 h6" />
+        <circle cx="9.2" cy="13.4" r="0.6" fill="currentColor" stroke="none" />
+        <circle cx="14.8" cy="13.4" r="0.6" fill="currentColor" stroke="none" />
+        <path d="M7.5 16.8 L5.4 21 M16.5 16.8 L18.6 21" />
+      </>
+    )
+  }
+  {
+    name === "house" && (
+      <>
+        <path d="M3.4 11 L12 3.8 L20.6 11" />
+        <path d="M5.4 9.6 V20.4 H18.6 V9.6" />
+        <path d="M10 20.4 V14.4 h4 V20.4" />
+      </>
+    )
+  }
+  {name === "chevron-down" && <path d="M6 9.4 L12 15 L18 9.4" />}
+</svg>
+
+<style>
+  .icon {
+    display: inline-block;
+    vertical-align: -0.16em;
+    flex: none;
+    /* 線を手描きインク風にわずかに歪ませる */
+    filter: url(#rough-ink);
+  }
+</style>
