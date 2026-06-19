@@ -247,6 +247,12 @@ h3 {
 }
 
 /* ------- ユーティリティ ------- */
+/* 日本語の自然な改行: <wbr>(BudouX) の文節位置でのみ改行する */
+.jp {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

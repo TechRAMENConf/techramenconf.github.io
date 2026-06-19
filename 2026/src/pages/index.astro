@@ -3,6 +3,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import Scene3D from "../components/Scene3D.astro";
 import Hero3D from "../components/Hero3D.astro";
 import Icon from "../components/Icon.astro";
+import { loadDefaultJapaneseParser } from "budoux";
+
+// ビルド時に文節で <wbr> を挿入し、日本語が変な位置で改行しないようにする
+// （.jp クラスの word-break: keep-all と併用。全ブラウザ対応）
+const budoux = loadDefaultJapaneseParser();
+const jp = (text: string) => budoux.parse(text).join("<wbr>");
+// <b>や<br>を含むHTMLにも文節区切りを挿入（keep-all等のスタイルも付与される）
+const jpHtml = (html: string) => budoux.translateHTMLString(html);
 
 const BASE = import.meta.env.BASE_URL;
 const ics = `${BASE}techramen-2026.ics`;
@@ -34,7 +42,7 @@ const roadmap = [
     <div class="wrap sheet reveal">
       <p class="eyebrow">日程と会場</p>
       <h2 class="section-title">
-        <span class="underline-wobble">寒い富良野で、あったかい二日間。</span>
+        <span class="underline-wobble jp" set:html={jp("寒い富良野で、あったかい二日間。")} />
       </h2>
 
       <div class="dates-grid">
@@ -74,34 +82,35 @@ const roadmap = [
   <section id="access" class="section">
     <div class="wrap sheet reveal">
       <p class="eyebrow">行き方と、おやど</p>
-      <h2 class="section-title">富良野は、ちょっと遠い。<br />だから早めの計画を。</h2>
+      <h2 class="section-title jp" set:html={jp("富良野は、ちょっと遠い。") + "<br />" + jp("だから早めの計画を。")} />
 
       <div class="access-grid">
         <div class="card">
           <h3 class="access__h hand"><Icon name="plane" /> 飛行機で</h3>
-          <p>
-            <b>旭川空港</b>からレンタカーで約60分。<br />
-            <b>新千歳空港</b>からは約2.5〜3時間（車）。
-          </p>
+          <p
+            set:html={jpHtml(
+              "<b>旭川空港</b>からレンタカーで約60分。<br /><b>新千歳空港</b>からは約2.5〜3時間（車）。",
+            )}
+          />
         </div>
         <div class="card">
           <h3 class="access__h hand"><Icon name="train" /> 鉄道で</h3>
-          <p>
-            JR富良野線・根室本線<b>「富良野駅」</b>下車。<br />
-            旭川・札幌から特急＋普通を乗り継ぎ。
-          </p>
+          <p
+            set:html={jpHtml(
+              "JR富良野線・根室本線<b>「富良野駅」</b>下車。<br />旭川・札幌から特急＋普通を乗り継ぎ。",
+            )}
+          />
         </div>
         <div class="card">
           <h3 class="access__h hand"><Icon name="house" /> おやど</h3>
-          <p>
-            イベント期間は宿が埋まりやすいです。<br />
-            <b>早めの予約</b>をおすすめします。
-          </p>
+          <p
+            set:html={jpHtml(
+              "イベント期間は宿が埋まりやすいです。<br /><b>早めの予約</b>をおすすめします。",
+            )}
+          />
         </div>
       </div>
-      <p class="note">
-        ※ アクセスの詳細・会場マップは、会場確定後にここへ追記します。
-      </p>
+      <p class="note jp" set:html={jp("※ アクセスの詳細・会場マップは、会場確定後にここへ追記します。")} />
     </div>
   </section>
 
@@ -110,7 +119,7 @@ const roadmap = [
     <div class="wrap sheet reveal">
       <p class="eyebrow">これから出ます</p>
       <h2 class="section-title">公開ロードマップ</h2>
-      <p class="lead">詳細は準備中です。下記をこのページで順次公開していきます。</p>
+      <p class="lead jp" set:html={jp("詳細は準備中です。下記をこのページで順次公開していきます。")} />
 
       <ol class="road">
         {
@@ -120,7 +129,7 @@ const roadmap = [
               <div class="card road__card">
                 <p class="road__when hand">{r.when}</p>
                 <p class="road__label">{r.label}</p>
-                <p class="road__note">{r.note}</p>
+                <p class="road__note jp" set:html={jp(r.note)} />
               </div>
             </li>
           ))
@@ -133,7 +142,7 @@ const roadmap = [
   <section class="section">
     <div class="wrap sheet reveal">
       <p class="eyebrow">これまでの</p>
-      <h2 class="section-title">過去のTechRAMEN</h2>
+      <h2 class="section-title jp" set:html={jp("過去の") + "TechRAMEN Conference"} />
       <div class="past">
         <a class="past__tag" href="../2024/">2024</a>
         <a class="past__tag" href="../2025/">2025</a>
