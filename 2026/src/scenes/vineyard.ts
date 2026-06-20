@@ -22,12 +22,10 @@ export interface VineyardController {
 const COLORS = {
   sky: 0x000000, // 透明（CSS側の空を使う）
   grape: 0x6a2f56,
-  grapeDark: 0x4a2440,
   leaf: 0x7a934a,
   gold: 0xcf9b3e,
   wheat: 0xddb867,
   snow: 0xf3ece0,
-  soil: 0x8a6b4f,
   bowl: 0xf6efe2,
   bowlRim: 0x7b2c3a,
   broth: 0xb5733a,
@@ -479,6 +477,7 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
 
   function dispose() {
     stop();
+    steamMat.dispose(); // テンプレート(clone元)はsceneに無いので個別に解放
     window.removeEventListener("pointermove", onPointerMove);
     ro.disconnect();
     scene.traverse((obj) => {

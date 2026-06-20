@@ -96,9 +96,22 @@
     })();
 
     // タブ非表示で一時停止
-    document.addEventListener("visibilitychange", () => {
+    const onVisibility = () => {
       if (document.hidden) controller?.stop();
       else controller?.start();
-    });
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    // 将来 View Transitions 等でページが入れ替わる際にリスナー/リソースを解放
+    document.addEventListener(
+      "astro:before-swap",
+      () => {
+        window.removeEventListener("scroll", updateProgress);
+        window.removeEventListener("resize", updateProgress);
+        document.removeEventListener("visibilitychange", onVisibility);
+        controller?.dispose();
+      },
+      { once: true },
+    );
   }
 </script>

@@ -344,6 +344,7 @@ const roadmap = [
   /* デスクトップ: 中央の背骨を挟んでジグザグに配置 */
   @media (min-width: 720px) {
     .road {
+      position: relative; /* ::before(背骨)の包含ブロックを .road に固定 */
       max-width: 56rem;
       margin-inline: auto;
       gap: 1.6rem;
