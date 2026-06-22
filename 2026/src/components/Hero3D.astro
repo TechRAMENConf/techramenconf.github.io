@@ -1,0 +1,156 @@
+---
+// ヒーロー: 情報を即表示（3Dは Scene3D が固定背景で担当）
+import Icon from "./Icon.astro";
+---
+
+<section class="hero" aria-label="TechRAMEN 2026 Conference">
+  <div class="hero__content wrap">
+    <h1 class="hero__logo">
+      <span class="hero__logo-1">TechRAMEN</span>
+      <span class="hero__logo-2">
+        <span class="hero__logo-year hand">2026</span>
+        <span class="hero__logo-conf">Conference</span>
+      </span>
+    </h1>
+    <p class="hero__facts">
+      <span class="hero__fact"><b>2026.11.20</b><small>pre event</small></span>
+      <span class="hero__sep" aria-hidden="true">/</span>
+      <span class="hero__fact"><b>2026.11.21</b><small>main event</small></span>
+      <span class="hero__sep" aria-hidden="true">/</span>
+      <span class="hero__fact"><b>富良野</b><small>北海道</small></span>
+    </p>
+    <div class="hero__cta">
+      <a class="btn" href="#dates">カレンダーに追加</a>
+      <a class="btn btn--ghost" href="#roadmap">公開予定をみる</a>
+    </div>
+  </div>
+
+  <a class="hero__scroll hand" href="#dates" aria-label="下へスクロール">
+    <span aria-hidden="true">scroll</span>
+    <Icon name="chevron-down" size="1.1em" />
+  </a>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    align-items: end;
+    /* 背景は Scene3D（固定）が担当。ここは透過 */
+  }
+
+  /* 下部スクリム: 3Dの上でも情報が読めるよう、ほんのり紙を敷く（下ほど濃く・でも透ける） */
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      transparent 44%,
+      rgba(243, 232, 216, 0.35) 70%,
+      rgba(243, 232, 216, 0.62) 100%
+    );
+  }
+
+  .hero__content {
+    position: relative;
+    z-index: 2;
+    padding-bottom: clamp(4rem, 12vh, 8rem);
+    padding-top: 6rem;
+  }
+
+  .hero__logo {
+    margin: 0 0 1.5rem;
+    line-height: 0.84;
+    color: var(--ink);
+  }
+  .hero__logo-1 {
+    display: block;
+    font-weight: 700;
+    font-size: clamp(3rem, 16vw, 8.5rem);
+    letter-spacing: -0.03em;
+    margin-left: -0.04em;
+    text-shadow: 0 2px 0 rgba(251, 244, 230, 0.7);
+  }
+  .hero__logo-2 {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 0.3rem 1.1rem;
+    margin-top: 0.08em;
+  }
+  .hero__logo-year {
+    font-size: clamp(3rem, 15vw, 7.5rem);
+    line-height: 0.74;
+    color: var(--wine);
+    transform: rotate(-5deg);
+  }
+  .hero__logo-conf {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: clamp(0.85rem, 3.2vw, 1.45rem);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: var(--paper-card);
+    border: 2.5px solid var(--ink);
+    border-radius: 11px 7px 12px 8px / 8px 12px 7px 11px;
+    padding: 0.4em 0.75em;
+    margin-bottom: 0.7em;
+    transform: rotate(2.5deg);
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+
+  .hero__facts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4em 0.9em;
+    margin: 0 0 1.6rem;
+    font-size: clamp(1rem, 3vw, 1.2rem);
+  }
+  .hero__fact {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4em;
+  }
+  .hero__fact b {
+    font-weight: 700;
+  }
+  .hero__fact small {
+    font-size: 0.7em;
+    color: var(--ink-soft);
+    font-family: var(--font-hand);
+    font-weight: 700;
+  }
+  .hero__sep {
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  .hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+  }
+
+  .hero__scroll {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1em;
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+</style>

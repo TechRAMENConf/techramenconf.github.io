@@ -1,133 +1,503 @@
 ---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Scene3D from "../components/Scene3D.astro";
+import Hero3D from "../components/Hero3D.astro";
+import Icon from "../components/Icon.astro";
+import { loadDefaultJapaneseParser } from "budoux";
+
+// ビルド時に文節で <wbr> を挿入し、日本語が変な位置で改行しないようにする
+// （.jp クラスの word-break: keep-all と併用。全ブラウザ対応）
+const budoux = loadDefaultJapaneseParser();
+const jp = (text: string) => budoux.parse(text).join("<wbr>");
+// <b>や<br>を含むHTMLにも文節区切りを挿入（keep-all等のスタイルも付与される）
+const jpHtml = (html: string) => budoux.translateHTMLString(html);
+
+const BASE = import.meta.env.BASE_URL;
+const ics = `${BASE}techramen-2026.ics`;
+
+// Googleカレンダー追加リンク（終日・end exclusive）
+const gcal = (text: string, start: string, end: string) =>
+  `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+    text,
+  )}&dates=${start}/${end}&location=${encodeURIComponent(
+    "富良野, 北海道",
+  )}&details=${encodeURIComponent("詳細は順次公開 https://techramenconf.net/2026/")}`;
+
+const gcalPre = gcal("TechRAMEN 2026 (pre event)", "20261120", "20261121");
+const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
+
+const roadmap = [
+  { label: "CFP（登壇者募集）", when: "準備中", note: "登壇の応募方法・締切をここで告知します" },
+  { label: "チケット発売", when: "準備中", note: "参加チケットの価格・販売開始を告知します" },
+  { label: "タイムテーブル", when: "準備中", note: "セッション・登壇者を公開します" },
+];
 ---
 
-<html lang="ja">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>TechRAMEN 2026 Conference</title>
-    <style>
-      body {
-        padding: 2rem;
-        font-family: monospace;
-      }
-      h1 {
-        font-size: 2em;
-        font-weight: bold;
-        margin-bottom: 1.5em;
-        cursor: default;
-        display: inline-block;
-      }
-      dl {
-        display: grid;
-        grid-template-columns: max-content max-content auto;
-        gap: 0.5em 0;
-        align-items: baseline;
-      }
-      dt {
-        text-align: right;
-        color: #555;
-        cursor: default;
-      }
-      .sep {
-        padding: 0 0.5em;
-        color: #999;
-        user-select: none;
-      }
-      dd {
-        margin: 0;
-        cursor: default;
-      }
-      .links {
-        margin-top: 2rem;
-        display: flex;
-        gap: 1rem;
-      }
-      a {
-        color: #0066cc;
-        text-decoration: underline;
-      }
-      a:hover {
-        color: #0052a3;
-      }
-    </style>
-  </head>
-  <body>
-    <h1 class="scramble">TechRAMEN 2026 Conference</h1>
+<BaseLayout>
+  <Scene3D />
+  <Hero3D />
 
-    <dl>
-      <dt class="scramble">pre event</dt>
-      <span class="sep">:</span>
-      <dd class="scramble">20, November, 2026</dd>
+  <!-- ============ 日程・会場 + カレンダー ============ -->
+  <section id="dates" class="section">
+    <div class="wrap sheet reveal">
+      <p class="eyebrow">日程と会場</p>
+      <h2 class="section-title">
+        <span class="underline-wobble jp" set:html={jp("寒い富良野で、あったかい二日間。")} />
+      </h2>
 
-      <dt class="scramble">main event</dt>
-      <span class="sep">:</span>
-      <dd class="scramble">21, November, 2026</dd>
+      <div class="dates-grid">
+        <div class="card tilt-l day-card">
+          <p class="day-card__tag hand">pre event</p>
+          <p class="day-card__date">2026<span>.</span>11<span>.</span>20</p>
+          <p class="day-card__sub">金曜・前夜祭</p>
+        </div>
+        <div class="card tilt-r day-card">
+          <p class="day-card__tag hand">main event</p>
+          <p class="day-card__date">2026<span>.</span>11<span>.</span>21</p>
+          <p class="day-card__sub">土曜・本編</p>
+        </div>
+        <div class="card place-card">
+          <p class="day-card__tag hand">place</p>
+          <p class="place-card__name">富良野</p>
+          <p class="day-card__sub">北海道（会場は調整中）</p>
+        </div>
+      </div>
 
-      <dt class="scramble">location</dt>
-      <span class="sep">:</span>
-      <dd class="scramble">Furano, Hokkaido, Japan</dd>
-
-      <dt class="scramble">details</dt>
-      <span class="sep">:</span>
-      <dd class="scramble">coming soon...</dd>
-    </dl>
-
-    <div class="links">
-      <a href="../2024/">2024</a>
-      <a href="../2025/">2025</a>
+      <div class="cal">
+        <p class="cal__lead hand">忘れないうちに、カレンダーへ。</p>
+        <div class="cal__btns">
+          <a class="btn" href={ics} download><Icon name="calendar" /> カレンダーに追加（.ics）</a>
+          <a class="btn btn--ghost" href={gcalPre} target="_blank" rel="noopener">
+            Google：11/20 pre
+          </a>
+          <a class="btn btn--ghost" href={gcalMain} target="_blank" rel="noopener">
+            Google：11/21 main
+          </a>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <script>
-      import { animate } from 'animejs';
+  <!-- ============ アクセス・宿泊 ============ -->
+  <section id="access" class="section">
+    <div class="wrap sheet reveal">
+      <p class="eyebrow">行き方と、おやど</p>
+      <h2 class="section-title jp" set:html={jp("富良野は、ちょっと遠い。") + "<br />" + jp("だから早めの計画を。")} />
 
-      const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*?';
+      <div class="access-grid">
+        <div class="card">
+          <h3 class="access__h hand"><Icon name="plane" /> 飛行機で</h3>
+          <p
+            set:html={jpHtml(
+              "<b>旭川空港</b>からレンタカーで約60分。<br /><b>新千歳空港</b>からは約2.5〜3時間（車）。",
+            )}
+          />
+        </div>
+        <div class="card">
+          <h3 class="access__h hand"><Icon name="train" /> 鉄道で</h3>
+          <p
+            set:html={jpHtml(
+              "JR富良野線・根室本線<b>「富良野駅」</b>下車。<br />旭川・札幌から特急＋普通を乗り継ぎ。",
+            )}
+          />
+        </div>
+        <div class="card">
+          <h3 class="access__h hand"><Icon name="house" /> おやど</h3>
+          <p
+            set:html={jpHtml(
+              "イベント期間は宿が埋まりやすいです。<br /><b>早めの予約</b>をおすすめします。",
+            )}
+          />
+        </div>
+      </div>
+      <p class="note jp" set:html={jp("※ アクセスの詳細・会場マップは、会場確定後にここへ追記します。")} />
+    </div>
+  </section>
 
-      function randomChar() {
-        return CHARS[Math.floor(Math.random() * CHARS.length)];
-      }
+  <!-- ============ 公開ロードマップ ============ -->
+  <section id="roadmap" class="section">
+    <div class="wrap sheet reveal">
+      <p class="eyebrow">これから出ます</p>
+      <h2 class="section-title">公開ロードマップ</h2>
+      <p class="lead jp" set:html={jp("詳細は準備中です。下記をこのページで順次公開していきます。")} />
 
-      document.querySelectorAll<HTMLElement>('.scramble').forEach(el => {
-        const original = el.textContent ?? '';
-        let anim: ReturnType<typeof animate> | null = null;
+      <ol class="road">
+        {
+          roadmap.map((r) => (
+            <li class="road__item">
+              <span class="road__dot" aria-hidden="true" />
+              <div class="card road__card">
+                <p class="road__when hand">{r.when}</p>
+                <p class="road__label">{r.label}</p>
+                <p class="road__note jp" set:html={jp(r.note)} />
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
 
-        el.addEventListener('mouseenter', () => {
-          if (anim) anim.cancel();
-          const obj = { progress: 0 };
-          anim = animate(obj, {
-            progress: 1,
-            duration: 800,
-            ease: 'outQuad',
-            onUpdate: () => {
-              const len = original.length;
-              const revealed = Math.floor(obj.progress * len);
-              let result = '';
-              for (let i = 0; i < len; i++) {
-                if (original[i] === ' ') {
-                  result += ' ';
-                } else if (i < revealed) {
-                  result += original[i];
-                } else {
-                  result += randomChar();
-                }
-              }
-              el.textContent = result;
-            },
-            onComplete: () => {
-              el.textContent = original;
-              anim = null;
-            },
-          });
-        });
+  <!-- ============ 過去回 ============ -->
+  <section class="section">
+    <div class="wrap sheet reveal">
+      <p class="eyebrow">これまでの</p>
+      <h2 class="section-title jp" set:html={jp("過去の") + "TechRAMEN Conference"} />
+      <div class="past">
+        <a class="past__tag" href="../2024/">2024</a>
+        <a class="past__tag" href="../2025/">2025</a>
+      </div>
+    </div>
+  </section>
 
-        el.addEventListener('mouseleave', () => {
-          if (anim) {
-            anim.cancel();
-            anim = null;
+  <footer class="foot">
+    <div class="wrap">
+      <p class="foot__logo hand">TechRAMEN 2026 Conference</p>
+      <p class="foot__copy">富良野・北海道 ／ 2026.11.20–21</p>
+      <p class="foot__small">© TechRAMEN Conference</p>
+    </div>
+  </footer>
+</BaseLayout>
+
+<style>
+  /* 各セクションは動く3Dの上に浮く「半透明の紙のシート」
+     モバイルは不透明寄り＆ぼかし無し（毎フレームのblur再計算を避ける）。 */
+  /* ちぎり紙のシート: 背面に紙のスクラップ層(::before)を置き、縁を破る。
+     本文は .sheet に直接置くのでクッキリのまま。 */
+  .sheet {
+    position: relative;
+    z-index: 0;
+    padding: clamp(1.9rem, 5.5vw, 3.2rem);
+  }
+  .sheet::before {
+    content: "";
+    position: absolute;
+    inset: -10px;
+    z-index: -1;
+    /* 紙: 半透明にして後ろの3Dを透かす + 暖色ムラ + 繊維 + 厚みムラ */
+    background-color: rgba(243, 234, 214, 0.64);
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='pf'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23pf)' opacity='0.14'/%3E%3C/svg%3E"),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='pm'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.013' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23pm)' opacity='0.1'/%3E%3C/svg%3E"),
+      radial-gradient(130% 130% at 25% 15%, rgba(207, 155, 62, 0.1), transparent 60%);
+    background-size: 200px 200px, 420px 420px, 100% 100%;
+    border-radius: 14px 9px 16px 10px / 10px 15px 9px 14px;
+    box-shadow:
+      0 24px 48px -22px rgba(46, 40, 38, 0.5),
+      inset 0 0 70px rgba(120, 88, 48, 0.09);
+    /* 縁を手でちぎったようにギザギザに */
+    filter: url(#torn);
+  }
+  /* セクションの上下に余白を増やし、シートの間から3Dの世界を覗かせる */
+  .section {
+    padding-block: clamp(3.5rem, 11vw, 7rem);
+  }
+  .lead {
+    max-width: 38rem;
+    color: var(--ink-soft);
+  }
+  .note {
+    margin-top: 1.4rem;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+
+  /* 日程: スクラップブック風に散らす */
+  .dates-grid {
+    display: grid;
+    gap: 1.2rem;
+    grid-template-columns: 1fr;
+    margin-top: 2rem;
+  }
+  @media (min-width: 720px) {
+    .dates-grid {
+      grid-template-columns: repeat(12, 1fr);
+      align-items: start;
+      gap: 0;
+      margin-top: 3rem;
+      margin-bottom: 1rem;
+    }
+    /* pre event: 左・小・少し下げる */
+    .dates-grid > :nth-child(1) {
+      grid-column: 1 / 6;
+      transform: rotate(-2.5deg);
+      margin-top: 2.2rem;
+      z-index: 1;
+    }
+    /* main event: 大きく・重ねて主役に */
+    .dates-grid > :nth-child(2) {
+      grid-column: 5 / 11;
+      transform: rotate(1.5deg);
+      z-index: 3;
+      box-shadow:
+        var(--shadow-paper),
+        0 18px 30px -16px rgba(46, 40, 38, 0.5);
+    }
+    /* place: 右下にぶら下げる */
+    .dates-grid > :nth-child(3) {
+      grid-column: 8 / 13;
+      transform: rotate(-1.5deg);
+      margin-top: -1.5rem;
+      z-index: 2;
+    }
+  }
+  .day-card__tag {
+    margin: 0;
+    font-size: 1.4rem;
+    color: var(--wine);
+  }
+  .day-card__date {
+    margin: 0.1em 0;
+    font-size: clamp(1.8rem, 7vw, 2.6rem);
+    font-weight: 700;
+    color: var(--grape);
+    letter-spacing: 0.01em;
+  }
+  .day-card__date span {
+    color: var(--gold);
+  }
+  .day-card__sub {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+  .place-card__name {
+    margin: 0.1em 0;
+    font-size: clamp(1.8rem, 7vw, 2.6rem);
+    font-weight: 700;
+    color: var(--grape);
+  }
+  /* main event を主役に: デスクトップで日付を特大化 */
+  @media (min-width: 720px) {
+    .dates-grid > :nth-child(2) .day-card__date {
+      font-size: clamp(2.6rem, 4.4vw, 3.6rem);
+    }
+    .dates-grid > :nth-child(2) .day-card__tag {
+      font-size: 1.7rem;
+    }
+  }
+
+  /* カレンダー */
+  .cal {
+    margin-top: 2rem;
+  }
+  .cal__lead {
+    font-size: 1.4rem;
+    color: var(--grape);
+    transform: rotate(-1.5deg);
+    margin: 0 0 0.6rem;
+  }
+  .cal__btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+  }
+
+  /* アクセス */
+  .access-grid {
+    display: grid;
+    gap: 1.2rem;
+    grid-template-columns: 1fr;
+    margin-top: 1.5rem;
+  }
+  @media (min-width: 640px) {
+    .access-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .access__h {
+    display: flex;
+    align-items: center;
+    gap: 0.45em;
+    margin: 0 0 0.4rem;
+    font-size: 1.4rem;
+    color: var(--wine);
+  }
+  .access-grid p {
+    margin: 0;
+  }
+
+  /* ロードマップ */
+  .road {
+    list-style: none;
+    margin: 2rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 1.1rem;
+  }
+  .road__item {
+    position: relative;
+    padding-left: 1.6rem;
+  }
+  .road__dot {
+    position: absolute;
+    left: 0;
+    top: 1.4rem;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: 2.5px solid var(--ink);
+  }
+  .road__card {
+    padding: 1rem 1.2rem;
+  }
+  /* デスクトップ: 中央の背骨を挟んでジグザグに配置 */
+  @media (min-width: 720px) {
+    .road {
+      position: relative; /* ::before(背骨)の包含ブロックを .road に固定 */
+      max-width: 56rem;
+      margin-inline: auto;
+      gap: 1.6rem;
+    }
+    .road::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 0.5rem;
+      bottom: 0.5rem;
+      width: 0;
+      border-left: 2.5px dashed rgba(46, 40, 38, 0.4);
+      transform: translateX(-50%);
+    }
+    .road__item {
+      width: 50%;
+      padding-left: 0;
+    }
+    .road__item:nth-child(odd) {
+      margin-right: auto;
+      padding-right: 2.4rem;
+      text-align: right;
+    }
+    .road__item:nth-child(even) {
+      margin-left: auto;
+      padding-left: 2.4rem;
+    }
+    .road__item:nth-child(odd) .road__dot {
+      left: auto;
+      right: -8px;
+      top: 1.6rem;
+    }
+    .road__item:nth-child(even) .road__dot {
+      left: -8px;
+      top: 1.6rem;
+    }
+    .road__item:nth-child(odd) {
+      transform: rotate(-1deg);
+    }
+    .road__item:nth-child(even) {
+      transform: rotate(1deg);
+    }
+  }
+  .road__when {
+    margin: 0;
+    color: var(--wine);
+    font-size: 1.2rem;
+  }
+  .road__label {
+    margin: 0.1em 0 0.2em;
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--grape);
+  }
+  .road__note {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+  }
+
+  /* 過去回 */
+  .past {
+    display: flex;
+    gap: 1.6rem;
+    margin-top: 2rem;
+    padding-left: 0.5rem;
+  }
+  .past__tag:nth-child(1) {
+    transform: rotate(-5deg);
+  }
+  .past__tag:nth-child(2) {
+    transform: rotate(4deg) translateY(0.8rem);
+  }
+  .past__tag:hover:nth-child(1),
+  .past__tag:hover:nth-child(2) {
+    transform: rotate(0deg) translateY(0) scale(1.05);
+  }
+  .past__tag {
+    display: inline-block;
+    padding: 0.7em 1.4em;
+    background: var(--paper-card);
+    border: 2.5px solid var(--ink);
+    border-radius: 12px 8px 13px 9px / 9px 13px 8px 12px;
+    box-shadow: 3px 3px 0 var(--ink);
+    font-family: var(--font-hand);
+    font-weight: 700;
+    font-size: 1.6rem;
+    color: var(--grape);
+    text-decoration: none;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .past__tag:hover {
+    background: var(--gold);
+    color: var(--ink);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .past__tag {
+      transition: none;
+    }
+  }
+
+  /* フッター */
+  .foot {
+    position: relative;
+    background: var(--grape);
+    color: var(--paper);
+    padding-block: 2.5rem;
+    text-align: center;
+  }
+  /* フッター上端を波形に（グレープ色が波打って立ち上がる） */
+  .foot::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -27px;
+    height: 28px;
+    background: repeat-x left bottom / 200px 28px
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='28'%3E%3Cpath d='M0 14 C 25 4 75 4 100 14 C 125 24 175 24 200 14 L200 28 L0 28 Z' fill='%235b2a4e'/%3E%3C/svg%3E");
+  }
+  .foot__logo {
+    font-size: 1.8rem;
+    margin: 0 0 0.2rem;
+    color: var(--paper-card);
+  }
+  .foot__copy {
+    margin: 0 0 0.4rem;
+  }
+  .foot__small {
+    margin: 0;
+    opacity: 0.7;
+    font-size: 0.85rem;
+  }
+</style>
+
+<script>
+  // 控えめなスクロール表示（デコラティブ・PE / reduced-motionはCSS側で無効化）
+  const els = document.querySelectorAll<HTMLElement>(".reveal");
+  if (els.length && !("IntersectionObserver" in window)) {
+    // IO非対応なら即表示（内容を隠さない）
+    els.forEach((el) => el.classList.add("is-in"));
+  } else if (els.length) {
+    const io = new IntersectionObserver(
+      (entries, obs) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            e.target.classList.add("is-in");
+            obs.unobserve(e.target);
           }
-          el.textContent = original;
-        });
-      });
-    </script>
-  </body>
-</html>
+        }
+      },
+      { threshold: 0.12 },
+    );
+    els.forEach((el) => io.observe(el));
+  }
+</script>

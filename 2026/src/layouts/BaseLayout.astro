@@ -1,0 +1,89 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = "TechRAMEN 2026 Conference",
+  description = "2026年11月20日(pre)・21日(main)、北海道・富良野で開催するTechRAMEN Conference。手作りで、あたたかく。詳細は順次公開します。",
+} = Astro.props;
+
+const canonical = "https://techramenconf.net/2026/";
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content="https://techramenconf.net/2026/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://techramenconf.net/2026/og-image.png" />
+
+    <meta name="theme-color" content="#f3e8d8" />
+
+    <!-- JS有効を即マーク（スクロール演出はJS有効時のみ・内容は隠さない） -->
+    <script is:inline>
+      document.documentElement.classList.add("js");
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Yomogi&family=Zen+Maru+Gothic:wght@400;500;700&display=swap"
+    />
+  </head>
+  <body>
+    <!-- 手描き風の歪み用SVGフィルタ（枠線・アイコンの輪郭をラフにする） -->
+    <svg
+      width="0"
+      height="0"
+      aria-hidden="true"
+      focusable="false"
+      style="position:absolute;width:0;height:0;overflow:hidden"
+    >
+      <defs>
+        <filter id="rough">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.012"
+            numOctaves="2"
+            seed="7"
+            result="noise"></feTurbulence>
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="6"></feDisplacementMap>
+        </filter>
+        <filter id="rough-ink">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.035"
+            numOctaves="2"
+            seed="4"
+            result="noise"></feTurbulence>
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.8"></feDisplacementMap>
+        </filter>
+        <filter id="torn">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.016"
+            numOctaves="3"
+            seed="4"
+            result="noise"></feTurbulence>
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="13"></feDisplacementMap>
+        </filter>
+      </defs>
+    </svg>
+    <slot />
+  </body>
+</html>

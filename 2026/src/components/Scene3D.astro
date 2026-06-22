@@ -1,0 +1,117 @@
+---
+// ページ全体を貫く固定背景の3D。スクロールでカメラが富良野を巡る。
+// 情報はこの上の半透明パネルに乗る（装飾レイヤー・aria-hidden）。
+---
+
+<div class="scene3d" aria-hidden="true">
+  <!-- 静的フォールバック（3D未ロード/失敗/省モーション時もこれで成立） -->
+  <div class="scene3d__fallback">
+    <svg viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" role="presentation">
+      <path d="M0 250 Q 200 210 400 245 T 800 235 V500 H0 Z" fill="#f3ece0" />
+      <path d="M0 320 Q 220 280 430 315 T 800 300 V500 H0 Z" fill="#7a934a" />
+      <path d="M0 380 Q 200 350 420 378 T 800 360 V500 H0 Z" fill="#ddb867" />
+      <path d="M0 430 Q 240 405 460 428 T 800 415 V500 H0 Z" fill="#6a2f56" />
+      <g fill="#5b2a4e">
+        <circle cx="540" cy="452" r="9" /><circle cx="560" cy="458" r="9" />
+        <circle cx="550" cy="470" r="9" /><circle cx="600" cy="455" r="9" />
+        <circle cx="618" cy="462" r="9" /><circle cx="608" cy="474" r="9" />
+      </g>
+    </svg>
+  </div>
+  <canvas class="scene3d__canvas"></canvas>
+</div>
+
+<style>
+  .scene3d {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    /* 寒い富良野の澄んだ空 → 地平のクラフト紙（3Dの透けにも対応） */
+    background: linear-gradient(180deg, #cfe0e8 0%, #dde0d2 48%, #ece2cf 100%);
+  }
+  .scene3d__fallback,
+  .scene3d__canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .scene3d__fallback svg {
+    width: 100%;
+    height: 100%;
+  }
+  .scene3d__canvas {
+    opacity: 0;
+    transition: opacity 0.8s ease;
+  }
+  .scene3d__canvas.is-ready {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .scene3d__canvas {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import type { VineyardController } from "../scenes/vineyard";
+
+  const canvas = document.querySelector<HTMLCanvasElement>(".scene3d__canvas");
+
+  function hasWebGL(): boolean {
+    try {
+      const c = document.createElement("canvas");
+      return !!(
+        window.WebGLRenderingContext &&
+        (c.getContext("webgl") || c.getContext("experimental-webgl"))
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  if (canvas && hasWebGL()) {
+    let controller: VineyardController | null = null;
+
+    const updateProgress = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      controller?.setProgress(max > 0 ? window.scrollY / max : 0);
+    };
+
+    // 非ブロッキングで three.js を遅延ロード
+    (async () => {
+      try {
+        const { createVineyard } = await import("../scenes/vineyard");
+        controller = createVineyard(canvas);
+        canvas.classList.add("is-ready");
+        controller.start();
+        updateProgress();
+        window.addEventListener("scroll", updateProgress, { passive: true });
+        window.addEventListener("resize", updateProgress, { passive: true });
+      } catch (err) {
+        console.warn("[scene3d] 3D init failed, keeping static fallback", err);
+      }
+    })();
+
+    // タブ非表示で一時停止
+    const onVisibility = () => {
+      if (document.hidden) controller?.stop();
+      else controller?.start();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    // 将来 View Transitions 等でページが入れ替わる際にリスナー/リソースを解放
+    document.addEventListener(
+      "astro:before-swap",
+      () => {
+        window.removeEventListener("scroll", updateProgress);
+        window.removeEventListener("resize", updateProgress);
+        document.removeEventListener("visibilitychange", onVisibility);
+        controller?.dispose();
+      },
+      { once: true },
+    );
+  }
+</script>
