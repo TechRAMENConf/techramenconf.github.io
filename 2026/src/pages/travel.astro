@@ -1,0 +1,319 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import spots from "../data/spots.json";
+import itineraries from "../data/itineraries.json";
+import { loadDefaultJapaneseParser } from "budoux";
+
+const budoux = loadDefaultJapaneseParser();
+const jp = (text: string) => budoux.parse(text).join("<wbr>");
+
+const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+const gmap = (s: { name: string; lat: number; lng: number }) =>
+  `https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`;
+---
+
+<BaseLayout
+  title="観光・モデル旅程 — TechRAMEN 2026 Conference"
+  description="11月の富良野でほんとうに行けるおすすめスポットと、カンファレンスに合わせたモデル旅程。"
+>
+  <main class="tp">
+    <div class="wrap">
+      <a class="back hand" href={BASE}>← TechRAMEN 2026 へ戻る</a>
+      <p class="eyebrow">来たついでに、</p>
+      <h1 class="section-title jp" set:html={jp("富良野を、もう一日。")} />
+      <p
+        class="lead jp"
+        set:html={jp(
+          "11月の富良野は、ラベンダーもスキー最盛期も外れた静かな季節。だからこそ人が少なく、ワイン・チーズ・ラーメン・温泉・初雪の景色をゆっくり味わえます。",
+        )}
+      />
+      <p
+        class="note jp"
+        set:html={jp(
+          "※ 冬季休業や時短の施設があります。各スポットの最新の営業情報をご確認ください。雪・路面凍結に備え、レンタカーは冬タイヤを。地図のピンはおおよその位置です。",
+        )}
+      />
+    </div>
+
+    <!-- 地図 -->
+    <div class="wrap">
+      <h2 class="tp__h hand">地図</h2>
+    </div>
+    <div id="map" class="map" aria-label="富良野周辺のおすすめスポット地図"></div>
+
+    <div class="wrap">
+      <!-- スポット -->
+      <h2 class="tp__h hand">おすすめスポット</h2>
+      <div class="spots">
+        {
+          spots.map((s) => (
+            <div class="card spot">
+              <div class="spot__top">
+                <span class="spot__cat">{s.category}</span>
+                <span class="spot__area">{s.area}</span>
+              </div>
+              <p class="spot__name">{s.name}</p>
+              <p class="spot__note jp" set:html={jp(s.note)} />
+              <p class="spot__caution jp" set:html={jp(s.caution)} />
+              <div class="spot__links">
+                <a href={gmap(s)} target="_blank" rel="noopener">地図で見る</a>
+                {s.url && (
+                  <a href={s.url} target="_blank" rel="noopener">
+                    公式サイト
+                  </a>
+                )}
+              </div>
+            </div>
+          ))
+        }
+      </div>
+
+      <!-- モデル旅程 -->
+      <h2 class="tp__h hand">モデル旅程</h2>
+      <div class="itins">
+        {
+          itineraries.map((it) => (
+            <div class="card itin">
+              <p class="itin__title">{it.title}</p>
+              <p class="itin__sub jp" set:html={jp(it.sub)} />
+              <ol class="itin__steps">
+                {it.steps.map((st) => (
+                  <li class="itin__step">
+                    <span class="itin__d">{st.d}</span>
+                    <span class="itin__t jp" set:html={jp(st.t)} />
+                    <span class="itin__note jp" set:html={jp(st.note)} />
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ))
+        }
+      </div>
+
+      <a class="back hand back--bottom" href={BASE}>← TechRAMEN 2026 へ戻る</a>
+    </div>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  /* このページだけ、紙のあたたかい背景に */
+  body {
+    background:
+      radial-gradient(120% 90% at 80% -10%, rgba(207, 155, 62, 0.12), transparent 60%),
+      linear-gradient(180deg, #e9eef0 0%, #efe7d6 40%, #f3ead6 100%);
+    background-attachment: fixed;
+  }
+</style>
+
+<style>
+  .tp {
+    padding-block: clamp(2rem, 6vw, 4rem) 4rem;
+  }
+  .back {
+    display: inline-block;
+    font-size: 1.2rem;
+    color: var(--wine);
+    text-decoration: none;
+    margin-bottom: 1.2rem;
+  }
+  .back:hover {
+    text-decoration: underline;
+  }
+  .back--bottom {
+    margin-top: 2.5rem;
+  }
+  .lead {
+    max-width: 42rem;
+  }
+  .note {
+    max-width: 42rem;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    margin-bottom: 0;
+  }
+
+  .tp__h {
+    margin: 2.6rem 0 1rem;
+    font-size: clamp(1.5rem, 5vw, 2.1rem);
+    color: var(--wine);
+    transform: rotate(-1.5deg);
+  }
+
+  /* 地図 */
+  .map {
+    width: 100%;
+    height: clamp(320px, 56vh, 560px);
+    border-block: 3px solid var(--ink);
+    background: #dfe6ea;
+  }
+
+  /* スポット */
+  .spots {
+    display: grid;
+    gap: 1.1rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 640px) {
+    .spots {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 940px) {
+    .spots {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .spot__top {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin-bottom: 0.3rem;
+  }
+  .spot__cat {
+    font-family: var(--font-hand);
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--snow);
+    background: var(--grape);
+    border: 2px solid var(--ink);
+    border-radius: 8px 6px 9px 5px / 5px 9px 6px 8px;
+    padding: 0.1em 0.6em;
+  }
+  .spot__area {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+  }
+  .spot__name {
+    margin: 0 0 0.35rem;
+    font-size: 1.32rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .spot__note {
+    margin: 0 0 0.5rem;
+    font-size: 1.03rem;
+    line-height: 1.75;
+  }
+  .spot__caution {
+    margin: 0 0 0.7rem;
+    font-size: 0.86rem;
+    color: var(--wine);
+    opacity: 0.85;
+  }
+  .spot__links {
+    display: flex;
+    gap: 0.9rem;
+    font-size: 0.98rem;
+    font-weight: 700;
+  }
+
+  /* モデル旅程 */
+  .itins {
+    display: grid;
+    gap: 1.1rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 820px) {
+    .itins {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .itin__title {
+    margin: 0;
+    font-family: var(--font-hand);
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--grape);
+  }
+  .itin__sub {
+    margin: 0 0 0.6rem;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+  }
+  .itin__steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.7rem;
+  }
+  .itin__step {
+    display: grid;
+    gap: 0.05rem;
+    padding-left: 0.8rem;
+    border-left: 2px dashed rgba(46, 40, 38, 0.35);
+  }
+  .itin__d {
+    font-family: var(--font-hand);
+    font-weight: 700;
+    color: var(--wine);
+    font-size: 1rem;
+  }
+  .itin__t {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--ink);
+  }
+  .itin__note {
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+  }
+
+  /* MapLibre のポップアップ */
+  :global(.maplibregl-popup-content) {
+    font-family: var(--font-body);
+    border-radius: 10px;
+    border: 2px solid var(--ink);
+    padding: 0.6rem 0.8rem;
+  }
+  :global(.mlpop b) {
+    color: var(--grape);
+  }
+  :global(.mlpop a) {
+    color: var(--wine);
+    font-weight: 700;
+  }
+</style>
+
+<script>
+  import maplibregl from "maplibre-gl";
+  import "maplibre-gl/dist/maplibre-gl.css";
+  import spots from "../data/spots.json";
+
+  const map = new maplibregl.Map({
+    container: "map",
+    style: {
+      version: 8,
+      sources: {
+        osm: {
+          type: "raster",
+          tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+          tileSize: 256,
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        },
+      },
+      layers: [{ id: "osm", type: "raster", source: "osm" }],
+    },
+    center: [142.45, 43.45],
+    zoom: 8,
+    cooperativeGestures: true,
+  });
+  map.addControl(new maplibregl.NavigationControl(), "top-right");
+  map.addControl(new maplibregl.FullscreenControl(), "top-right");
+
+  const bounds = new maplibregl.LngLatBounds();
+  for (const s of spots) {
+    const ll: [number, number] = [s.lng, s.lat];
+    const gmap = `https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`;
+    const popup = new maplibregl.Popup({ offset: 18 }).setHTML(
+      `<div class="mlpop"><b>${s.name}</b><br>${s.category} / ${s.area}<br>` +
+        `<a href="${gmap}" target="_blank" rel="noopener">地図アプリで開く</a></div>`,
+    );
+    new maplibregl.Marker({ color: "#7b2c3a" }).setLngLat(ll).setPopup(popup).addTo(map);
+    bounds.extend(ll);
+  }
+  map.on("load", () => {
+    map.fitBounds(bounds, { padding: 60, maxZoom: 11, duration: 0 });
+  });
+</script>

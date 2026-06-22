@@ -12,7 +12,8 @@ const jp = (text: string) => budoux.parse(text).join("<wbr>");
 // <b>や<br>を含むHTMLにも文節区切りを挿入（keep-all等のスタイルも付与される）
 const jpHtml = (html: string) => budoux.translateHTMLString(html);
 
-const BASE = import.meta.env.BASE_URL;
+// 末尾スラッシュを保証（BASE_URL は環境によりスラッシュ無しのことがある）
+const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
 const ics = `${BASE}techramen-2026.ics`;
 
 // Googleカレンダー追加リンク（終日・end exclusive）
@@ -111,6 +112,21 @@ const roadmap = [
         </div>
       </div>
       <p class="note jp" set:html={jp("※ アクセスの詳細・会場マップは、会場確定後にここへ追記します。")} />
+    </div>
+  </section>
+
+  <!-- ============ 富良野 観光・モデル旅程（別ページへ誘導） ============ -->
+  <section id="travel" class="section">
+    <div class="wrap sheet reveal">
+      <p class="eyebrow">来たついでに、</p>
+      <h2 class="section-title jp" set:html={jp("富良野を、もう一日。")} />
+      <p
+        class="lead jp"
+        set:html={jp(
+          "11月の富良野でほんとうに行けるおすすめスポットと、カンファレンスに合わせたモデル旅程・地図をまとめました。",
+        )}
+      />
+      <a class="btn" href={`${BASE}travel/`}>観光・モデル旅程をみる</a>
     </div>
   </section>
 
