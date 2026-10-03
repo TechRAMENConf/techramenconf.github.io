@@ -146,6 +146,13 @@ const gmap = (s: { name: string; lat: number; lng: number }) =>
     border-block: 3px solid var(--ink);
     background: #dfe6ea;
   }
+  .map--unavailable {
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--ink-soft);
+  }
 
   /* スポット */
   .spots {
@@ -276,44 +283,64 @@ const gmap = (s: { name: string; lat: number; lng: number }) =>
 </style>
 
 <script>
-  import maplibregl from "maplibre-gl";
+  import * as maplibregl from "maplibre-gl";
   import "maplibre-gl/dist/maplibre-gl.css";
+  // v6: バンドラ経由では worker の URL を明示する（Vite は ?worker&url で依存込みの worker を出力）
+  import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
+
+  maplibregl.setWorkerUrl(workerUrl);
   import spots from "../data/spots.json";
 
-  const map = new maplibregl.Map({
-    container: "map",
-    style: {
-      version: 8,
-      sources: {
-        osm: {
-          type: "raster",
-          tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-          tileSize: 256,
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        },
-      },
-      layers: [{ id: "osm", type: "raster", source: "osm" }],
-    },
-    center: [142.45, 43.45],
-    zoom: 8,
-    cooperativeGestures: true,
-  });
-  map.addControl(new maplibregl.NavigationControl(), "top-right");
-  map.addControl(new maplibregl.FullscreenControl(), "top-right");
+  const container = document.getElementById("map");
 
-  const bounds = new maplibregl.LngLatBounds();
-  for (const s of spots) {
-    const ll: [number, number] = [s.lng, s.lat];
-    const gmap = `https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`;
-    const popup = new maplibregl.Popup({ offset: 18 }).setHTML(
-      `<div class="mlpop"><b>${s.name}</b><br>${s.category} / ${s.area}<br>` +
-        `<a href="${gmap}" target="_blank" rel="noopener">地図アプリで開く</a></div>`,
-    );
-    new maplibregl.Marker({ color: "#7b2c3a" }).setLngLat(ll).setPopup(popup).addTo(map);
-    bounds.extend(ll);
+  function initMap(el: HTMLElement) {
+    const map = new maplibregl.Map({
+      container: el,
+      style: {
+        version: 8,
+        sources: {
+          osm: {
+            type: "raster",
+            tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+            tileSize: 256,
+            attribution:
+              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          },
+        },
+        layers: [{ id: "osm", type: "raster", source: "osm" }],
+      },
+      center: [142.45, 43.45],
+      zoom: 8,
+      cooperativeGestures: true,
+    });
+    map.addControl(new maplibregl.NavigationControl(), "top-right");
+    map.addControl(new maplibregl.FullscreenControl(), "top-right");
+
+    const bounds = new maplibregl.LngLatBounds();
+    for (const s of spots) {
+      const ll: [number, number] = [s.lng, s.lat];
+      const gmap = `https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`;
+      const popup = new maplibregl.Popup({ offset: 18 }).setHTML(
+        `<div class="mlpop"><b>${s.name}</b><br>${s.category} / ${s.area}<br>` +
+          `<a href="${gmap}" target="_blank" rel="noopener">地図アプリで開く</a></div>`,
+      );
+      new maplibregl.Marker({ color: "#7b2c3a" }).setLngLat(ll).setPopup(popup).addTo(map);
+      bounds.extend(ll);
+    }
+    map.on("load", () => {
+      map.fitBounds(bounds, { padding: 60, maxZoom: 11, duration: 0 });
+    });
   }
-  map.on("load", () => {
-    map.fitBounds(bounds, { padding: 60, maxZoom: 11, duration: 0 });
-  });
+
+  if (container) {
+    try {
+      initMap(container);
+    } catch (err) {
+      // maplibre v6 は WebGL2 必須。非対応端末では地図の代わりに案内を出す（スポット一覧は下にある）
+      if (!(err instanceof maplibregl.GPUInitializationError)) throw err;
+      container.classList.add("map--unavailable");
+      container.textContent =
+        "この端末では地図を表示できません。下のスポット一覧から地図アプリで開けます。";
+    }
+  }
 </script>
