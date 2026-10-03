@@ -22,7 +22,7 @@ const C = {
   raimon: "#b8352e", // 朱
   rim: 0xb8352e,
   noodle: 0xf2d58a,
-  menma: 0xc8913e,
+  menma: 0xa86a28,
   nori: 0x2f3b29,
   negi: 0x8db35a,
   negiDark: 0x5f8a3a,
@@ -129,44 +129,51 @@ function soupTexture(rand: () => number) {
   });
 }
 
-/** 巻きチャーシューの断面: 焼き目 → 脂の輪 → 赤身、巻いた脂の渦と霜降り */
-function chashuTexture(rand: () => number) {
-  return canvasTex(256, 256, (g) => {
-    const c = 128;
+/** チャーシューの断面（巻かないバラ肉）: 焼き色の縁、赤身に脂の層と霜降り。
+ *  ExtrudeGeometry の面 UV は形の座標そのものなので、repeat/offset で合わせる */
+function chashuTexture(rand: () => number, w: number, h: number) {
+  const t = canvasTex(256, 160, (g) => {
     g.fillStyle = "#6b3a1e";
+    g.fillRect(0, 0, 256, 160);
+    // 赤身
+    const m = g.createLinearGradient(0, 0, 0, 160);
+    m.addColorStop(0, "#b8664c");
+    m.addColorStop(1, "#c97d62");
+    g.fillStyle = m;
     g.beginPath();
-    g.arc(c, c, 128, 0, 7);
+    g.roundRect(14, 12, 228, 136, 26);
     g.fill();
-    g.fillStyle = "#f1dfc2";
-    g.beginPath();
-    g.arc(c, c, 112, 0, 7);
-    g.fill();
-    g.fillStyle = "#c8765e";
-    g.beginPath();
-    g.arc(c, c, 100, 0, 7);
-    g.fill();
-    // 巻いた脂の渦
-    g.strokeStyle = "#ecd3b4";
-    g.lineWidth = 7;
-    g.beginPath();
-    for (let a = 0; a < Math.PI * 5; a += 0.08) {
-      const r = 8 + a * 5.6;
-      const x = c + Math.cos(a) * r;
-      const y = c + Math.sin(a) * r;
-      if (a === 0) g.moveTo(x, y);
-      else g.lineTo(x, y);
-    }
-    g.stroke();
-    // 霜降り
-    for (let i = 0; i < 26; i++) {
-      const a = rand() * 7;
-      const r = rand() * 90;
-      g.fillStyle = "rgba(240, 215, 185, 0.7)";
+    // 脂の層（波打つ横縞を 3 本）
+    g.fillStyle = "#efd8b8";
+    for (const [y0, th] of [
+      [38, 13],
+      [82, 17],
+      [122, 11],
+    ]) {
       g.beginPath();
-      g.ellipse(c + Math.cos(a) * r, c + Math.sin(a) * r, 2 + rand() * 4, 1 + rand() * 2, a, 0, 7);
+      g.moveTo(14, y0);
+      for (let x = 14; x <= 242; x += 8) g.lineTo(x, y0 + Math.sin(x * 0.05 + y0) * 5);
+      for (let x = 242; x >= 14; x -= 8) g.lineTo(x, y0 + th + Math.sin(x * 0.045 + y0 * 1.3) * 4);
+      g.closePath();
       g.fill();
     }
+    // 霜降り
+    for (let i = 0; i < 30; i++) {
+      g.fillStyle = "rgba(240, 214, 184, 0.65)";
+      g.beginPath();
+      g.ellipse(20 + rand() * 216, 18 + rand() * 124, 2 + rand() * 5, 1 + rand() * 1.6, 0, 0, 7);
+      g.fill();
+    }
+    // 焼き色の縁を少しぼかす
+    g.strokeStyle = "rgba(90, 46, 22, 0.55)";
+    g.lineWidth = 6;
+    g.beginPath();
+    g.roundRect(14, 12, 228, 136, 26);
+    g.stroke();
   });
+  t.repeat.set(1 / w, 1 / h);
+  t.offset.set(0.5, 0.5);
+  return t;
 }
 
 /** なるとの断面: 白地にピンクの渦（ExtrudeGeometry の面 UV は形の座標そのものなので、repeat/offset で合わせる） */
@@ -238,6 +245,14 @@ function noodleCurve(angle: number, lateral: number, phase: number, rand: () => 
     pts.push(new THREE.Vector3(x, mound + bob + jitter * Math.max(0, 1 - Math.abs(k)), z));
   }
   return new THREE.CatmullRomCurve3(pts);
+}
+
+/** 麺の山の表面の高さ（スープ面からの高さ）。具を麺の上に載せるのに使う */
+const NOODLE_CENTER = new THREE.Vector2(-0.02, -0.02);
+function moundY(x: number, z: number) {
+  const r = Math.hypot(x - NOODLE_CENTER.x, z - NOODLE_CENTER.y);
+  const k = Math.min(1, r / 0.4);
+  return Math.max(0.004, 0.1 * Math.pow(Math.cos((k * Math.PI) / 2), 2) - 0.012) + 0.019;
 }
 
 export function buildRamen(rand: () => number): THREE.Group {
@@ -326,19 +341,40 @@ export function buildRamen(rand: () => number): THREE.Group {
     g.add(m);
   });
 
-  // --- 巻きチャーシュー 2 枚: 麺の山の奥右に立てかける ---
-  const chashuTex = chashuTexture(rand);
-  const chashuCap = paperMaterial(0xffffff, { map: chashuTex });
+  // --- チャーシュー 2 枚（巻かないバラ肉）: 麺の山の奥右に、少し重ねて寝かせる ---
+  const cw = 0.27;
+  const ch = 0.16;
   const chashuSide = paperMaterial(C.chashuSide);
-  const chashuGeo = new THREE.CylinderGeometry(0.13, 0.13, 0.026, 28);
+  const chashuCap = paperMaterial(0xffffff, { map: chashuTexture(rand, cw, ch) });
+  const makeSlice = () => {
+    // 角の丸い、少しいびつな四角（手で切った肉の形）
+    const shape = new THREE.Shape();
+    const n = 28;
+    for (let i = 0; i <= n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      const c = Math.cos(a);
+      const sn = Math.sin(a);
+      // 超楕円で角丸の四角に近づけ、縁を不揃いに
+      const px = Math.sign(c) * Math.pow(Math.abs(c), 0.55) * (cw / 2) * (0.94 + rand() * 0.06);
+      const py = Math.sign(sn) * Math.pow(Math.abs(sn), 0.55) * (ch / 2) * (0.92 + rand() * 0.08);
+      if (i === 0) shape.moveTo(px, py);
+      else shape.lineTo(px, py);
+    }
+    const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.02, bevelEnabled: false });
+    return new THREE.Mesh(geo, [chashuCap, chashuSide]);
+  };
   [
-    { x: 0.19, y: 0.1, z: -0.19, rx: 0.72, rz: -0.25 },
-    { x: 0.3, y: 0.085, z: -0.05, rx: 0.8, rz: -0.5 },
-  ].forEach((p) => {
-    const m = new THREE.Mesh(chashuGeo, [chashuSide, chashuCap, chashuCap]);
-    m.position.set(p.x, BROTH_Y + p.y, p.z);
-    m.rotation.set(p.rx, 0, p.rz);
-    g.add(m);
+    { x: 0.17, z: -0.2, yaw: 0.35, tilt: 0.5 },
+    { x: 0.28, z: -0.05, yaw: -0.25, tilt: 0.42 },
+  ].forEach((p, i) => {
+    const m = makeSlice();
+    // 形は XY 平面（面が +Z 向き）→ 上向きに寝かせ、手前へ少し起こす
+    m.rotation.set(-Math.PI / 2 + p.tilt, 0, 0);
+    const holder = new THREE.Group();
+    holder.add(m);
+    holder.rotation.y = p.yaw;
+    holder.position.set(p.x, BROTH_Y + moundY(p.x, p.z) + 0.035 + i * 0.012, p.z);
+    g.add(holder);
   });
 
   // --- なると: ギザギザの縁の断面、左に立てかける ---
@@ -382,13 +418,17 @@ export function buildRamen(rand: () => number): THREE.Group {
   egg.rotation.set(0.55, -0.4, 0); // 断面をこちらに向ける
   g.add(egg);
 
-  // --- メンマ: 短冊を束ねて手前左 ---
+  // --- メンマ: 短冊を 5 本、麺の山の左奥に立てかけて並べる ---
+  // （丼の手前の縁は低い視点から具を隠すので、見える奥寄り・高めに置く）
   const menmaGeos: THREE.BufferGeometry[] = [];
   for (let i = 0; i < 5; i++) {
-    const m = new THREE.BoxGeometry(0.1, 0.012, 0.024);
-    m.rotateY(0.25 + (rand() - 0.5) * 0.3);
-    m.rotateZ((rand() - 0.5) * 0.25);
-    m.translate(-0.15 + (rand() - 0.5) * 0.03, 0.065 + i * 0.009, 0.27 + (i - 2) * 0.022);
+    const x = -0.25 + i * 0.03 + (rand() - 0.5) * 0.008;
+    const z = -0.1 + i * 0.012 + (rand() - 0.5) * 0.01;
+    const m = new THREE.BoxGeometry(0.03, 0.016, 0.13);
+    m.rotateX(-0.75 + (rand() - 0.5) * 0.15); // 奥を持ち上げ、こちらへ断面を見せる
+    m.rotateY(-0.35 + (rand() - 0.5) * 0.2);
+    m.rotateZ((rand() - 0.5) * 0.2);
+    m.translate(x, moundY(x, z) + 0.045, z);
     menmaGeos.push(m);
   }
   const menma = new THREE.Mesh(mergeGeometries(menmaGeos), paperMaterial(C.menma));
@@ -396,8 +436,8 @@ export function buildRamen(rand: () => number): THREE.Group {
   menma.position.y = BROTH_Y;
   g.add(menma);
 
-  // --- 小口切りのねぎ: 小さな輪を散らす（色に濃淡）---
-  const negiCount = 26;
+  // --- 小口切りのねぎ: 麺の山の頂上にこんもり＋周りに少し散らす。輪は寝かせる ---
+  const negiCount = 34;
   const negi = new THREE.InstancedMesh(
     new THREE.TorusGeometry(0.016, 0.0055, 4, 10),
     paperMaterial(0xffffff),
@@ -406,11 +446,16 @@ export function buildRamen(rand: () => number): THREE.Group {
   const light = new THREE.Color(C.negi);
   const dark = new THREE.Color(C.negiDark);
   for (let i = 0; i < negiCount; i++) {
+    const heap = i < 24;
     const a = rand() * Math.PI * 2;
-    const r = 0.04 + rand() * 0.24;
-    d.position.set(Math.cos(a) * r, BROTH_Y + 0.085 + rand() * 0.03, Math.sin(a) * r + 0.04);
-    d.rotation.set(Math.PI / 2 + (rand() - 0.5) * 0.8, 0, rand() * Math.PI);
-    d.scale.setScalar(0.8 + rand() * 0.5);
+    const r = heap ? Math.sqrt(rand()) * 0.09 : 0.1 + rand() * 0.14;
+    const x = -0.03 + Math.cos(a) * r;
+    const z = 0.04 + Math.sin(a) * r;
+    // 山の中心ほど重なって高くなる
+    const pile = heap ? (1 - r / 0.09) * 0.025 + rand() * 0.008 : 0;
+    d.position.set(x, BROTH_Y + moundY(x, z) + 0.004 + pile, z);
+    d.rotation.set(Math.PI / 2 + (rand() - 0.5) * 0.7, (rand() - 0.5) * 0.5, rand() * Math.PI);
+    d.scale.setScalar(0.85 + rand() * 0.4);
     d.updateMatrix();
     negi.setMatrixAt(i, d.matrix);
     negi.setColorAt(i, rand() < 0.5 ? light : dark);
