@@ -1,0 +1,201 @@
+---
+// ゲストスピーカー（1名）。src/data/guest.json が null のあいだは「近日発表」を表示。
+// 写真は public/guest/ に置き、image には "guest/xxx.jpg" のように public からのパスを書く。
+import guestData from "../data/guest.json";
+import { jp } from "../lib/jp";
+
+interface Guest {
+  name: string;
+  kana?: string;
+  title?: string;
+  image?: string;
+  x?: string;
+  talk?: string;
+  bio?: string;
+}
+const guest = guestData as Guest | null;
+
+const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+const photo = guest?.image ? `${BASE}${guest.image.replace(/^\//, "")}` : null;
+const xHandle = guest?.x ? guest.x.replace(/\/$/, "").split("/").pop() : null;
+---
+
+<section id="guest" class="section">
+  <div class="wrap sheet reveal">
+    <p class="eyebrow">今年のゲスト</p>
+    <h2 class="section-title">ゲストスピーカー</h2>
+
+    <div class="guest">
+      <!-- テープで貼ったポラロイド写真 -->
+      <figure class="guest__photo tape tilt-l">
+        {
+          photo ? (
+            <img src={photo} alt={guest!.name} width="480" height="560" loading="lazy" decoding="async" />
+          ) : (
+            <div class="guest__silhouette" aria-hidden="true">
+              <svg viewBox="0 0 120 140">
+                <circle cx="60" cy="52" r="26" />
+                <path d="M14 140 C 18 98, 40 86, 60 86 C 80 86, 102 98, 106 140 Z" />
+              </svg>
+              <span class="guest__q hand">?</span>
+            </div>
+          )
+        }
+        <figcaption class="hand">{guest ? guest.name : "近日発表"}</figcaption>
+      </figure>
+
+      <!-- 名札のプロフィール（コンセプト「ちゃんと初めまして」に合わせる） -->
+      <div class="nametag tilt-r guest__profile">
+        <p class="nametag__band">
+          <span class="nametag__hello">HELLO</span>
+          <span class="nametag__my">はじめまして</span>
+        </p>
+        <div class="nametag__body">
+          {
+            guest ? (
+              <>
+                <p class="guest__name">
+                  {guest.name}
+                  {guest.kana && <span class="guest__kana">（{guest.kana}）</span>}
+                </p>
+                {guest.title && <p class="guest__title">{guest.title}</p>}
+                {guest.x && xHandle && (
+                  <p class="guest__x">
+                    <a href={guest.x} target="_blank" rel="noopener">
+                      @{xHandle}
+                    </a>
+                  </p>
+                )}
+                {guest.talk && (
+                  <p class="guest__talk">
+                    <span class="hand">講演</span>「{guest.talk}」
+                  </p>
+                )}
+                {guest.bio && <p class="guest__bio jp" set:html={jp(guest.bio)} />}
+              </>
+            ) : (
+              <>
+                <p class="guest__name">近日発表</p>
+                <p
+                  class="guest__bio jp"
+                  set:html={jp(
+                    "今年もゲストスピーカーをお招きします。発表はこのページと公式 note・X でお知らせします。お楽しみに！",
+                  )}
+                />
+              </>
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .guest {
+    display: grid;
+    gap: 2.2rem;
+    margin-top: 2.4rem;
+    align-items: start;
+  }
+  @media (min-width: 720px) {
+    .guest {
+      grid-template-columns: minmax(12rem, 17rem) 1fr;
+      gap: 2.6rem;
+    }
+    .guest__photo {
+      width: 100%;
+    }
+  }
+
+  /* ポラロイド */
+  .guest__photo {
+    justify-self: center;
+    width: min(100%, 14rem);
+    margin: 0;
+    padding: 0.75rem 0.75rem 0;
+    background: var(--paper-card);
+    border-radius: 3px;
+    /* 印画紙の白枠＋貼った写真の柔らかい影（黒い輪郭は付けない） */
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.8) inset,
+      0 12px 20px -10px rgba(46, 40, 38, 0.5);
+  }
+  .guest__photo img,
+  .guest__silhouette {
+    display: block;
+    width: 100%;
+    height: auto; /* height 属性より aspect-ratio を優先させる */
+    aspect-ratio: 6 / 7;
+    object-fit: cover;
+    object-position: top;
+    border: 1.5px solid rgba(46, 40, 38, 0.4);
+  }
+  .guest__silhouette {
+    position: relative;
+    display: grid;
+    place-items: end center;
+    overflow: hidden;
+    background: linear-gradient(180deg, #cfe0e8, #dde0d2);
+  }
+  .guest__silhouette svg {
+    width: 82%;
+    fill: var(--paper-deep);
+    stroke: rgba(46, 40, 38, 0.35);
+    stroke-width: 1.5;
+  }
+  .guest__q {
+    position: absolute;
+    top: 18%;
+    left: 50%;
+    transform: translateX(-50%) rotate(-6deg);
+    font-size: 3.4rem;
+    line-height: 1;
+    color: var(--wine);
+  }
+  .guest__photo figcaption {
+    padding: 0.5rem 0 0.7rem;
+    text-align: center;
+    font-size: 1.4rem;
+    color: var(--grape);
+  }
+
+  /* プロフィール */
+  /* 名札に手で書いた名前 */
+  .guest__name {
+    margin: 0;
+    font-family: "Yomogi", var(--font-hand);
+    font-size: clamp(1.7rem, 5vw, 2.1rem);
+    line-height: 1.3;
+    color: var(--ink);
+  }
+  .guest__kana {
+    font-size: 0.65em;
+    font-weight: 400;
+    color: var(--ink-soft);
+  }
+  .guest__title {
+    margin: 0.2rem 0 0;
+    color: var(--ink-soft);
+  }
+  .guest__x {
+    margin: 0.4rem 0 0;
+  }
+  .guest__x a {
+    color: var(--wine);
+    font-weight: 700;
+  }
+  .guest__talk {
+    margin: 1rem 0 0;
+    font-weight: 700;
+  }
+  .guest__talk .hand {
+    margin-right: 0.4em;
+    color: var(--wine);
+    font-size: 1.15em;
+  }
+  .guest__bio {
+    margin: 0.9rem 0 0;
+    font-size: 0.95rem;
+  }
+</style>

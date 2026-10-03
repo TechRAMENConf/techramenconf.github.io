@@ -14,6 +14,7 @@
     "astro": "^7.3.5",
     "budoux": "^0.9.3",
     "maplibre-gl": "^6.11.2",
+    "rss-parser": "^3.13.0",
     "three": "^0.186.1",
     "typescript": "^6.0.3"
   },

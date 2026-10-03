@@ -77,6 +77,15 @@ const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
             result="noise"></feTurbulence>
           <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.8"></feDisplacementMap>
         </filter>
+        <!-- ボタン・札など小さい紙片用のちぎれ（2 種類を交互に使い、同じ破れ方が並ばないようにする） -->
+        <filter id="torn-sm" x="-5%" y="-10%" width="110%" height="120%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="3" seed="11" result="noise"></feTurbulence>
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="5"></feDisplacementMap>
+        </filter>
+        <filter id="torn-sm2" x="-5%" y="-10%" width="110%" height="120%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.055" numOctaves="3" seed="23" result="noise"></feTurbulence>
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="5"></feDisplacementMap>
+        </filter>
         <filter id="torn">
           <feTurbulence
             type="fractalNoise"

@@ -3,32 +3,49 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import Scene3D from "../components/Scene3D.astro";
 import Hero3D from "../components/Hero3D.astro";
 import Icon from "../components/Icon.astro";
-import { loadDefaultJapaneseParser } from "budoux";
-
-// ビルド時に文節で <wbr> を挿入し、日本語が変な位置で改行しないようにする
-// （.jp クラスの word-break: keep-all と併用。全ブラウザ対応）
-const budoux = loadDefaultJapaneseParser();
-const jp = (text: string) => budoux.parse(text).join("<wbr>");
-// <b>や<br>を含むHTMLにも文節区切りを挿入（keep-all等のスタイルも付与される）
-const jpHtml = (html: string) => budoux.translateHTMLString(html);
+import Ticket from "../components/Ticket.astro";
+import Concept from "../components/Concept.astro";
+import Shiori from "../components/Shiori.astro";
+import Cfp from "../components/Cfp.astro";
+import Guest from "../components/Guest.astro";
+import NoteFeed from "../components/NoteFeed.astro";
+import cfp from "../data/cfp.json";
+import venue from "../data/venue.json";
+import { jp, jpHtml } from "../lib/jp";
 
 // 末尾スラッシュを保証（BASE_URL は環境によりスラッシュ無しのことがある）
 const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
 const ics = `${BASE}techramen-2026.ics`;
+const venueMap = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+  `${venue.name} ${venue.address}`,
+)}`;
 
 // Googleカレンダー追加リンク（終日・end exclusive）
 const gcal = (text: string, start: string, end: string) =>
   `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
     text,
   )}&dates=${start}/${end}&location=${encodeURIComponent(
-    "富良野, 北海道",
+    `${venue.name}（${venue.address}）`,
   )}&details=${encodeURIComponent("詳細は順次公開 https://techramenconf.net/2026/")}`;
 
 const gcalPre = gcal("TechRAMEN 2026 (pre event)", "20261120", "20261121");
 const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
 
-const roadmap = [
-  { label: "CFP（登壇者募集）", when: "準備中", note: "登壇の応募方法・締切をここで告知します" },
+// CFP の行は cfp.json の状態と連動（募集中・締切後は #cfp へのリンクにする）
+const cfpWhen =
+  ({ soon: "準備中", open: "募集中", closed: "締切" } as Record<string, string>)[cfp.status] ?? "準備中";
+const roadmap: { label: string; when: string; note: string; href?: string }[] = [
+  {
+    label: "CFP（登壇者募集）",
+    when: cfpWhen,
+    note:
+      cfp.status === "open"
+        ? "ただいま募集中です。応募はこちらから"
+        : cfp.status === "closed"
+          ? "募集は締め切りました。ご応募ありがとうございました"
+          : "登壇の応募方法・締切をここで告知します",
+    href: cfp.status === "soon" ? undefined : "#cfp",
+  },
   { label: "チケット発売", when: "準備中", note: "参加チケットの価格・販売開始を告知します" },
   { label: "タイムテーブル", when: "準備中", note: "セッション・登壇者を公開します" },
 ];
@@ -36,7 +53,11 @@ const roadmap = [
 
 <BaseLayout>
   <Scene3D />
+  <Shiori />
   <Hero3D />
+
+  <!-- ============ コンセプト ============ -->
+  <Concept />
 
   <!-- ============ 日程・会場 + カレンダー ============ -->
   <section id="dates" class="section" data-beat="dates">
@@ -46,38 +67,13 @@ const roadmap = [
         <span class="underline-wobble jp" set:html={jp("寒い富良野で、あったかい二日間。")} />
       </h2>
 
-      <div class="dates-grid">
-        <div class="card tilt-l day-card">
-          <p class="day-card__tag hand">pre event</p>
-          <p class="day-card__date">2026<span>.</span>11<span>.</span>20</p>
-          <p class="day-card__sub">金曜・前夜祭</p>
-        </div>
-        <div class="card tilt-r day-card">
-          <p class="day-card__tag hand">main event</p>
-          <p class="day-card__date">2026<span>.</span>11<span>.</span>21</p>
-          <p class="day-card__sub">土曜・本編</p>
-        </div>
-        <div class="card place-card">
-          <p class="day-card__tag hand">place</p>
-          <p class="place-card__name">富良野</p>
-          <p class="day-card__sub">北海道（会場は調整中）</p>
-        </div>
-      </div>
-
-      <div class="cal">
-        <p class="cal__lead hand">忘れないうちに、カレンダーへ。</p>
-        <div class="cal__btns">
-          <a class="btn" href={ics} download><Icon name="calendar" /> カレンダーに追加（.ics）</a>
-          <a class="btn btn--ghost" href={gcalPre} target="_blank" rel="noopener">
-            Google：11/20 pre
-          </a>
-          <a class="btn btn--ghost" href={gcalMain} target="_blank" rel="noopener">
-            Google：11/21 main
-          </a>
-        </div>
-      </div>
+      <Ticket ics={ics} gcalPre={gcalPre} gcalMain={gcalMain} />
     </div>
   </section>
+
+  <!-- ============ CfP（登壇者募集）・ゲスト ============ -->
+  <Cfp />
+  <Guest />
 
   <!-- ============ アクセス・宿泊 ============ -->
   <section id="access" class="section" data-beat="access">
@@ -98,7 +94,7 @@ const roadmap = [
           <h3 class="access__h hand"><Icon name="train" /> 鉄道で</h3>
           <p
             set:html={jpHtml(
-              "JR富良野線・根室本線<b>「富良野駅」</b>下車。<br />旭川・札幌から特急＋普通を乗り継ぎ。",
+              "JR富良野線・根室本線<b>「富良野駅」</b>下車、会場まで徒歩約4分。<br />旭川・札幌から特急＋普通を乗り継ぎ。",
             )}
           />
         </div>
@@ -111,7 +107,16 @@ const roadmap = [
           />
         </div>
       </div>
-      <p class="note jp" set:html={jp("※ アクセスの詳細・会場マップは、会場確定後にここへ追記します。")} />
+      <div class="card tape venue">
+        <p class="venue__tag hand">会場</p>
+        <p class="venue__name">{venue.name}</p>
+        <p class="venue__addr">
+          〒{venue.postal}<br /><span class="nowrap">{venue.address}</span><br />{venue.walk}
+        </p>
+        <a class="btn btn--ghost venue__map" href={venueMap} target="_blank" rel="noopener">
+          地図アプリで開く
+        </a>
+      </div>
     </div>
   </section>
 
@@ -144,7 +149,7 @@ const roadmap = [
               <span class="road__dot" aria-hidden="true" />
               <div class="card road__card">
                 <p class="road__when hand">{r.when}</p>
-                <p class="road__label">{r.label}</p>
+                <p class="road__label">{r.href ? <a href={r.href}>{r.label}</a> : r.label}</p>
                 <p class="road__note jp" set:html={jp(r.note)} />
               </div>
             </li>
@@ -154,14 +159,17 @@ const roadmap = [
     </div>
   </section>
 
+  <!-- ============ お知らせ（公式 note） ============ -->
+  <NoteFeed />
+
   <!-- ============ 過去回 ============ -->
   <section class="section" data-beat="past">
     <div class="wrap sheet reveal">
       <p class="eyebrow">これまでの</p>
       <h2 class="section-title jp" set:html={jp("過去の") + "TechRAMEN Conference"} />
       <div class="past">
-        <a class="past__tag" href="../2024/">2024</a>
-        <a class="past__tag" href="../2025/">2025</a>
+        <a class="past__tag torn" href="../2024/">2024</a>
+        <a class="past__tag torn" href="../2025/">2025</a>
       </div>
     </div>
   </section>
@@ -176,138 +184,6 @@ const roadmap = [
 </BaseLayout>
 
 <style>
-  /* 各セクションは動く3Dの上に浮く「半透明の紙のシート」
-     モバイルは不透明寄り＆ぼかし無し（毎フレームのblur再計算を避ける）。 */
-  /* ちぎり紙のシート: 背面に紙のスクラップ層(::before)を置き、縁を破る。
-     本文は .sheet に直接置くのでクッキリのまま。 */
-  .sheet {
-    position: relative;
-    z-index: 0;
-    padding: clamp(1.9rem, 5.5vw, 3.2rem);
-  }
-  .sheet::before {
-    content: "";
-    position: absolute;
-    inset: -10px;
-    z-index: -1;
-    /* 紙: 半透明にして後ろの3Dを透かす + 暖色ムラ + 繊維 + 厚みムラ */
-    background-color: rgba(243, 234, 214, 0.64);
-    background-image:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='pf'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23pf)' opacity='0.14'/%3E%3C/svg%3E"),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='pm'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.013' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23pm)' opacity='0.1'/%3E%3C/svg%3E"),
-      radial-gradient(130% 130% at 25% 15%, rgba(207, 155, 62, 0.1), transparent 60%);
-    background-size: 200px 200px, 420px 420px, 100% 100%;
-    border-radius: 14px 9px 16px 10px / 10px 15px 9px 14px;
-    box-shadow:
-      0 24px 48px -22px rgba(46, 40, 38, 0.5),
-      inset 0 0 70px rgba(120, 88, 48, 0.09);
-    /* 縁を手でちぎったようにギザギザに */
-    filter: url(#torn);
-  }
-  /* セクションの上下に余白を増やし、シートの間から3Dの世界を覗かせる */
-  .section {
-    padding-block: clamp(3.5rem, 11vw, 7rem);
-  }
-  .lead {
-    max-width: 38rem;
-    color: var(--ink-soft);
-  }
-  .note {
-    margin-top: 1.4rem;
-    font-size: 0.9rem;
-    color: var(--ink-soft);
-  }
-
-  /* 日程: スクラップブック風に散らす */
-  .dates-grid {
-    display: grid;
-    gap: 1.2rem;
-    grid-template-columns: 1fr;
-    margin-top: 2rem;
-  }
-  @media (min-width: 720px) {
-    .dates-grid {
-      grid-template-columns: repeat(12, 1fr);
-      align-items: start;
-      gap: 0;
-      margin-top: 3rem;
-      margin-bottom: 1rem;
-    }
-    /* pre event: 左・小・少し下げる */
-    .dates-grid > :nth-child(1) {
-      grid-column: 1 / 6;
-      transform: rotate(-2.5deg);
-      margin-top: 2.2rem;
-      z-index: 1;
-    }
-    /* main event: 大きく・重ねて主役に */
-    .dates-grid > :nth-child(2) {
-      grid-column: 5 / 11;
-      transform: rotate(1.5deg);
-      z-index: 3;
-      box-shadow:
-        var(--shadow-paper),
-        0 18px 30px -16px rgba(46, 40, 38, 0.5);
-    }
-    /* place: 右下にぶら下げる */
-    .dates-grid > :nth-child(3) {
-      grid-column: 8 / 13;
-      transform: rotate(-1.5deg);
-      margin-top: -1.5rem;
-      z-index: 2;
-    }
-  }
-  .day-card__tag {
-    margin: 0;
-    font-size: 1.4rem;
-    color: var(--wine);
-  }
-  .day-card__date {
-    margin: 0.1em 0;
-    font-size: clamp(1.8rem, 7vw, 2.6rem);
-    font-weight: 700;
-    color: var(--grape);
-    letter-spacing: 0.01em;
-  }
-  .day-card__date span {
-    color: var(--gold);
-  }
-  .day-card__sub {
-    margin: 0;
-    color: var(--ink-soft);
-  }
-  .place-card__name {
-    margin: 0.1em 0;
-    font-size: clamp(1.8rem, 7vw, 2.6rem);
-    font-weight: 700;
-    color: var(--grape);
-  }
-  /* main event を主役に: デスクトップで日付を特大化 */
-  @media (min-width: 720px) {
-    .dates-grid > :nth-child(2) .day-card__date {
-      font-size: clamp(2.6rem, 4.4vw, 3.6rem);
-    }
-    .dates-grid > :nth-child(2) .day-card__tag {
-      font-size: 1.7rem;
-    }
-  }
-
-  /* カレンダー */
-  .cal {
-    margin-top: 2rem;
-  }
-  .cal__lead {
-    font-size: 1.4rem;
-    color: var(--grape);
-    transform: rotate(-1.5deg);
-    margin: 0 0 0.6rem;
-  }
-  .cal__btns {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.7rem;
-  }
-
   /* アクセス */
   .access-grid {
     display: grid;
@@ -330,6 +206,53 @@ const roadmap = [
   }
   .access-grid p {
     margin: 0;
+  }
+
+  /* 会場 */
+  .venue {
+    display: grid;
+    gap: 0.25rem 1.5rem;
+    margin-top: 2.2rem;
+    padding-top: 1.6rem;
+  }
+  .venue p {
+    margin: 0;
+  }
+  .venue__tag {
+    font-size: 1.4rem;
+    color: var(--wine);
+  }
+  .venue__name {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+    font-weight: 700;
+    color: var(--grape);
+  }
+  .venue__addr {
+    color: var(--ink-soft);
+  }
+  .nowrap {
+    white-space: nowrap;
+  }
+  .venue__map {
+    justify-self: start;
+    margin-top: 0.8rem;
+  }
+  @media (min-width: 720px) {
+    .venue {
+      grid-template-columns: 1fr auto;
+      align-items: end;
+    }
+    .venue__tag,
+    .venue__name,
+    .venue__addr {
+      grid-column: 1;
+    }
+    .venue__map {
+      grid-column: 2;
+      grid-row: 1 / 4;
+      align-self: center;
+      margin-top: 0;
+    }
   }
 
   /* ロードマップ */
@@ -417,7 +340,7 @@ const roadmap = [
   }
   .road__note {
     margin: 0;
-    color: var(--ink-soft);
+    color: var(--ink);
     font-size: 0.95rem;
   }
 
@@ -441,10 +364,7 @@ const roadmap = [
   .past__tag {
     display: inline-block;
     padding: 0.7em 1.4em;
-    background: var(--paper-card);
-    border: 2.5px solid var(--ink);
-    border-radius: 12px 8px 13px 9px / 9px 13px 8px 12px;
-    box-shadow: 3px 3px 0 var(--ink);
+    --torn-bg: var(--paper-card);
     font-family: var(--font-hand);
     font-weight: 700;
     font-size: 1.6rem;
@@ -453,7 +373,7 @@ const roadmap = [
     transition: transform 0.15s ease, background 0.15s ease;
   }
   .past__tag:hover {
-    background: var(--gold);
+    --torn-bg: var(--gold);
     color: var(--ink);
   }
   @media (prefers-reduced-motion: reduce) {

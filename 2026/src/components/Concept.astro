@@ -1,0 +1,87 @@
+---
+// コンセプト「ちゃんと初めましてしましょう」。名札シールで見せる。
+// ※ 本文はキックオフ議題（2026-09-30）の趣旨を要約した仮の文言。公開前にチーム確認が必要
+import { jp } from "../lib/jp";
+
+const lines = [
+  "AIで、だれでもいろいろ作れるようになった今だからこそ、基礎をちゃんと積むことと、人と会うことを大事にしたい。",
+  "有名なあの人にも、初歩的なあの質問にも、遠慮はいりません。",
+  "遠くから会釈して終わらせず、相手の懐にとびこんで、フラットに学び合う二日間に。",
+];
+---
+
+<section id="concept" class="section concept">
+  <div class="wrap concept__inner reveal">
+    <div class="nametag concept__tag">
+      <p class="nametag__band">
+        <span class="nametag__hello">HELLO</span>
+        <span class="nametag__my">はじめまして</span>
+      </p>
+      <div class="nametag__body">
+        <h2 class="concept__title">ちゃんと<br />初めまして、<br />しましょう。</h2>
+      </div>
+    </div>
+
+    <div class="concept__note tape torn">
+      <p class="concept__eyebrow hand">TechRAMEN 2026 のテーマ</p>
+      {lines.map((l) => <p class="concept__line jp" set:html={jp(l)} />)}
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ヒーロー下端の紙色のぼかしを受け継ぎ、ここで透明へ戻す（継ぎ目を出さない） */
+  .concept {
+    background: linear-gradient(
+      180deg,
+      rgba(243, 232, 216, 0.62) 0,
+      rgba(243, 232, 216, 0) clamp(6rem, 18vw, 11rem)
+    );
+  }
+  .concept__inner {
+    display: grid;
+    gap: 2.4rem;
+    align-items: center;
+  }
+  @media (min-width: 760px) {
+    .concept__inner {
+      grid-template-columns: minmax(16rem, 21rem) 1fr;
+      gap: 3rem;
+    }
+  }
+
+  /* 名札は 3D の上に直接貼る（シートに入れない） */
+  .concept__tag {
+    justify-self: center;
+    width: min(100%, 21rem);
+    transform: rotate(-4deg);
+  }
+  .concept__title {
+    margin: 0;
+    font-family: "Yomogi", var(--font-hand);
+    font-weight: 400;
+    font-size: clamp(1.9rem, 7vw, 2.5rem);
+    line-height: 1.35;
+    color: var(--ink);
+  }
+
+  /* 趣旨は小さな紙のメモに */
+  .concept__note {
+    padding: clamp(1.4rem, 4vw, 2rem);
+    --torn-bg: rgba(251, 244, 230, 0.94);
+    transform: rotate(1deg);
+  }
+  .concept__eyebrow {
+    margin: 0 0 0.6rem;
+    font-size: 1.4rem;
+    color: var(--wine);
+  }
+  .concept__line {
+    margin: 0 0 0.8rem;
+  }
+  .concept__line:last-child {
+    margin-bottom: 0;
+    font-weight: 700;
+    color: var(--grape);
+  }
+</style>

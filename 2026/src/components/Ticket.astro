@@ -1,0 +1,275 @@
+---
+// 日程と会場を「きっぷ」1 枚にまとめる。半券（切り取り線の向こう）がカレンダー追加。
+// ※ 参加チケットではない（誤解されないよう注記を入れる）
+import venue from "../data/venue.json";
+import Icon from "./Icon.astro";
+
+interface Props {
+  ics: string;
+  gcalPre: string;
+  gcalMain: string;
+}
+const { ics, gcalPre, gcalMain } = Astro.props;
+---
+
+<div class="ticket">
+  <div class="ticket__body">
+    <p class="ticket__head">
+      <span class="ticket__kind">旅程</span>
+      <span class="ticket__dest">TechRAMEN 2026 ゆき</span>
+    </p>
+
+    <p class="ticket__stamp" aria-hidden="true">
+      <span>富良野</span><small>2026.11.20–21</small>
+    </p>
+
+    <p class="ticket__route" aria-label="あなたの街から富良野へ">
+      <span class="ticket__from">あなたの街</span>
+      <span class="ticket__arrow" aria-hidden="true"></span>
+      <span class="ticket__to">富良野</span>
+    </p>
+
+    <dl class="ticket__rows">
+      <div class="ticket__row">
+        <dt class="hand">pre</dt>
+        <dd><b>11月20日（金）</b>前夜祭</dd>
+      </div>
+      <div class="ticket__row ticket__row--main">
+        <dt class="hand">main</dt>
+        <dd><b>11月21日（土）</b>本祭</dd>
+      </div>
+      <div class="ticket__row">
+        <dt class="hand">place</dt>
+        <dd>
+          <b>{venue.name}</b><span class="ticket__walk">{venue.walk}</span>
+        </dd>
+      </div>
+    </dl>
+
+    <p class="ticket__fine">※ 開始時刻は決まり次第お知らせします。参加チケットは別途発売します。</p>
+  </div>
+
+  <div class="ticket__stub">
+    <p class="ticket__stub-h hand">カレンダーへ</p>
+    <a class="btn ticket__btn" href={ics} download><Icon name="calendar" /> 2日分を追加（.ics）</a>
+    <a class="btn btn--ghost ticket__btn" href={gcalPre} target="_blank" rel="noopener">
+      Google：11/20 pre
+    </a>
+    <a class="btn btn--ghost ticket__btn" href={gcalMain} target="_blank" rel="noopener">
+      Google：11/21 main
+    </a>
+  </div>
+</div>
+
+<style>
+  /* きっぷ: 地紋入りの紙。切り取り線の両端に切り欠き（mask）を入れる */
+  .ticket {
+    --notch: 13px;
+    --ground: #eef0de;
+    display: grid;
+    margin-top: 2.2rem;
+    transform: rotate(-0.8deg);
+    /* mask で切り抜いた形に沿って影を落とす */
+    filter: drop-shadow(0 12px 18px rgba(46, 40, 38, 0.28));
+  }
+  .ticket__body,
+  .ticket__stub {
+    background-color: var(--ground);
+    background-image:
+      repeating-linear-gradient(135deg, rgba(110, 139, 61, 0.1) 0 1px, transparent 1px 7px),
+      repeating-linear-gradient(45deg, rgba(110, 139, 61, 0.07) 0 1px, transparent 1px 7px);
+  }
+  .ticket__body {
+    position: relative;
+    padding: clamp(1.3rem, 4vw, 2rem);
+    border-radius: 12px 12px 0 0;
+    mask:
+      radial-gradient(circle var(--notch) at 0 100%, #0000 98%, #000),
+      radial-gradient(circle var(--notch) at 100% 100%, #0000 98%, #000);
+    mask-composite: intersect;
+  }
+  .ticket__stub {
+    display: grid;
+    gap: 0.7rem;
+    align-content: center;
+    padding: 1.4rem clamp(1.3rem, 4vw, 2rem) 1.6rem;
+    border-top: 2.5px dashed rgba(46, 40, 38, 0.45);
+    border-radius: 0 0 12px 12px;
+    background-color: #e5e8cf;
+    mask:
+      radial-gradient(circle var(--notch) at 0 0, #0000 98%, #000),
+      radial-gradient(circle var(--notch) at 100% 0, #0000 98%, #000);
+    mask-composite: intersect;
+  }
+  @media (min-width: 760px) {
+    .ticket {
+      grid-template-columns: 1fr 17.5rem;
+    }
+    .ticket__body {
+      border-radius: 12px 0 0 12px;
+      mask:
+        radial-gradient(circle var(--notch) at 100% 0, #0000 98%, #000),
+        radial-gradient(circle var(--notch) at 100% 100%, #0000 98%, #000);
+      mask-composite: intersect;
+    }
+    .ticket__stub {
+      border-top: 0;
+      border-left: 2.5px dashed rgba(46, 40, 38, 0.45);
+      border-radius: 0 12px 12px 0;
+      mask:
+        radial-gradient(circle var(--notch) at 0 0, #0000 98%, #000),
+        radial-gradient(circle var(--notch) at 0 100%, #0000 98%, #000);
+      mask-composite: intersect;
+    }
+  }
+
+  .ticket__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0 0 0.6rem;
+    font-size: 0.9rem;
+    letter-spacing: 0.08em;
+  }
+  .ticket__kind {
+    padding: 0.05em 0.6em;
+    border: 1.5px solid var(--leaf);
+    border-radius: 4px;
+    color: var(--leaf);
+    font-weight: 700;
+  }
+  .ticket__dest {
+    color: var(--ink-soft);
+    font-weight: 700;
+  }
+
+  /* 経路: あなたの街 ━━▶ 富良野 */
+  .ticket__route {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin: 0 0 1.1rem;
+    font-weight: 700;
+    color: var(--grape);
+  }
+  .ticket__from {
+    font-size: clamp(1.1rem, 3.6vw, 1.4rem);
+    color: var(--ink-soft);
+  }
+  .ticket__to {
+    font-size: clamp(2.2rem, 9vw, 3.4rem);
+    line-height: 1;
+    letter-spacing: 0.06em;
+  }
+  .ticket__arrow {
+    flex: 1;
+    min-width: 1.6rem;
+    max-width: 9rem;
+    height: 3px;
+    background: var(--grape);
+    position: relative;
+  }
+  .ticket__arrow::after {
+    content: "";
+    position: absolute;
+    right: -2px;
+    top: 50%;
+    border: 8px solid transparent;
+    border-left: 12px solid var(--grape);
+    border-right: 0;
+    transform: translateY(-50%);
+  }
+
+  .ticket__rows {
+    display: grid;
+    gap: 0.35rem;
+    margin: 0;
+    padding-top: 0.9rem;
+    border-top: 1.5px solid rgba(110, 139, 61, 0.45);
+  }
+  .ticket__row {
+    display: grid;
+    grid-template-columns: 4rem 1fr;
+    align-items: baseline;
+  }
+  .ticket__row dt {
+    color: var(--wine);
+    font-size: 1.2rem;
+  }
+  .ticket__row dd {
+    margin: 0;
+  }
+  .ticket__row b {
+    margin-right: 0.5em;
+    color: var(--grape);
+  }
+  .ticket__row--main b {
+    font-size: 1.2em;
+  }
+  .ticket__walk {
+    display: inline-block;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+  .ticket__fine {
+    margin: 1rem 0 0;
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+  }
+
+  .ticket__stub-h {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--wine);
+    text-align: center;
+  }
+  .ticket__btn {
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  /* 駅の記念スタンプ（装飾） */
+  .ticket__stamp {
+    position: absolute;
+    top: 0.9rem;
+    right: 1rem;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    width: 4.6rem;
+    height: 4.6rem;
+    margin: 0;
+    border: 2.5px solid currentColor;
+    border-radius: 50%;
+    color: rgba(123, 44, 58, 0.55);
+    font-weight: 700;
+    line-height: 1.1;
+    transform: rotate(14deg);
+    filter: url(#rough);
+    pointer-events: none;
+  }
+  .ticket__stamp span {
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+  }
+  .ticket__stamp small {
+    font-size: 0.55rem;
+    border-top: 1.5px solid currentColor;
+    padding-top: 0.1rem;
+  }
+  @media (min-width: 760px) {
+    .ticket__stamp {
+      top: 1.6rem;
+      right: 2.2rem;
+      width: 6.4rem;
+      height: 6.4rem;
+    }
+    .ticket__stamp span {
+      font-size: 1.35rem;
+    }
+    .ticket__stamp small {
+      font-size: 0.7rem;
+    }
+  }
+</style>

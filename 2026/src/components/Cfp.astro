@@ -1,0 +1,133 @@
+---
+// CfP（登壇者募集）。中身は src/data/cfp.json を書き換えて切り替える。
+//   status: "soon"（準備中）| "open"（募集中）| "closed"（締切）
+import cfpData from "../data/cfp.json";
+import { jp, dotDate } from "../lib/jp";
+
+type Status = "soon" | "open" | "closed";
+const cfp = cfpData as { status: Status; url: string; deadline: string; summary: string };
+
+const STAMP: Record<Status, string> = { soon: "準備中", open: "募集中", closed: "締切" };
+const status: Status = cfp.status in STAMP ? cfp.status : "soon";
+---
+
+<section id="cfp" class="section">
+  <div class="wrap sheet reveal">
+    <p class="eyebrow">話してみませんか、</p>
+    <h2 class="section-title">登壇者募集<span class="cfp__en hand">CfP</span></h2>
+
+    <div class="card tilt-l cfp__form">
+      <p class:list={["cfp__stamp", `cfp__stamp--${status}`]} aria-label={`状態: ${STAMP[status]}`}>
+        {STAMP[status]}
+      </p>
+
+      {
+        status === "closed" ? (
+          <p
+            class="cfp__text jp"
+            set:html={jp("プロポーザルの募集は締め切りました。たくさんのご応募、ありがとうございました！")}
+          />
+        ) : (
+          <>
+            {status === "open" && cfp.deadline && (
+              <p class="cfp__deadline">
+                <span class="hand">締切</span>
+                <b>{dotDate(cfp.deadline)}</b>
+              </p>
+            )}
+            <p class="cfp__text jp" set:html={jp(cfp.summary)} />
+          </>
+        )
+      }
+
+      {
+        status === "open" && cfp.url && (
+          <a class="btn" href={cfp.url} target="_blank" rel="noopener">
+            fortee で応募する
+          </a>
+        )
+      }
+      {
+        status === "soon" && (
+          <p class="cfp__hint jp" set:html={jp("募集開始は、このページと公式 note でお知らせします。")} />
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .cfp__en {
+    margin-left: 0.4em;
+    font-size: 0.6em;
+    color: var(--wine);
+  }
+  .cfp__form {
+    max-width: 40rem;
+    margin-top: 2.6rem;
+    /* 判子が上の角に重なるので、上に余白を空ける */
+    padding-top: 2.2rem;
+  }
+  .cfp__deadline {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6em;
+    margin: 0 0 0.6rem;
+    font-size: 1.3rem;
+    color: var(--grape);
+  }
+  .cfp__deadline .hand {
+    color: var(--wine);
+    font-size: 1.1em;
+  }
+  .cfp__text {
+    margin: 0 0 1.2rem;
+    max-width: 30rem;
+  }
+  .cfp__hint {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--ink);
+  }
+
+  /* 判子: 手で押した朱肉風。状態で色を変える */
+  .cfp__stamp {
+    position: absolute;
+    top: -1.9rem;
+    right: -0.6rem;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 4.8rem;
+    height: 4.8rem;
+    margin: 0;
+    border: 3px double currentColor;
+    border-radius: 50%;
+    background: rgba(251, 244, 230, 0.55);
+    font-family: var(--font-hand);
+    font-weight: 700;
+    font-size: 1.25rem;
+    line-height: 1;
+    transform: rotate(-12deg);
+    opacity: 0.9;
+    filter: url(#rough);
+  }
+  @media (min-width: 720px) {
+    .cfp__stamp {
+      top: -2.2rem;
+      right: -1.4rem;
+      width: 5.8rem;
+      height: 5.8rem;
+      font-size: 1.45rem;
+    }
+  }
+  .cfp__stamp--soon {
+    color: var(--ink-soft);
+  }
+  .cfp__stamp--open {
+    color: var(--wine);
+  }
+  .cfp__stamp--closed {
+    color: #6f6862;
+  }
+</style>

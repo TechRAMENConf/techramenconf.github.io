@@ -30,7 +30,7 @@ const gmap = (s: { name: string; lat: number; lng: number }) =>
       <p
         class="note jp"
         set:html={jp(
-          "※ 冬季休業や時短の施設があります。各スポットの最新の営業情報をご確認ください。雪・路面凍結に備え、レンタカーは冬タイヤを。地図のピンはおおよその位置です。",
+          "※ 冬季休業や時短の施設があります。各スポットの最新の営業情報をご確認ください。雪・路面凍結に備え、レンタカーは冬タイヤを。地図のピンはおおよその位置で、金色のピンが会場（コンシェルジュ フラノ）です。",
         )}
       />
     </div>
@@ -290,6 +290,7 @@ const gmap = (s: { name: string; lat: number; lng: number }) =>
 
   maplibregl.setWorkerUrl(workerUrl);
   import spots from "../data/spots.json";
+  import venue from "../data/venue.json";
 
   const container = document.getElementById("map");
 
@@ -327,6 +328,21 @@ const gmap = (s: { name: string; lat: number; lng: number }) =>
       new maplibregl.Marker({ color: "#7b2c3a" }).setLngLat(ll).setPopup(popup).addTo(map);
       bounds.extend(ll);
     }
+
+    // 会場（スポットと色を変えて目立たせる）
+    const venueLL: [number, number] = [venue.lng, venue.lat];
+    const venueMap = `https://www.google.com/maps/search/?api=1&query=${venue.lat},${venue.lng}`;
+    const venueMarker = new maplibregl.Marker({ color: "#cf9b3e", scale: 1.2 })
+      .setLngLat(venueLL)
+      .setPopup(
+        new maplibregl.Popup({ offset: 22 }).setHTML(
+          `<div class="mlpop"><b>会場：${venue.name}</b><br>${venue.walk}<br>` +
+            `<a href="${venueMap}" target="_blank" rel="noopener">地図アプリで開く</a></div>`,
+        ),
+      )
+      .addTo(map);
+    venueMarker.getElement().style.zIndex = "1"; // 近くのスポットのピンより手前に
+    bounds.extend(venueLL);
     map.on("load", () => {
       map.fitBounds(bounds, { padding: 60, maxZoom: 11, duration: 0 });
     });
