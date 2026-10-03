@@ -11,10 +11,11 @@
       <path d="M0 320 Q 220 280 430 315 T 800 300 V500 H0 Z" fill="#7a934a" />
       <path d="M0 380 Q 200 350 420 378 T 800 360 V500 H0 Z" fill="#ddb867" />
       <path d="M0 430 Q 240 405 460 428 T 800 415 V500 H0 Z" fill="#6a2f56" />
-      <g fill="#5b2a4e">
-        <circle cx="540" cy="452" r="9" /><circle cx="560" cy="458" r="9" />
-        <circle cx="550" cy="470" r="9" /><circle cx="600" cy="455" r="9" />
-        <circle cx="618" cy="462" r="9" /><circle cx="608" cy="474" r="9" />
+      <!-- ラーメン丼のシルエット（3Dの主役に合わせる） -->
+      <g transform="translate(470 330)">
+        <path d="M-62 0 Q -58 44 0 48 Q 58 44 62 0 Z" fill="#f6efe2" />
+        <ellipse cx="0" cy="0" rx="62" ry="11" fill="#b5733a" stroke="#7b2c3a" stroke-width="4" />
+        <path d="M-58 -16 L 60 -9 M-56 -22 L 62 -15" stroke="#c7a36a" stroke-width="3.5" stroke-linecap="round" />
       </g>
     </svg>
   </div>
@@ -48,25 +49,34 @@
   .scene3d__canvas.is-ready {
     opacity: 1;
   }
+  /* 3Dが出たらフェードイン完了後にフォールバックを隠す（透過キャンバス越しに二重に見えないよう） */
+  .scene3d.is-3d .scene3d__fallback {
+    visibility: hidden;
+    transition: visibility 0s 0.8s;
+  }
   @media (prefers-reduced-motion: reduce) {
-    .scene3d__canvas {
+    .scene3d__canvas,
+    .scene3d.is-3d .scene3d__fallback {
       transition: none;
     }
   }
 </style>
 
 <script>
-  import type { VineyardController } from "../scenes/vineyard";
+  import type { BeatName, VineyardController } from "../scenes/vineyard";
 
+  const root = document.querySelector<HTMLElement>(".scene3d");
   const canvas = document.querySelector<HTMLCanvasElement>(".scene3d__canvas");
 
   function hasWebGL(): boolean {
     try {
       const c = document.createElement("canvas");
-      return !!(
-        window.WebGLRenderingContext &&
-        (c.getContext("webgl") || c.getContext("experimental-webgl"))
-      );
+      const gl = (c.getContext("webgl") ||
+        c.getContext("experimental-webgl")) as WebGLRenderingContext | null;
+      if (!window.WebGLRenderingContext || !gl) return false;
+      // 判定用コンテキストは即解放（ブラウザのコンテキスト上限を消費しない）
+      gl.getExtension("WEBGL_lose_context")?.loseContext();
+      return true;
     } catch {
       return false;
     }
@@ -80,16 +90,39 @@
       controller?.setProgress(max > 0 ? window.scrollY / max : 0);
     };
 
+    // 各セクション（data-beat）の先頭が画面の 40% に来たときの進捗をビートの t にする。
+    // セクションの増減・高さの変化に自動で追従する。
+    const updateBeats = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      if (!controller || max <= 0) return;
+      const beats: Partial<Record<BeatName, number>> = {};
+      for (const el of document.querySelectorAll<HTMLElement>("[data-beat]")) {
+        const top = el.getBoundingClientRect().top + window.scrollY;
+        beats[el.dataset.beat as BeatName] = Math.min(
+          1,
+          Math.max(0, (top - window.innerHeight * 0.4) / max),
+        );
+      }
+      controller.setBeats(beats);
+    };
+    const onLayoutChange = () => {
+      updateBeats();
+      updateProgress();
+    };
+    const layoutObserver = new ResizeObserver(onLayoutChange);
+
     // 非ブロッキングで three.js を遅延ロード
     (async () => {
       try {
         const { createVineyard } = await import("../scenes/vineyard");
         controller = createVineyard(canvas);
         canvas.classList.add("is-ready");
+        root?.classList.add("is-3d");
         controller.start();
-        updateProgress();
+        onLayoutChange();
         window.addEventListener("scroll", updateProgress, { passive: true });
-        window.addEventListener("resize", updateProgress, { passive: true });
+        window.addEventListener("resize", onLayoutChange, { passive: true });
+        layoutObserver.observe(document.body);
       } catch (err) {
         console.warn("[scene3d] 3D init failed, keeping static fallback", err);
       }
@@ -107,7 +140,8 @@
       "astro:before-swap",
       () => {
         window.removeEventListener("scroll", updateProgress);
-        window.removeEventListener("resize", updateProgress);
+        window.removeEventListener("resize", onLayoutChange);
+        layoutObserver.disconnect();
         document.removeEventListener("visibilitychange", onVisibility);
         controller?.dispose();
       },
