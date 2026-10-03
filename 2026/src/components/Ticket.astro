@@ -19,10 +19,6 @@ const { ics, gcalPre, gcalMain } = Astro.props;
       <span class="ticket__dest">TechRAMEN 2026 ゆき</span>
     </p>
 
-    <p class="ticket__stamp" aria-hidden="true">
-      <span>富良野</span><small>2026.11.20–21</small>
-    </p>
-
     <p class="ticket__route" aria-label="あなたの街から富良野へ">
       <span class="ticket__from">あなたの街</span>
       <span class="ticket__arrow" aria-hidden="true"></span>
@@ -48,6 +44,11 @@ const { ics, gcalPre, gcalMain } = Astro.props;
 
     <p class="ticket__fine">※ 開始時刻は決まり次第お知らせします。参加チケットは別途発売します。</p>
   </div>
+
+  <!-- 駅の記念スタンプ（mask で切られないよう、本体・半券の外に置いてグリッドで重ねる） -->
+  <p class="ticket__stamp" aria-hidden="true">
+    <span>富良野</span><small>2026.11.20–21</small>
+  </p>
 
   <div class="ticket__stub">
     <p class="ticket__stub-h hand">カレンダーへ</p>
@@ -80,6 +81,8 @@ const { ics, gcalPre, gcalMain } = Astro.props;
       repeating-linear-gradient(45deg, rgba(110, 139, 61, 0.07) 0 1px, transparent 1px 7px);
   }
   .ticket__body {
+    grid-row: 1;
+    grid-column: 1;
     position: relative;
     padding: clamp(1.3rem, 4vw, 2rem);
     border-radius: 12px 12px 0 0;
@@ -89,6 +92,8 @@ const { ics, gcalPre, gcalMain } = Astro.props;
     mask-composite: intersect;
   }
   .ticket__stub {
+    grid-row: 2;
+    grid-column: 1;
     display: grid;
     gap: 0.7rem;
     align-content: center;
@@ -104,6 +109,14 @@ const { ics, gcalPre, gcalMain } = Astro.props;
   @media (min-width: 760px) {
     .ticket {
       grid-template-columns: 1fr 17.5rem;
+    }
+    .ticket__body {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .ticket__stub {
+      grid-column: 2;
+      grid-row: 1;
     }
     .ticket__body {
       border-radius: 12px 0 0 12px;
@@ -153,12 +166,17 @@ const { ics, gcalPre, gcalMain } = Astro.props;
     font-weight: 700;
     color: var(--grape);
   }
+  .ticket__from,
+  .ticket__to {
+    flex: none;
+    white-space: nowrap;
+  }
   .ticket__from {
-    font-size: clamp(1.1rem, 3.6vw, 1.4rem);
+    font-size: clamp(1rem, 3.6vw, 1.4rem);
     color: var(--ink-soft);
   }
   .ticket__to {
-    font-size: clamp(2.2rem, 9vw, 3.4rem);
+    font-size: clamp(2rem, 9vw, 3.4rem);
     line-height: 1;
     letter-spacing: 0.06em;
   }
@@ -231,15 +249,17 @@ const { ics, gcalPre, gcalMain } = Astro.props;
 
   /* 駅の記念スタンプ（装飾） */
   .ticket__stamp {
-    position: absolute;
-    top: 0.9rem;
-    right: 1rem;
+    grid-row: 2;
+    grid-column: 1;
+    justify-self: end;
+    align-self: start;
+    z-index: 1;
+    margin: -2rem 0.9rem 0 0;
     display: grid;
     place-items: center;
     align-content: center;
     width: 4.6rem;
     height: 4.6rem;
-    margin: 0;
     border: 2.5px solid currentColor;
     border-radius: 50%;
     color: rgba(123, 44, 58, 0.55);
@@ -260,8 +280,8 @@ const { ics, gcalPre, gcalMain } = Astro.props;
   }
   @media (min-width: 760px) {
     .ticket__stamp {
-      top: 1.6rem;
-      right: 2.2rem;
+      grid-row: 1;
+      margin: 1.6rem 2.2rem 0 0;
       width: 6.4rem;
       height: 6.4rem;
     }
