@@ -10,8 +10,8 @@
  * - prefers-reduced-motion 時は1フレームだけ描画してアニメ停止
  */
 import * as THREE from "three";
-import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { paperMaterial, PaperPost, PAPER_CORE } from "./paper";
+import { buildRamen } from "./ramen";
 
 export type BeatName = "hero" | "dates" | "access" | "travel" | "roadmap" | "past";
 
@@ -36,16 +36,6 @@ const COLORS = {
   gold: 0xcf9b3e,
   wheat: 0xddb867,
   snow: 0xf3ece0,
-  bowl: 0xf6efe2,
-  bowlRim: 0x7b2c3a,
-  broth: 0xb5733a,
-  noodle: 0xf0d9a0,
-  chashu: 0x9a5a30,
-  naruto: 0xe6929a,
-  egg: 0xf4ecdc,
-  yolk: 0xe2a93e,
-  negi: 0x7a934a,
-  chopstick: 0xc7a36a,
   balloon: 0x7b2c3a,
   balloonAlt: 0xcf9b3e,
   basket: 0x8a6b4f,
@@ -240,134 +230,8 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
   ramen.scale.setScalar(1.3);
   world.add(ramen);
 
-  // 丼: 丸い「どんぶり」形（尖らないよう、平らな底＋丸く広がる縁）
-  const bowlPts: THREE.Vector2[] = [
-    new THREE.Vector2(0.0, 0.0),
-    new THREE.Vector2(0.22, 0.0),
-    new THREE.Vector2(0.32, 0.05),
-    new THREE.Vector2(0.42, 0.16),
-    new THREE.Vector2(0.51, 0.31),
-    new THREE.Vector2(0.58, 0.46),
-  ];
-  const bowl = new THREE.Mesh(
-    new THREE.LatheGeometry(bowlPts, 22),
-    paperMaterial(COLORS.bowl),
-  );
-  ramen.add(bowl);
-
-  const rimY = 0.46;
-  const rim = new THREE.Mesh(
-    new THREE.TorusGeometry(0.56, 0.03, 8, 22),
-    paperMaterial(COLORS.bowlRim),
-  );
-  rim.rotation.x = Math.PI / 2;
-  rim.position.y = rimY;
-  ramen.add(rim);
-
-  // スープ（醤油色・縁より少し下。温泉の透明な湯に見えないよう濃いめ）
-  const brothY = 0.4;
-  const soup = new THREE.Mesh(
-    new THREE.CircleGeometry(0.5, 22),
-    paperMaterial(COLORS.broth),
-  );
-  soup.rotation.x = -Math.PI / 2;
-  soup.position.y = brothY;
-  ramen.add(soup);
-
-  // 麺: 長くうねった細いストランドを丼全体に広く盛る（1メッシュに結合してドローコール1本）
-  const noodleGeos: THREE.BufferGeometry[] = [];
-  const strandCount = 22;
-  for (let i = 0; i < strandCount; i++) {
-    const pts: THREE.Vector3[] = [];
-    const segs = 7;
-    const baseA = rand() * Math.PI * 2;
-    // ストランドごとに中心をずらして、丼全体に広く散らす
-    const cx = (rand() - 0.5) * 0.28;
-    const cz = (rand() - 0.5) * 0.28;
-    const baseR = 0.08 + rand() * 0.22;
-    const sweep = Math.PI * (1.0 + rand() * 1.7); // 部分的に巻く
-    for (let s = 0; s <= segs; s++) {
-      const a = baseA + (s / segs) * sweep;
-      const r = baseR + Math.sin(s * 1.7 + i) * 0.05 + (rand() - 0.5) * 0.03;
-      pts.push(new THREE.Vector3(cx + Math.cos(a) * r, rand() * 0.07, cz + Math.sin(a) * r));
-    }
-    const curve = new THREE.CatmullRomCurve3(pts);
-    noodleGeos.push(new THREE.TubeGeometry(curve, 20, 0.014, 5, false));
-  }
-  const noodleNest = new THREE.Mesh(
-    mergeGeometries(noodleGeos),
-    paperMaterial(COLORS.noodle),
-  );
-  for (const g of noodleGeos) g.dispose();
-  noodleNest.position.set(-0.02, brothY + 0.02, 0.0);
-  ramen.add(noodleNest);
-
-  // 具: チャーシュー / なると / 味玉 / ねぎ（麺の山の上に載せる）
-  const toppingY = brothY + 0.12; // 麺の盛り(～+0.10)の上
-  const chashu = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.15, 0.15, 0.045, 14),
-    paperMaterial(COLORS.chashu),
-  );
-  chashu.position.set(0.2, toppingY, -0.04);
-  chashu.rotation.x = -0.12;
-  ramen.add(chashu);
-
-  const naruto = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.09, 0.09, 0.045, 14),
-    paperMaterial(COLORS.naruto),
-  );
-  naruto.position.set(-0.26, toppingY, -0.1);
-  naruto.rotation.x = -0.1;
-  ramen.add(naruto);
-
-  // 味玉（半割り）: 小さめに。白いドーム＋黄身の断面
-  const egg = new THREE.Mesh(
-    new THREE.SphereGeometry(0.08, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2),
-    paperMaterial(COLORS.egg),
-  );
-  egg.position.set(0.0, toppingY - 0.02, 0.28);
-  ramen.add(egg);
-  const yolk = new THREE.Mesh(
-    new THREE.SphereGeometry(0.035, 10, 8),
-    paperMaterial(COLORS.yolk),
-  );
-  yolk.position.set(0.0, toppingY + 0.02, 0.28);
-  ramen.add(yolk);
-
-  // ねぎ: InstancedMesh（箸を渡す奥側は避けて手前〜中央に散らす）
-  const negiCount = 8;
-  const negi = new THREE.InstancedMesh(
-    new THREE.BoxGeometry(0.05, 0.04, 0.05),
-    paperMaterial(COLORS.negi),
-    negiCount,
-  );
-  const _dummy = new THREE.Object3D();
-  for (let i = 0; i < negiCount; i++) {
-    const a = rand() * Math.PI * 2;
-    const r = rand() * 0.36;
-    _dummy.position.set(Math.cos(a) * r, brothY + 0.13, Math.max(-0.2, Math.sin(a) * r));
-    _dummy.rotation.set(0, rand() * Math.PI, 0);
-    _dummy.updateMatrix();
-    negi.setMatrixAt(i, _dummy.matrix);
-  }
-  ramen.add(negi);
-
-  // 箸: 丼の奥側の縁に「渡して置く」（立て箸に見えないよう水平に寝かせる）
-  const chopMat = paperMaterial(COLORS.chopstick);
-  // 先細りの角柱。長さ方向を x 軸に寝かせる
-  const chopGeo = new THREE.CylinderGeometry(0.011, 0.017, 1.25, 6);
-  chopGeo.rotateZ(Math.PI / 2);
-  const chopY = rimY + 0.045; // 縁(トーラス)の上に載る高さ
-  const chopDefs = [
-    { z: -0.3, yaw: 0.1 },
-    { z: -0.37, yaw: 0.16 },
-  ];
-  for (const d of chopDefs) {
-    const chop = new THREE.Mesh(chopGeo, chopMat);
-    chop.position.set(0.04, chopY, d.z);
-    chop.rotation.y = d.yaw;
-    ramen.add(chop);
-  }
+  // 丼・スープ・麺・具は ramen.ts（紙で作った料理模型の旭川ラーメン）
+  ramen.add(buildRamen(rand));
 
   // 湯気: やわらかいスプライト（常にカメラを向く）を上昇させる
   const steam = new THREE.Group();

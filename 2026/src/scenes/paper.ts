@@ -44,11 +44,20 @@ float paperNoise(vec2 p) {
 export interface PaperOptions {
   /** 繊維の細かさ（大きいほど細かい） */
   grain?: number;
+  /** 印刷・描き込みの模様（Canvas で作った柄など）。地色は color と掛け合わせ */
+  map?: THREE.Texture;
+  /** 両面を描く（丼の内側など） */
+  doubleSide?: boolean;
 }
 
 /** 色紙の材質 */
 export function paperMaterial(color: THREE.ColorRepresentation, opts: PaperOptions = {}) {
-  const mat = new THREE.MeshToonMaterial({ color, gradientMap: toonRamp() });
+  const mat = new THREE.MeshToonMaterial({
+    color,
+    gradientMap: toonRamp(),
+    map: opts.map ?? null,
+    side: opts.doubleSide ? THREE.DoubleSide : THREE.FrontSide,
+  });
   const grain = opts.grain ?? 1;
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uGrain = { value: grain };
