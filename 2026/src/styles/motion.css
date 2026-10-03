@@ -280,3 +280,68 @@
     transition: none;
   }
 }
+
+/* ---------- ページ遷移（トップ ⇄ 観光ページ） ----------
+   cross-document view transitions。非対応ブラウザ（Firefox など）は普通の遷移になるだけ。
+   - 共有の見出し（来たついでに、／富良野を、もう一日。）はそのまま移動・変形する
+   - 背景は紙をめくる: 古いページが持ち上がって退き、新しいページが置かれる
+   - 行き（観光へ）は右から、戻り（トップへ）は左から */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+
+  ::view-transition-group(travel-title),
+  ::view-transition-group(travel-eyebrow) {
+    animation-duration: 0.55s;
+    animation-timing-function: var(--ease-settle);
+  }
+
+  ::view-transition-old(root) {
+    animation: page-lift 0.42s cubic-bezier(0.4, 0, 1, 1) both;
+    transform-origin: 0% 0%;
+  }
+  ::view-transition-new(root) {
+    animation: page-lay 0.55s var(--ease-settle) 0.08s both;
+    transform-origin: 100% 0%;
+  }
+  :active-view-transition-type(back) {
+    &::view-transition-old(root) {
+      animation-name: page-lift-back;
+      transform-origin: 100% 0%;
+    }
+    &::view-transition-new(root) {
+      animation-name: page-lay-back;
+      transform-origin: 0% 0%;
+    }
+  }
+
+  @keyframes page-lift {
+    to {
+      opacity: 0;
+      translate: -6% -2%;
+      rotate: -3deg;
+    }
+  }
+  @keyframes page-lay {
+    from {
+      opacity: 0;
+      translate: 8% 3%;
+      rotate: 3deg;
+    }
+  }
+  @keyframes page-lift-back {
+    to {
+      opacity: 0;
+      translate: 6% -2%;
+      rotate: 3deg;
+    }
+  }
+  @keyframes page-lay-back {
+    from {
+      opacity: 0;
+      translate: -8% 3%;
+      rotate: -3deg;
+    }
+  }
+}

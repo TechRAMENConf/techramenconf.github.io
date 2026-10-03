@@ -81,3 +81,23 @@ for (const btn of ticketBtns) {
     }
   });
 }
+
+// ---------- ページ遷移の向き ----------
+// 観光ページ → トップ は「戻る」向きにする。
+// 古いページ側（pageswap）と新しいページ側（pagereveal）の両方で同じ type を付ける
+type VTEvent = Event & { viewTransition?: ViewTransition | null };
+const isTravel = (url: string) => new URL(url, location.href).pathname.includes("/travel");
+window.addEventListener("pageswap", (e) => {
+  const ev = e as VTEvent & { activation?: { entry?: { url?: string } } | null };
+  const to = ev.activation?.entry?.url;
+  if (ev.viewTransition && to && isTravel(location.href) && !isTravel(to)) {
+    ev.viewTransition.types?.add("back");
+  }
+});
+window.addEventListener("pagereveal", (e) => {
+  const vt = (e as VTEvent).viewTransition;
+  const from = (
+    window as Window & { navigation?: { activation?: { from?: { url?: string } } } }
+  ).navigation?.activation?.from?.url;
+  if (vt && from && isTravel(from) && !isTravel(location.href)) vt.types?.add("back");
+});

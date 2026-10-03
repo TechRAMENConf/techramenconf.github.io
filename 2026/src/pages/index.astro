@@ -124,8 +124,12 @@ const roadmap: { label: string; when: string; note: string; href?: string }[] = 
   <!-- ============ 富良野 観光・モデル旅程（別ページへ誘導） ============ -->
   <section id="travel" class="section" data-beat="travel">
     <div class="wrap sheet reveal">
-      <p class="eyebrow">来たついでに、</p>
-      <h2 class="section-title jp" set:html={jp("富良野を、もう一日。")} />
+      <p class="eyebrow" style="view-transition-name: travel-eyebrow">来たついでに、</p>
+      <h2
+        class="section-title jp"
+        style="view-transition-name: travel-title"
+        set:html={jp("富良野を、もう一日。")}
+      />
       <p
         class="lead jp"
         set:html={jp(

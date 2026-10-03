@@ -18,9 +18,13 @@ const gmap = (s: { name: string; lat: number; lng: number }) =>
 >
   <main class="tp">
     <div class="wrap">
-      <a class="back hand" href={BASE}>← TechRAMEN 2026 へ戻る</a>
-      <p class="eyebrow">来たついでに、</p>
-      <h1 class="section-title jp" set:html={jp("富良野を、もう一日。")} />
+      <a class="back hand" href={`${BASE}#travel`}>← TechRAMEN 2026 へ戻る</a>
+      <p class="eyebrow" style="view-transition-name: travel-eyebrow">来たついでに、</p>
+      <h1
+        class="section-title jp"
+        style="view-transition-name: travel-title"
+        set:html={jp("富良野を、もう一日。")}
+      />
       <p
         class="lead jp"
         set:html={jp(
@@ -90,7 +94,7 @@ const gmap = (s: { name: string; lat: number; lng: number }) =>
         }
       </div>
 
-      <a class="back hand back--bottom" href={BASE}>← TechRAMEN 2026 へ戻る</a>
+      <a class="back hand back--bottom" href={`${BASE}#travel`}>← TechRAMEN 2026 へ戻る</a>
     </div>
   </main>
 </BaseLayout>
@@ -110,7 +114,8 @@ const gmap = (s: { name: string; lat: number; lng: number }) =>
     padding-block: clamp(2rem, 6vw, 4rem) 4rem;
   }
   .back {
-    display: inline-block;
+    display: block;
+    width: fit-content;
     font-size: 1.2rem;
     color: var(--wine);
     text-decoration: none;
