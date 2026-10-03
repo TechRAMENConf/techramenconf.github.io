@@ -17,7 +17,7 @@ const status: Status = cfp.status in STAMP ? cfp.status : "soon";
     <h2 class="section-title">登壇者募集<span class="cfp__en hand">CfP</span></h2>
 
     <div class="card tilt-l cfp__form">
-      <p class:list={["cfp__stamp", `cfp__stamp--${status}`]} aria-label={`状態: ${STAMP[status]}`}>
+      <p class:list={["cfp__stamp", `cfp__stamp--${status}`]} aria-label={`状態: ${STAMP[status]}`} data-stamp>
         {STAMP[status]}
       </p>
 

@@ -46,17 +46,17 @@ const { ics, gcalPre, gcalMain } = Astro.props;
   </div>
 
   <!-- 駅の記念スタンプ（mask で切られないよう、本体・半券の外に置いてグリッドで重ねる） -->
-  <p class="ticket__stamp" aria-hidden="true">
+  <p class="ticket__stamp" aria-hidden="true" data-stamp>
     <span>富良野</span><small>2026.11.20–21</small>
   </p>
 
   <div class="ticket__stub">
     <p class="ticket__stub-h hand">カレンダーへ</p>
-    <a class="btn ticket__btn" href={ics} download><Icon name="calendar" /> 2日分を追加（.ics）</a>
-    <a class="btn btn--ghost ticket__btn" href={gcalPre} target="_blank" rel="noopener">
+    <a class="btn ticket__btn" href={ics} download data-cal="ics"><Icon name="calendar" /> 2日分を追加（.ics）</a>
+    <a class="btn btn--ghost ticket__btn" href={gcalPre} target="_blank" rel="noopener" data-cal="pre">
       Google：11/20 pre
     </a>
-    <a class="btn btn--ghost ticket__btn" href={gcalMain} target="_blank" rel="noopener">
+    <a class="btn btn--ghost ticket__btn" href={gcalMain} target="_blank" rel="noopener" data-cal="main">
       Google：11/21 main
     </a>
   </div>
@@ -92,6 +92,7 @@ const { ics, gcalPre, gcalMain } = Astro.props;
     mask-composite: intersect;
   }
   .ticket__stub {
+    position: relative;
     grid-row: 2;
     grid-column: 1;
     display: grid;

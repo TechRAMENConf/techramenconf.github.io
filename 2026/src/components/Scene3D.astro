@@ -54,6 +54,9 @@
     visibility: hidden;
     transition: visibility 0s 0.8s;
   }
+  :global(html.can-poke) {
+    cursor: pointer;
+  }
   @media (prefers-reduced-motion: reduce) {
     .scene3d__canvas,
     .scene3d.is-3d .scene3d__fallback {
@@ -111,6 +114,36 @@
     };
     const layoutObserver = new ResizeObserver(onLayoutChange);
 
+    // 隠し要素: 空いている所で丼や気球を突く。文字・ボタンなどの上では反応しない
+    const isUi = (el: EventTarget | null) =>
+      el instanceof Element &&
+      !!el.closest(
+        "a, button, input, .sheet, .nametag, .concept__note, .shiori, .hero__logo, .hero__facts, .hero__cta, .hero__tag, .foot",
+      );
+    const onPokeDown = (e: PointerEvent) => {
+      if (!controller || isUi(e.target)) return;
+      controller.poke(e.clientX, e.clientY);
+    };
+    // マウスのときだけ、突ける物の上でカーソルを指にする（rAF で間引く）
+    let pokeX = 0;
+    let pokeY = 0;
+    let pokePending = false;
+    const onPokeHover = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse" || !controller) return;
+      pokeX = e.clientX;
+      pokeY = e.clientY;
+      if (pokePending) return;
+      pokePending = true;
+      requestAnimationFrame(() => {
+        pokePending = false;
+        const can =
+          !!controller &&
+          !isUi(document.elementFromPoint(pokeX, pokeY)) &&
+          controller.canPoke(pokeX, pokeY);
+        document.documentElement.classList.toggle("can-poke", can);
+      });
+    };
+
     // 非ブロッキングで three.js を遅延ロード
     (async () => {
       try {
@@ -123,6 +156,8 @@
         window.addEventListener("scroll", updateProgress, { passive: true });
         window.addEventListener("resize", onLayoutChange, { passive: true });
         layoutObserver.observe(document.body);
+        document.addEventListener("pointerdown", onPokeDown);
+        document.addEventListener("pointermove", onPokeHover, { passive: true });
       } catch (err) {
         console.warn("[scene3d] 3D init failed, keeping static fallback", err);
       }
@@ -142,6 +177,8 @@
         window.removeEventListener("scroll", updateProgress);
         window.removeEventListener("resize", onLayoutChange);
         layoutObserver.disconnect();
+        document.removeEventListener("pointerdown", onPokeDown);
+        document.removeEventListener("pointermove", onPokeHover);
         document.removeEventListener("visibilitychange", onVisibility);
         controller?.dispose();
       },

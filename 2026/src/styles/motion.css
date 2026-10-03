@@ -1,0 +1,282 @@
+/* =========================================================
+   TechRAMEN 2026 — 動き（紙・判子・荷札・きっぷのふるまい）
+   - すべて prefers-reduced-motion: no-preference のときだけ動かす
+   - 動かすのは transform 系（transform / rotate / scale / translate）と opacity だけ
+   - JS が無効・失敗しても内容は隠れない（初期非表示は .js 付きのときだけ）
+   ========================================================= */
+
+:root {
+  /* 気持ちよく止まる（少しだけ行き過ぎて戻る） */
+  --ease-settle: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* ---------- スクロールで「紙を机に置く」 ----------
+     少し傾いた状態から落ちてきて、まっすぐに収まる */
+  .js .reveal {
+    opacity: 0;
+    translate: 0 -26px;
+    rotate: var(--place-from, -1.6deg);
+    scale: 1.015;
+    transition:
+      opacity 0.45s ease,
+      translate 0.75s var(--ease-settle),
+      rotate 0.75s var(--ease-settle),
+      scale 0.75s var(--ease-settle);
+  }
+  .js .section:nth-of-type(even) .reveal {
+    --place-from: 1.4deg;
+  }
+  .js .reveal.is-in {
+    opacity: 1;
+    translate: 0 0;
+    rotate: 0deg;
+    scale: 1;
+  }
+
+  /* 置いたあとで、テープ・画鋲が「貼られる」 */
+  .js .reveal .tape-strip,
+  .js .reveal .tape::before,
+  .js .reveal .news__slip::before {
+    opacity: 0;
+    scale: 1.5;
+  }
+  .js .reveal.is-in .tape-strip,
+  .js .reveal.is-in .tape::before,
+  .js .reveal.is-in .news__slip::before {
+    animation: stick-on 0.35s var(--ease-pop) 0.55s both;
+  }
+  @keyframes stick-on {
+    from {
+      opacity: 0;
+      scale: 1.5;
+    }
+    to {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+
+  /* ---------- 判子: 画面に入ると上から「ポン」 ---------- */
+  .js [data-stamp] {
+    opacity: 0;
+  }
+  .js [data-stamp].is-stamped {
+    animation: stamp-in 0.45s var(--ease-settle) both;
+  }
+  @keyframes stamp-in {
+    0% {
+      opacity: 0;
+      scale: 1.9;
+    }
+    55% {
+      opacity: 1;
+      scale: 0.9;
+    }
+    75% {
+      scale: 1.04;
+    }
+    100% {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+
+  /* ---------- 荷札: 紐を支点に揺れる ----------
+     普段はごくわずかに風で揺れ、触れると大きく揺れて減衰して止まる */
+  .swing {
+    animation: sway 5.5s ease-in-out infinite alternate;
+  }
+  .swing.is-swinging {
+    animation: swing 1.3s ease-out;
+  }
+  @keyframes sway {
+    from {
+      rotate: -0.8deg;
+    }
+    to {
+      rotate: 0.8deg;
+    }
+  }
+  @keyframes swing {
+    0% {
+      rotate: 0deg;
+    }
+    14% {
+      rotate: 9deg;
+    }
+    32% {
+      rotate: -6.5deg;
+    }
+    50% {
+      rotate: 4deg;
+    }
+    68% {
+      rotate: -2deg;
+    }
+    84% {
+      rotate: 0.8deg;
+    }
+    100% {
+      rotate: 0deg;
+    }
+  }
+
+  /* ---------- おしらせの短冊: 画鋲を支点にひらっと ---------- */
+  .news__slip {
+    transform-origin: 50% 0;
+  }
+  @media (hover: hover) {
+    .news__slip:hover {
+      animation: flutter 0.7s ease-out;
+    }
+  }
+  @keyframes flutter {
+    0% {
+      rotate: 0deg;
+    }
+    25% {
+      rotate: 2.4deg;
+    }
+    50% {
+      rotate: -1.6deg;
+    }
+    75% {
+      rotate: 0.7deg;
+    }
+    100% {
+      rotate: 0deg;
+    }
+  }
+
+  /* ---------- コンセプト: 手書き文字が左から書かれていく ---------- */
+  .js .concept__ln {
+    display: inline-block;
+    clip-path: inset(0 100% 0 0);
+  }
+  .js .reveal.is-in .concept__ln {
+    animation: write-in 0.9s steps(14, end) both;
+  }
+  .js .reveal.is-in .concept__ln:nth-child(2) {
+    animation-delay: 0.9s;
+  }
+  .js .reveal.is-in .concept__ln:nth-child(3) {
+    animation-delay: 1.8s;
+  }
+  @keyframes write-in {
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  /* ---------- きっぷ: 改札パンチの穴が開く ---------- */
+  .punch.is-new {
+    animation: punch 0.42s var(--ease-pop) both;
+  }
+  .punch.is-new::after {
+    animation: chip-fly 0.6s ease-out both;
+  }
+  @keyframes punch {
+    from {
+      scale: 0;
+    }
+    to {
+      scale: 1;
+    }
+  }
+  @keyframes chip-fly {
+    0% {
+      opacity: 1;
+      translate: 0 0;
+      rotate: 0deg;
+    }
+    100% {
+      opacity: 0;
+      translate: 18px 34px;
+      rotate: 160deg;
+    }
+  }
+}
+
+/* ---------- 名札: 右下の角がめくれる（ホバー・タップ） ----------
+   めくれ自体は静止状態でも成立するので、reduced-motion では遷移だけ止める */
+.nametag::before {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  width: 0;
+  height: 0;
+  /* 裏面（少し濃い紙）が三角に見える */
+  background: linear-gradient(315deg, transparent 50%, var(--paper-deep) 50%);
+  box-shadow: -3px -3px 6px rgba(46, 40, 38, 0.18);
+  border-top-left-radius: 6px;
+  transition:
+    width 0.25s var(--ease-settle),
+    height 0.25s var(--ease-settle);
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .nametag:hover::before {
+    width: 30px;
+    height: 30px;
+  }
+}
+.nametag.is-peeled::before {
+  width: 30px;
+  height: 30px;
+}
+
+/* ---------- きっぷの改札パンチ（穴そのもの） ----------
+   押したボタンの左端に、昔の改札鋏の「切り欠き」を入れる */
+.punch {
+  position: absolute;
+  top: 50%;
+  left: -2px;
+  z-index: 1;
+  width: 14px;
+  height: 18px;
+  translate: 0 -50%;
+  /* 穴の向こうに見える半券の地色 */
+  background: #e5e8cf;
+  /* 改札鋏の型（左端から食い込む凹形） */
+  clip-path: path("M0 0 H6 C6 4 14 5 14 9 C14 13 6 14 6 18 H0 Z");
+  pointer-events: none;
+}
+/* 押したボタンに「済」の印 */
+.ticket__btn.is-punched::before {
+  content: "済";
+  position: absolute;
+  top: -0.7rem;
+  right: -0.5rem;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  background: var(--paper-card);
+  color: var(--wine);
+  font-size: 0.85rem;
+  font-weight: 700;
+  rotate: 12deg;
+  filter: url(#rough);
+}
+/* 打ち抜かれて飛んでいく紙片 */
+.punch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: #e5e8cf;
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nametag::before {
+    transition: none;
+  }
+}

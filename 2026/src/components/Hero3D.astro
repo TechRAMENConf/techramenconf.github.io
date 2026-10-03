@@ -17,7 +17,7 @@ const tag =
   <div class="hero__content wrap">
     {
       tag && (
-        <a class:list={["hero__tag torn", cfp.status === "open" && "hero__tag--open"]} href="#cfp">
+        <a class:list={["hero__tag torn swing", cfp.status === "open" && "hero__tag--open"]} href="#cfp">
           <span class="hero__tag-string" aria-hidden="true" />
           <span class="hero__tag-head">{tag.head}</span>
           <span class="hero__tag-sub hand">{tag.sub} →</span>
@@ -143,6 +143,17 @@ const tag =
     .hero__tag {
       transition: none;
     }
+  }
+
+  /* ロゴ・日付・ボタンの箱を中身の幅に。右側の空き（3D の丼）を突けるようにする */
+  .hero__logo,
+  .hero__facts,
+  .hero__cta {
+    width: fit-content;
+    max-width: 100%;
+  }
+  .hero__logo-1 {
+    width: fit-content;
   }
 
   .hero__logo {

@@ -22,6 +22,10 @@ export interface VineyardController {
   setProgress: (p: number) => void;
   /** 各ビート（セクション）がスクロール進捗のどこにあるか（0..1）を渡す */
   setBeats: (beats: Partial<Record<BeatName, number>>) => void;
+  /** 画面座標を突く。丼なら湯気が増え、気球なら浮き上がる。何かに当たったら true */
+  poke: (clientX: number, clientY: number) => boolean;
+  /** 画面座標の下に突ける物があるか（カーソル表示用） */
+  canPoke: (clientX: number, clientY: number) => boolean;
 }
 
 const COLORS = {
@@ -373,6 +377,7 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
   steam.position.y += 0.78; // 丼の縁の高さに合わせる
   world.add(steam);
   const softTex = makeSoftDiscTexture(); // 湯気と雪で共有
+  let steamBurst = 0; // 丼を突いた直後の湯気の増量（1 → 0 へ減衰）
   const steamPuffs: THREE.Sprite[] = [];
   const steamCount = isSmall ? 4 : 6;
   for (let i = 0; i < steamCount; i++) {
@@ -391,8 +396,9 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
       const ph = puff.userData.phase as number;
       puff.position.y = ph * 1.4;
       puff.position.x = (puff.userData.baseX as number) + Math.sin(t * 1.5 + ph * 6) * 0.06 * ph;
-      puff.material.opacity = Math.sin(ph * Math.PI) * 0.45;
-      puff.scale.setScalar(0.35 + ph * 0.55);
+      // 突かれた直後（steamBurst）は濃く・大きく
+      puff.material.opacity = Math.sin(ph * Math.PI) * (0.45 + steamBurst * 0.4);
+      puff.scale.setScalar((0.35 + ph * 0.55) * (1 + steamBurst * 0.6));
     }
   }
 
@@ -422,6 +428,9 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
 
   // 気球の基準位置（横長 / 縦長でブレンド）
   const balloonBase = { x1: -3.0, y1: 3.0, x2: 2.6, y2: 4.3 };
+  // 突かれたときの浮き上がり（減衰ばね）
+  const lift1 = { y: 0, v: 0 };
+  const lift2 = { y: 0, v: 0 };
   function layoutBalloons() {
     const k = portrait;
     balloonBase.x1 = THREE.MathUtils.lerp(-3.0, -0.9, k);
@@ -432,13 +441,13 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
   function updateBalloons(t: number) {
     balloon.position.set(
       balloonBase.x1 + Math.sin(t * 0.18) * 0.7,
-      balloonBase.y1 + Math.sin(t * 0.5) * 0.12,
+      balloonBase.y1 + Math.sin(t * 0.5) * 0.12 + lift1.y,
       -1.5,
     );
     balloon.rotation.z = Math.sin(t * 0.4) * 0.05;
     balloon2.position.set(
       balloonBase.x2 + Math.sin(t * 0.13 + 2) * 1.0,
-      balloonBase.y2 + Math.sin(t * 0.42 + 1) * 0.14,
+      balloonBase.y2 + Math.sin(t * 0.42 + 1) * 0.14 + lift2.y,
       -3.2,
     );
     balloon2.rotation.z = Math.sin(t * 0.33 + 1) * 0.06;
@@ -536,12 +545,18 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
 
     // 湯気
     for (const puff of steamPuffs) {
-      let ph = (puff.userData.phase as number) + 0.0035 * f;
+      let ph = (puff.userData.phase as number) + 0.0035 * f * (1 + steamBurst * 2.5);
       if (ph > 1) ph -= 1;
       puff.userData.phase = ph;
     }
     updateSteam(t);
     // 気球
+    // 突かれた反応を減衰させる（湯気は指数減衰、気球は減衰ばね）
+    steamBurst *= Math.exp(-1.6 * dt);
+    for (const l of [lift1, lift2]) {
+      l.v += (-l.y * 9 - l.v * 2.2) * dt;
+      l.y += l.v * dt;
+    }
     updateBalloons(t);
     // 雪
     if (snow) {
@@ -624,5 +639,36 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
     }
   }
 
-  return { start, stop, dispose, setProgress, setBeats };
+  // --- 突く（隠し要素） ---
+  const raycaster = new THREE.Raycaster();
+  const _ndc = new THREE.Vector2();
+  const pokeTargets = [ramen, balloon, balloon2];
+  function hitAt(clientX: number, clientY: number): THREE.Object3D | null {
+    const rect = canvas.getBoundingClientRect();
+    _ndc.set(
+      ((clientX - rect.left) / rect.width) * 2 - 1,
+      -((clientY - rect.top) / rect.height) * 2 + 1,
+    );
+    raycaster.setFromCamera(_ndc, camera);
+    const hit = raycaster.intersectObjects(pokeTargets, true)[0];
+    if (!hit) return null;
+    // 当たったメッシュから、丼／気球のグループまで遡る
+    let o: THREE.Object3D | null = hit.object;
+    while (o && !pokeTargets.includes(o as THREE.Group)) o = o.parent;
+    return o;
+  }
+  function poke(clientX: number, clientY: number): boolean {
+    if (reducedMotion) return false;
+    const target = hitAt(clientX, clientY);
+    if (!target) return false;
+    if (target === ramen) steamBurst = 1;
+    else if (target === balloon) lift1.v += 2.6;
+    else if (target === balloon2) lift2.v += 2.6;
+    return true;
+  }
+  function canPoke(clientX: number, clientY: number): boolean {
+    return !reducedMotion && hitAt(clientX, clientY) !== null;
+  }
+
+  return { start, stop, dispose, setProgress, setBeats, poke, canPoke };
 }

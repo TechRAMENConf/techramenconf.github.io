@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import "../styles/motion.css";
 
 interface Props {
   title?: string;
@@ -98,5 +99,8 @@ const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
       </defs>
     </svg>
     <slot />
+    <script>
+      import "../scripts/interactions";
+    </script>
   </body>
 </html>
