@@ -105,16 +105,17 @@ h3 {
      「汚れ」のように見えるため（3D はシートの間と名札の周りで見せる） */
   background-color: rgb(243, 234, 214);
   background-image:
+    var(--paper-grain, none),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='pf'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23pf)' opacity='0.14'/%3E%3C/svg%3E"),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='pm'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.013' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23pm)' opacity='0.1'/%3E%3C/svg%3E"),
     radial-gradient(130% 130% at 25% 15%, rgba(207, 155, 62, 0.1), transparent 60%);
-  background-size: 200px 200px, 420px 420px, 100% 100%;
+  background-size: 256px 256px, 200px 200px, 420px 420px, 100% 100%;
   border-radius: 14px 9px 16px 10px / 10px 15px 9px 14px;
   box-shadow:
     0 24px 48px -22px rgba(46, 40, 38, 0.5),
     inset 0 0 70px rgba(120, 88, 48, 0.09);
   /* 縁を手でちぎったようにギザギザに */
-  filter: url(#torn);
+  filter: var(--sheet-filter, url(#torn));
 }
 .sheet .lead {
   max-width: 38rem;
@@ -301,15 +302,17 @@ h3 {
   z-index: -1;
   border-radius: 3px;
   background-color: var(--torn-bg, var(--paper-card));
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E");
+  background-image: var(--paper-grain, none), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E");
   box-shadow: 0 0 0 1.5px var(--torn-fiber, rgba(255, 251, 242, 0.9));
-  filter: url(#torn-sm) var(--torn-shadow, drop-shadow(0 3px 3px rgba(46, 40, 38, 0.22)));
+  filter: var(--torn-filter, url(#torn-sm))
+    var(--torn-shadow, drop-shadow(0 3px 3px rgba(46, 40, 38, 0.22)));
   transition: filter 0.15s ease;
   pointer-events: none;
 }
 .torn:nth-child(even)::after,
 .btn:nth-of-type(even)::after {
-  filter: url(#torn-sm2) var(--torn-shadow, drop-shadow(0 3px 3px rgba(46, 40, 38, 0.22)));
+  filter: var(--torn-filter, url(#torn-sm2))
+    var(--torn-shadow, drop-shadow(0 3px 3px rgba(46, 40, 38, 0.22)));
 }
 
 @media (prefers-reduced-motion: reduce) {

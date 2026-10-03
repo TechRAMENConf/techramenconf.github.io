@@ -10,7 +10,14 @@
  * - prefers-reduced-motion 時は1フレームだけ描画してアニメ停止
  */
 import * as THREE from "three";
-import { paperMaterial, PaperPost, PAPER_CORE } from "./paper";
+import {
+  paperMaterial,
+  PaperPost,
+  PAPER_CORE,
+  setPaperLite,
+  makeTornFringe,
+  type PaperKind,
+} from "./paper";
 import { buildRamen } from "./ramen";
 
 export type BeatName = "hero" | "dates" | "access" | "travel" | "roadmap" | "past";
@@ -62,10 +69,12 @@ function makeHillLayer(
   color: number,
   depth: number,
   rand: () => number,
-  coreMat: THREE.Material,
+  kind: PaperKind,
+  fringeOut: number,
 ): THREE.Mesh {
   const shape = new THREE.Shape();
   const segments = 150;
+  const top: THREE.Vector2[] = [];
   shape.moveTo(-width / 2, -height);
   shape.lineTo(-width / 2, 0);
   // 大きなうねり＋手でちぎった細かいギザギザ（不揃いに）
@@ -77,13 +86,19 @@ function makeHillLayer(
       Math.sin(t * Math.PI * 5.7 + seed * 1.7) * topAmplitude * 0.4;
     const torn = (rand() - 0.5) * 0.07 + Math.sin(t * 97 + seed * 5) * 0.012;
     shape.lineTo(x, wobble + torn);
+    top.push(new THREE.Vector2(x, wobble + torn));
   }
   shape.lineTo(width / 2, -height);
   shape.closePath();
 
   const geo = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 1 });
-  // ExtrudeGeometry のグループ: 0 = 表裏の面、1 = 側面（切り口）
-  return new THREE.Mesh(geo, [paperMaterial(color), coreMat]);
+  // ExtrudeGeometry のグループ: 0 = 表裏の面、1 = 側面（切り口＝段ボールの芯）
+  const face = paperMaterial(color, { kind, seed });
+  const core = paperMaterial(PAPER_CORE, { kind: "cardboard", seed: seed + 3, thick: depth });
+  const mesh = new THREE.Mesh(geo, [face, core]);
+  // 表の面の上辺に、ちぎった縁の毛羽
+  mesh.add(makeTornFringe(top, depth + 0.003, { out: fringeOut, seed }));
+  return mesh;
 }
 
 /** 湯気用のふわっとした円形グラデーション */
@@ -109,6 +124,7 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
     matchMedia("(prefers-reduced-motion: reduce)").matches;
   const isSmall = Math.min(window.innerWidth, window.innerHeight) < 640;
   const rand = mulberry32(2026);
+  setPaperLite(isSmall);
 
   const renderer = new THREE.WebGLRenderer({
     canvas,
@@ -205,17 +221,17 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
 
   // --- 丘（ちぎり紙レイヤーを奥から手前へ） ---
   const hillDefs = [
-    { w: 26, h: 8, amp: 0.7, seed: 0.3, color: COLORS.snow, z: -7, y: 1.7, depth: 0.3 },
-    { w: 24, h: 8, amp: 0.9, seed: 1.9, color: COLORS.leaf, z: -4.5, y: 0.9, depth: 0.35 },
-    { w: 22, h: 8, amp: 1.0, seed: 3.4, color: COLORS.wheat, z: -2.4, y: 0.2, depth: 0.4 },
-    { w: 22, h: 8, amp: 0.8, seed: 5.1, color: COLORS.grape, z: -0.4, y: -0.5, depth: 0.45 },
+    // 紙の種類: 雪＝和紙、森＝雲竜紙、畑＝クラフト紙、手前＝色上質紙（毛羽の長さも紙ごとに変える）
+    { w: 26, h: 8, amp: 0.7, seed: 0.3, color: COLORS.snow, z: -7, y: 1.7, depth: 0.3, kind: "washi" as const, fringe: 0.07 },
+    { w: 24, h: 8, amp: 0.9, seed: 1.9, color: COLORS.leaf, z: -4.5, y: 0.9, depth: 0.35, kind: "unryu" as const, fringe: 0.055 },
+    { w: 22, h: 8, amp: 1.0, seed: 3.4, color: COLORS.wheat, z: -2.4, y: 0.2, depth: 0.4, kind: "kraft" as const, fringe: 0.028 },
+    { w: 22, h: 8, amp: 0.8, seed: 5.1, color: COLORS.grape, z: -0.4, y: -0.5, depth: 0.45, kind: "stock" as const, fringe: 0.016 },
   ];
-  const coreMat = paperMaterial(PAPER_CORE, { grain: 1.6 });
   // 起き上がる導入のため、各丘は下端（ページの折り目）を軸にしたグループに入れる
   const HINGE_Y = -1.6;
   const hillPivots: THREE.Group[] = [];
   for (const d of hillDefs) {
-    const hill = makeHillLayer(d.w, d.h, d.amp, d.seed, d.color, d.depth, rand, coreMat);
+    const hill = makeHillLayer(d.w, d.h, d.amp, d.seed, d.color, d.depth, rand, d.kind, d.fringe);
     hill.position.set(0, d.y - HINGE_Y, 0);
     const pivot = new THREE.Group();
     pivot.position.set(0, HINGE_Y, d.z);
@@ -269,13 +285,13 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
     const g = new THREE.Group();
     const env = new THREE.Mesh(
       new THREE.SphereGeometry(radius, 12, 12),
-      paperMaterial(color),
+      paperMaterial(color, { kind: "washi", seed: radius * 10 }),
     );
     env.scale.y = 1.25;
     g.add(env);
     const basket = new THREE.Mesh(
       new THREE.BoxGeometry(radius * 0.3, radius * 0.3, radius * 0.3),
-      paperMaterial(COLORS.basket),
+      paperMaterial(COLORS.basket, { kind: "kraft", seed: radius * 10 }),
     );
     basket.position.y = -radius * 1.7;
     g.add(basket);
