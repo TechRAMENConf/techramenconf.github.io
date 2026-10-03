@@ -201,32 +201,16 @@
 
 /* ---------- 名札: 右下の角がめくれる（ホバー・タップ） ----------
    めくれ自体は静止状態でも成立するので、reduced-motion では遷移だけ止める */
-.nametag::before {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  z-index: 1;
-  width: 0;
-  height: 0;
-  /* 裏面（少し濃い紙）が三角に見える */
-  background: linear-gradient(315deg, transparent 50%, var(--paper-deep) 50%);
-  box-shadow: -3px -3px 6px rgba(46, 40, 38, 0.18);
-  border-top-left-radius: 6px;
-  transition:
-    width 0.25s var(--ease-settle),
-    height 0.25s var(--ease-settle);
-  pointer-events: none;
+.nametag {
+  transition: --peel 0.3s var(--ease-settle);
 }
 @media (hover: hover) {
-  .nametag:hover::before {
-    width: 30px;
-    height: 30px;
+  .nametag:hover {
+    --peel: 42px;
   }
 }
-.nametag.is-peeled::before {
-  width: 30px;
-  height: 30px;
+.nametag.is-peeled {
+  --peel: 42px;
 }
 
 /* ---------- きっぷの改札パンチ（穴そのもの） ----------
@@ -276,7 +260,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .nametag::before {
+  .nametag {
     transition: none;
   }
 }

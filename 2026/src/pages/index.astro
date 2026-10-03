@@ -6,10 +6,10 @@ import Icon from "../components/Icon.astro";
 import Ticket from "../components/Ticket.astro";
 import Concept from "../components/Concept.astro";
 import Shiori from "../components/Shiori.astro";
+import Timetable from "../components/Timetable.astro";
 import Cfp from "../components/Cfp.astro";
 import Guest from "../components/Guest.astro";
 import NoteFeed from "../components/NoteFeed.astro";
-import cfp from "../data/cfp.json";
 import venue from "../data/venue.json";
 import { jp, jpHtml } from "../lib/jp";
 
@@ -31,24 +31,6 @@ const gcal = (text: string, start: string, end: string) =>
 const gcalPre = gcal("TechRAMEN 2026 (pre event)", "20261120", "20261121");
 const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
 
-// CFP の行は cfp.json の状態と連動（募集中・締切後は #cfp へのリンクにする）
-const cfpWhen =
-  ({ soon: "準備中", open: "募集中", closed: "締切" } as Record<string, string>)[cfp.status] ?? "準備中";
-const roadmap: { label: string; when: string; note: string; href?: string }[] = [
-  {
-    label: "CFP（登壇者募集）",
-    when: cfpWhen,
-    note:
-      cfp.status === "open"
-        ? "ただいま募集中です。応募はこちらから"
-        : cfp.status === "closed"
-          ? "募集は締め切りました。ご応募ありがとうございました"
-          : "登壇の応募方法・締切をここで告知します",
-    href: cfp.status === "soon" ? undefined : "#cfp",
-  },
-  { label: "チケット発売", when: "準備中", note: "参加チケットの価格・販売開始を告知します" },
-  { label: "タイムテーブル", when: "準備中", note: "セッション・登壇者を公開します" },
-];
 ---
 
 <BaseLayout>
@@ -79,7 +61,7 @@ const roadmap: { label: string; when: string; note: string; href?: string }[] = 
   <section id="access" class="section" data-beat="access">
     <div class="wrap sheet reveal">
       <p class="eyebrow">行き方と、おやど</p>
-      <h2 class="section-title jp" set:html={jp("富良野は、ちょっと遠い。") + "<br />" + jp("だから早めの計画を。")} />
+      <h2 class="section-title jp" set:html={"富良野は、<br class=\"sp\" />" + jp("ちょっと遠い。") + "<br />" + jp("だから早めの計画を。")} />
 
       <div class="access-grid">
         <div class="card">
@@ -128,7 +110,7 @@ const roadmap: { label: string; when: string; note: string; href?: string }[] = 
       <h2
         class="section-title jp"
         style="view-transition-name: travel-title"
-        set:html={jp("富良野を、もう一日。")}
+        set:html={"富良野を、<br class=\"sp\" />もう一日。"}
       />
       <p
         class="lead jp"
@@ -137,6 +119,42 @@ const roadmap: { label: string; when: string; note: string; href?: string }[] = 
         )}
       />
       <a class="btn" href={`${BASE}travel/`}>観光・モデル旅程をみる</a>
+
+      <!-- 切り絵のポストカード（装飾。写真が用意できたら差し替え） -->
+      <div class="cards" aria-hidden="true">
+        <figure class="postcard postcard--wine">
+          <svg viewBox="0 0 160 110">
+            <rect width="160" height="110" fill="#e9d6b4" />
+            <path d="M0 78 Q40 60 80 72 T160 66 V110 H0Z" fill="#7a934a" />
+            <path d="M0 92 Q50 80 100 90 T160 86 V110 H0Z" fill="#5b2a4e" />
+            <rect x="62" y="22" width="14" height="52" rx="4" fill="#5b2a4e" />
+            <rect x="66" y="12" width="6" height="14" fill="#5b2a4e" />
+            <path d="M92 40 h20 q0 16 -10 18 q-10 -2 -10 -18z" fill="#f6efe2" />
+            <path d="M93 46 h18 q-1 10 -9 11 q-8 -1 -9 -11z" fill="#7b2c3a" />
+            <rect x="101" y="57" width="2" height="14" fill="#f6efe2" />
+          </svg>
+          <figcaption class="hand">ワイン</figcaption>
+        </figure>
+        <figure class="postcard postcard--pond">
+          <svg viewBox="0 0 160 110">
+            <rect width="160" height="110" fill="#d7e3ea" />
+            <path d="M0 70 L30 40 L52 62 L80 30 L112 64 L134 46 L160 66 V110 H0Z" fill="#f3ece0" />
+            <ellipse cx="80" cy="88" rx="70" ry="16" fill="#3fa7c4" />
+            <path d="M44 88 V64 M60 90 V58 M100 89 V60 M116 88 V66" stroke="#8a6b4f" stroke-width="3" />
+          </svg>
+          <figcaption class="hand">青い池</figcaption>
+        </figure>
+        <figure class="postcard postcard--onsen">
+          <svg viewBox="0 0 160 110">
+            <rect width="160" height="110" fill="#ece2cf" />
+            <path d="M0 60 L40 30 L70 52 L100 24 L160 58 V110 H0Z" fill="#f3ece0" />
+            <ellipse cx="80" cy="86" rx="58" ry="14" fill="#b5733a" opacity="0.35" />
+            <ellipse cx="80" cy="84" rx="52" ry="11" fill="#9fc4cf" />
+            <path d="M62 70 q-6 -8 0 -16 q6 -8 0 -16 M80 68 q-6 -8 0 -16 q6 -8 0 -16 M98 70 q-6 -8 0 -16 q6 -8 0 -16" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" />
+          </svg>
+          <figcaption class="hand">温泉</figcaption>
+        </figure>
+      </div>
     </div>
   </section>
 
@@ -145,22 +163,8 @@ const roadmap: { label: string; when: string; note: string; href?: string }[] = 
     <div class="wrap sheet reveal">
       <p class="eyebrow">これから出ます</p>
       <h2 class="section-title">公開ロードマップ</h2>
-      <p class="lead jp" set:html={jp("詳細は準備中です。下記をこのページで順次公開していきます。")} />
 
-      <ol class="road">
-        {
-          roadmap.map((r) => (
-            <li class="road__item">
-              <span class="road__dot" aria-hidden="true" />
-              <div class="card road__card">
-                <p class="road__when hand">{r.when}</p>
-                <p class="road__label">{r.href ? <a href={r.href}>{r.label}</a> : r.label}</p>
-                <p class="road__note jp" set:html={jp(r.note)} />
-              </div>
-            </li>
-          ))
-        }
-      </ol>
+      <Timetable />
     </div>
   </section>
 
@@ -171,10 +175,14 @@ const roadmap: { label: string; when: string; note: string; href?: string }[] = 
   <section class="section" data-beat="past">
     <div class="wrap sheet reveal">
       <p class="eyebrow">これまでの</p>
-      <h2 class="section-title jp" set:html={jp("過去の") + "TechRAMEN Conference"} />
+      <h2 class="section-title jp" set:html={"過去の<br class=\"sp\" />TechRAMEN Conference"} />
       <div class="past">
-        <a class="past__tag torn" href="../2024/">2024</a>
-        <a class="past__tag torn" href="../2025/">2025</a>
+        <a class="past__tag torn swing" href="../2024/">
+          <span class="past__string" aria-hidden="true"></span>2024<small>旭川</small>
+        </a>
+        <a class="past__tag torn swing" href="../2025/">
+          <span class="past__string" aria-hidden="true"></span>2025<small>旭川</small>
+        </a>
       </div>
     </div>
   </section>
@@ -183,6 +191,13 @@ const roadmap: { label: string; when: string; note: string; href?: string }[] = 
     <div class="wrap">
       <p class="foot__logo hand">TechRAMEN 2026 Conference</p>
       <p class="foot__copy">富良野・北海道 ／ 2026.11.20–21</p>
+      <ul class="foot__links">
+        <li><a href="https://note.com/techramenconf/m/m0938ea0596c0" target="_blank" rel="noopener">公式 note</a></li>
+        <li><a href="https://x.com/techramenconf" target="_blank" rel="noopener">X @techramenconf</a></li>
+        <li><a href="mailto:techramenconf@gmail.com">お問い合わせ</a></li>
+        <li><a href="../2025/">2025</a></li>
+        <li><a href="../2024/">2024</a></li>
+      </ul>
       <p class="foot__small">© TechRAMEN Conference</p>
     </div>
   </footer>
@@ -260,126 +275,154 @@ const roadmap: { label: string; when: string; note: string; href?: string }[] = 
     }
   }
 
-  /* ロードマップ */
-  .road {
-    list-style: none;
-    margin: 2rem 0 0;
-    padding: 0;
+  /* 観光への導線: 重ねたポストカード */
+  #travel .sheet {
     display: grid;
-    gap: 1.1rem;
+    align-items: center;
+    column-gap: 2rem;
   }
-  .road__item {
+  #travel .sheet > :not(.cards) {
+    grid-column: 1;
+    justify-self: start;
+  }
+  .cards {
     position: relative;
-    padding-left: 1.6rem;
+    width: min(100%, 19rem);
+    height: 11rem;
+    margin-top: 2rem;
   }
-  .road__dot {
+  @media (min-width: 900px) {
+    #travel .sheet {
+      grid-template-columns: 1fr 17rem;
+    }
+    #travel .section-title {
+      white-space: nowrap;
+    }
+    .cards {
+      grid-column: 2;
+      grid-row: 1 / span 4;
+      width: 100%;
+      margin-top: 0;
+      height: 13rem;
+    }
+  }
+  .postcard {
     position: absolute;
-    left: 0;
-    top: 1.4rem;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--gold);
-    border: 2.5px solid var(--ink);
-  }
-  .road__card {
-    padding: 1rem 1.2rem;
-  }
-  /* デスクトップ: 中央の背骨を挟んでジグザグに配置 */
-  @media (min-width: 720px) {
-    .road {
-      position: relative; /* ::before(背骨)の包含ブロックを .road に固定 */
-      max-width: 56rem;
-      margin-inline: auto;
-      gap: 1.6rem;
-    }
-    .road::before {
-      content: "";
-      position: absolute;
-      left: 50%;
-      top: 0.5rem;
-      bottom: 0.5rem;
-      width: 0;
-      border-left: 2.5px dashed rgba(46, 40, 38, 0.4);
-      transform: translateX(-50%);
-    }
-    .road__item {
-      width: 50%;
-      padding-left: 0;
-    }
-    .road__item:nth-child(odd) {
-      margin-right: auto;
-      padding-right: 2.4rem;
-      text-align: right;
-    }
-    .road__item:nth-child(even) {
-      margin-left: auto;
-      padding-left: 2.4rem;
-    }
-    .road__item:nth-child(odd) .road__dot {
-      left: auto;
-      right: -8px;
-      top: 1.6rem;
-    }
-    .road__item:nth-child(even) .road__dot {
-      left: -8px;
-      top: 1.6rem;
-    }
-    .road__item:nth-child(odd) {
-      transform: rotate(-1deg);
-    }
-    .road__item:nth-child(even) {
-      transform: rotate(1deg);
-    }
-  }
-  .road__when {
+    width: 47%;
     margin: 0;
-    color: var(--wine);
-    font-size: 1.2rem;
+    padding: 0.5rem 0.5rem 0.2rem;
+    background: var(--paper-card);
+    border-radius: 3px;
+    box-shadow: 0 10px 18px -10px rgba(46, 40, 38, 0.55);
+    transition: translate 0.25s var(--ease-settle, ease), rotate 0.25s var(--ease-settle, ease);
   }
-  .road__label {
-    margin: 0.1em 0 0.2em;
-    font-weight: 700;
+  .postcard svg {
+    display: block;
+    width: 100%;
+    border-radius: 2px;
+  }
+  .postcard figcaption {
+    padding: 0.2rem 0.2rem 0.3rem;
     font-size: 1.15rem;
     color: var(--grape);
   }
-  .road__note {
-    margin: 0;
-    color: var(--ink);
-    font-size: 0.95rem;
+  /* 扇状に重ねる。後ろのカードも左側（キャプション）が見えるよう 26% ずつずらす */
+  .postcard--wine {
+    left: 0;
+    top: 1.4rem;
+    rotate: -8deg;
+  }
+  .postcard--pond {
+    left: 26%;
+    top: 0.2rem;
+    rotate: 2deg;
+    z-index: 1;
+  }
+  .postcard--onsen {
+    left: 52%;
+    top: 1.8rem;
+    rotate: 10deg;
+    z-index: 2;
+  }
+  /* セクションに触れると、カードが少し広がる */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    #travel .sheet:hover .postcard--wine {
+      translate: -10px -6px;
+      rotate: -11deg;
+    }
+    #travel .sheet:hover .postcard--onsen {
+      translate: 10px -4px;
+      rotate: 13deg;
+    }
+    #travel .sheet:hover .postcard--pond {
+      translate: 0 -8px;
+    }
   }
 
-  /* 過去回 */
+  /* 過去回: 旅の荷札。紐を支点に揺れる（.swing） */
   .past {
     display: flex;
-    gap: 1.6rem;
+    flex-wrap: wrap;
+    gap: 1.4rem 2.6rem;
     margin-top: 2rem;
-    padding-left: 0.5rem;
+    padding-left: 1.8rem;
+  }
+  .past__tag {
+    display: inline-grid;
+    padding: 0.55em 1.3em 0.55em 2.1em;
+    --torn-bg: var(--paper-card);
+    font-family: var(--font-hand);
+    font-weight: 700;
+    font-size: 1.8rem;
+    line-height: 1.1;
+    color: var(--grape);
+    text-decoration: none;
+    transform-origin: 0 50%;
+    transition: transform 0.2s var(--ease-settle, ease);
+  }
+  .past__tag small {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    color: var(--ink-soft);
   }
   .past__tag:nth-child(1) {
     transform: rotate(-5deg);
   }
   .past__tag:nth-child(2) {
-    transform: rotate(4deg) translateY(0.8rem);
+    transform: rotate(4deg) translateY(0.6rem);
   }
-  .past__tag:hover:nth-child(1),
-  .past__tag:hover:nth-child(2) {
-    transform: rotate(0deg) translateY(0) scale(1.05);
+  /* 紐を通す穴（金のハトメ） */
+  .past__tag::before {
+    content: "";
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    z-index: 1;
+    width: 0.55rem;
+    height: 0.55rem;
+    border: 2px solid var(--ink-soft);
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px var(--gold);
+    transform: translateY(-50%);
   }
-  .past__tag {
-    display: inline-block;
-    padding: 0.7em 1.4em;
-    --torn-bg: var(--paper-card);
-    font-family: var(--font-hand);
-    font-weight: 700;
-    font-size: 1.6rem;
-    color: var(--grape);
-    text-decoration: none;
-    transition: transform 0.15s ease, background 0.15s ease;
+  .past__string {
+    position: absolute;
+    left: -1.3rem;
+    top: calc(50% - 1px);
+    width: 2.3rem;
+    height: 2px;
+    background: var(--gold);
+    transform: rotate(-20deg);
+    transform-origin: right center;
   }
-  .past__tag:hover {
-    --torn-bg: var(--gold);
-    color: var(--ink);
+  @media (hover: hover) {
+    .past__tag:hover {
+      --torn-bg: var(--gold);
+      color: var(--ink);
+    }
+    .past__tag:hover small {
+      color: var(--ink);
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .past__tag {
@@ -412,7 +455,26 @@ const roadmap: { label: string; when: string; note: string; href?: string }[] = 
     color: var(--paper-card);
   }
   .foot__copy {
-    margin: 0 0 0.4rem;
+    margin: 0 0 1rem;
+  }
+  .foot__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem 1.4rem;
+    margin: 0 0 1.2rem;
+    padding: 0;
+    list-style: none;
+  }
+  .foot__links a {
+    color: var(--paper-card);
+    font-weight: 700;
+    text-decoration-color: var(--gold);
+    text-decoration-thickness: 2px;
+  }
+  .foot__links a:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 3px;
   }
   .foot__small {
     margin: 0;

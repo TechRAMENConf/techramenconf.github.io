@@ -1,0 +1,213 @@
+---
+// 公開ロードマップを「駅の発車予定表」で見せる。
+// CfP とゲストの状態は data/cfp.json・data/guest.json に連動する。
+import cfp from "../data/cfp.json";
+import guest from "../data/guest.json";
+import { jp } from "../lib/jp";
+
+type State = "soon" | "open" | "done";
+interface Row {
+  dest: string;
+  state: State;
+  note: string;
+  href?: string;
+}
+
+const LAMP: Record<State, string> = { soon: "準備中", open: "受付中", done: "公開済" };
+
+const rows: Row[] = [
+  {
+    dest: "登壇者募集（CfP）",
+    state: cfp.status === "open" ? "open" : cfp.status === "closed" ? "done" : "soon",
+    note:
+      cfp.status === "open"
+        ? "ただいま応募を受け付けています"
+        : cfp.status === "closed"
+          ? "募集は締め切りました。ご応募ありがとうございました"
+          : "応募方法と締切をお知らせします",
+    href: cfp.status === "soon" ? undefined : "#cfp",
+  },
+  {
+    dest: "ゲストスピーカー",
+    state: guest ? "done" : "soon",
+    note: guest ? "発表しました" : "今年のゲストを発表します",
+    href: guest ? "#guest" : undefined,
+  },
+  { dest: "チケット発売", state: "soon", note: "参加チケットの価格と販売開始をお知らせします" },
+  { dest: "タイムテーブル", state: "soon", note: "セッションと登壇者を公開します" },
+];
+---
+
+<div class="board">
+  <p class="board__head">
+    <span class="board__title">発車予定</span>
+    <span class="board__sub hand">TechRAMEN 2026 方面</span>
+  </p>
+  <table class="board__table">
+    <thead>
+      <tr>
+        <th scope="col">状態</th>
+        <th scope="col">行先</th>
+        <th scope="col" class="board__note-h">お知らせ</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        rows.map((r) => (
+          <tr class:list={["board__row", `board__row--${r.state}`]}>
+            <td class="board__state">
+              <span class="board__lamp" aria-hidden="true" />
+              {LAMP[r.state]}
+            </td>
+            <th scope="row" class="board__dest">
+              {r.href ? <a href={r.href}>{r.dest}</a> : r.dest}
+            </th>
+            <td class="board__note jp" set:html={jp(r.note)} />
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+  <p class="board__foot jp" set:html={jp("※ 決まり次第、このページと公式 note でお知らせします。")} />
+</div>
+
+<style>
+  /* 駅に貼られた紙の時刻表: 生成り紙＋緑の帯、罫線は点線 */
+  .board {
+    margin-top: 2rem;
+    background: #f7f2e3;
+    border-top: 10px solid var(--leaf);
+    border-radius: 4px;
+    box-shadow:
+      inset 0 0 0 1.5px rgba(110, 139, 61, 0.35),
+      0 12px 22px -14px rgba(46, 40, 38, 0.55);
+    rotate: -0.4deg;
+  }
+  .board__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.3rem 1rem;
+    margin: 0;
+    padding: 0.9rem clamp(1rem, 3vw, 1.6rem) 0.6rem;
+    border-bottom: 2px solid var(--leaf);
+  }
+  .board__title {
+    font-weight: 700;
+    font-size: 1.35rem;
+    letter-spacing: 0.3em;
+    color: var(--leaf);
+  }
+  .board__sub {
+    font-size: 1.25rem;
+    color: var(--ink-soft);
+  }
+  .board__table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .board__table thead th {
+    padding: 0.5rem clamp(1rem, 3vw, 1.6rem) 0.3rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-align: left;
+    color: var(--ink-soft);
+  }
+  .board__row > * {
+    padding: 0.8rem clamp(1rem, 3vw, 1.6rem);
+    border-top: 1.5px dashed rgba(110, 139, 61, 0.45);
+    text-align: left;
+    vertical-align: baseline;
+  }
+  .board__state {
+    width: 7.5rem;
+    white-space: nowrap;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+  .board__lamp {
+    display: inline-block;
+    width: 0.65rem;
+    height: 0.65rem;
+    margin-right: 0.45rem;
+    border-radius: 50%;
+    background: #c9c2b4;
+    box-shadow: inset 0 1px 2px rgba(46, 40, 38, 0.35);
+    vertical-align: 0.05em;
+  }
+  .board__dest {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--grape);
+  }
+  .board__dest a {
+    color: inherit;
+    text-decoration-color: var(--gold);
+    text-decoration-thickness: 3px;
+  }
+  .board__note {
+    font-size: 0.92rem;
+    color: var(--ink);
+  }
+  /* 受付中: 灯りがともる（ゆっくり明滅） */
+  .board__row--open .board__state {
+    color: var(--wine);
+  }
+  .board__row--open .board__lamp {
+    background: #e2563d;
+    box-shadow: 0 0 0 3px rgba(226, 86, 61, 0.22);
+  }
+  .board__row--done .board__state {
+    color: var(--leaf);
+  }
+  .board__row--done .board__lamp {
+    background: var(--leaf);
+  }
+  .board__foot {
+    margin: 0;
+    padding: 0.7rem clamp(1rem, 3vw, 1.6rem) 0.9rem;
+    border-top: 1.5px dashed rgba(110, 139, 61, 0.45);
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+  }
+
+  /* スマホ: 3 列を縦積みに（状態と行先を 1 行目、お知らせを 2 行目） */
+  @media (max-width: 639px) {
+    .board__table thead {
+      display: none;
+    }
+    .board__row {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.15rem 0.8rem;
+      padding: 0.8rem 1rem;
+      border-top: 1.5px dashed rgba(110, 139, 61, 0.45);
+    }
+    .board__row > * {
+      padding: 0;
+      border: 0;
+    }
+    .board__state {
+      width: auto;
+    }
+    .board__note {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .board__row--open .board__lamp {
+      animation: lamp 1.6s ease-in-out infinite alternate;
+    }
+  }
+  @keyframes lamp {
+    from {
+      opacity: 0.45;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+</style>

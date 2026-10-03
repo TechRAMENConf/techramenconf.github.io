@@ -46,45 +46,47 @@ const xHandle = guest?.x ? guest.x.replace(/\/$/, "").split("/").pop() : null;
 
       <!-- 名札のプロフィール（コンセプト「ちゃんと初めまして」に合わせる） -->
       <div class="nametag tilt-r guest__profile">
-        <p class="nametag__band">
-          <span class="nametag__hello">HELLO</span>
-          <span class="nametag__my">はじめまして</span>
-        </p>
-        <div class="nametag__body">
-          {
-            guest ? (
-              <>
-                <p class="guest__name">
-                  {guest.name}
-                  {guest.kana && <span class="guest__kana">（{guest.kana}）</span>}
-                </p>
-                {guest.title && <p class="guest__title">{guest.title}</p>}
-                {guest.x && xHandle && (
-                  <p class="guest__x">
-                    <a href={guest.x} target="_blank" rel="noopener">
-                      @{xHandle}
-                    </a>
+        <div class="nametag__sheet">
+          <p class="nametag__band">
+            <span class="nametag__hello">HELLO</span>
+            <span class="nametag__my">はじめまして</span>
+          </p>
+          <div class="nametag__body">
+            {
+              guest ? (
+                <>
+                  <p class="guest__name">
+                    {guest.name}
+                    {guest.kana && <span class="guest__kana">（{guest.kana}）</span>}
                   </p>
-                )}
-                {guest.talk && (
-                  <p class="guest__talk">
-                    <span class="hand">講演</span>「{guest.talk}」
-                  </p>
-                )}
-                {guest.bio && <p class="guest__bio jp" set:html={jp(guest.bio)} />}
-              </>
-            ) : (
-              <>
-                <p class="guest__name">近日発表</p>
-                <p
-                  class="guest__bio jp"
-                  set:html={jp(
-                    "今年もゲストスピーカーをお招きします。発表はこのページと公式 note・X でお知らせします。お楽しみに！",
+                  {guest.title && <p class="guest__title">{guest.title}</p>}
+                  {guest.x && xHandle && (
+                    <p class="guest__x">
+                      <a href={guest.x} target="_blank" rel="noopener">
+                        @{xHandle}
+                      </a>
+                    </p>
                   )}
-                />
-              </>
-            )
-          }
+                  {guest.talk && (
+                    <p class="guest__talk">
+                      <span class="hand">講演</span>「{guest.talk}」
+                    </p>
+                  )}
+                  {guest.bio && <p class="guest__bio jp" set:html={jp(guest.bio)} />}
+                </>
+              ) : (
+                <>
+                  <p class="guest__name">近日発表</p>
+                  <p
+                    class="guest__bio jp"
+                    set:html={jp(
+                      "今年もゲストスピーカーをお招きします。発表はこのページと公式 note・X でお知らせします。お楽しみに！",
+                    )}
+                  />
+                </>
+              )
+            }
+          </div>
         </div>
       </div>
     </div>
