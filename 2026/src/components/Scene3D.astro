@@ -54,6 +54,13 @@
     visibility: hidden;
     transition: visibility 0s 0.8s;
   }
+  /* 起き上がる導入があるときは、フェードせず即座に切り替える（導入そのものが「開く」演出） */
+  .scene3d.has-intro .scene3d__canvas.is-ready {
+    transition: none;
+  }
+  .scene3d.has-intro.is-3d .scene3d__fallback {
+    transition: none;
+  }
   :global(html.can-poke) {
     cursor: pointer;
   }
@@ -149,6 +156,9 @@
       try {
         const { createVineyard } = await import("../scenes/vineyard");
         controller = createVineyard(canvas);
+        if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          root?.classList.add("has-intro");
+        }
         canvas.classList.add("is-ready");
         root?.classList.add("is-3d");
         controller.start();

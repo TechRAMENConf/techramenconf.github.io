@@ -11,6 +11,7 @@
  */
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+import { paperMaterial, PaperPost, PAPER_CORE } from "./paper";
 
 export type BeatName = "hero" | "dates" | "access" | "travel" | "roadmap" | "past";
 
@@ -62,7 +63,7 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-/** 上辺が波打つ「ちぎり紙の丘」レイヤーを作る */
+/** 上辺が波打ち、細かくちぎれた「厚紙の丘」レイヤーを作る（表＝色紙、切り口＝紙の芯の白） */
 function makeHillLayer(
   width: number,
   height: number,
@@ -70,38 +71,29 @@ function makeHillLayer(
   seed: number,
   color: number,
   depth: number,
+  rand: () => number,
+  coreMat: THREE.Material,
 ): THREE.Mesh {
   const shape = new THREE.Shape();
-  const segments = 26;
+  const segments = 150;
   shape.moveTo(-width / 2, -height);
   shape.lineTo(-width / 2, 0);
-  // 波打つ上辺
+  // 大きなうねり＋手でちぎった細かいギザギザ（不揃いに）
   for (let i = 0; i <= segments; i++) {
     const t = i / segments;
     const x = -width / 2 + t * width;
     const wobble =
       Math.sin(t * Math.PI * 2.2 + seed) * topAmplitude * 0.6 +
       Math.sin(t * Math.PI * 5.7 + seed * 1.7) * topAmplitude * 0.4;
-    shape.lineTo(x, wobble);
+    const torn = (rand() - 0.5) * 0.07 + Math.sin(t * 97 + seed * 5) * 0.012;
+    shape.lineTo(x, wobble + torn);
   }
   shape.lineTo(width / 2, -height);
   shape.closePath();
 
-  const geo = new THREE.ExtrudeGeometry(shape, {
-    depth,
-    bevelEnabled: true,
-    bevelThickness: 0.04,
-    bevelSize: 0.05,
-    bevelSegments: 1,
-  });
-  geo.computeVertexNormals();
-  const mat = new THREE.MeshStandardMaterial({
-    color,
-    roughness: 0.95,
-    metalness: 0,
-    flatShading: true,
-  });
-  return new THREE.Mesh(geo, mat);
+  const geo = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 1 });
+  // ExtrudeGeometry のグループ: 0 = 表裏の面、1 = 側面（切り口）
+  return new THREE.Mesh(geo, [paperMaterial(color), coreMat]);
 }
 
 /** 湯気用のふわっとした円形グラデーション */
@@ -135,6 +127,8 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
     powerPreference: "low-power",
   });
   renderer.setClearColor(0x000000, 0);
+  // 紙の画風の後処理（墨の輪郭線・落ち影）
+  const post = new PaperPost();
 
   const scene = new THREE.Scene();
 
@@ -226,10 +220,18 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
     { w: 22, h: 8, amp: 1.0, seed: 3.4, color: COLORS.wheat, z: -2.4, y: 0.2, depth: 0.4 },
     { w: 22, h: 8, amp: 0.8, seed: 5.1, color: COLORS.grape, z: -0.4, y: -0.5, depth: 0.45 },
   ];
+  const coreMat = paperMaterial(PAPER_CORE, { grain: 1.6 });
+  // 起き上がる導入のため、各丘は下端（ページの折り目）を軸にしたグループに入れる
+  const HINGE_Y = -1.6;
+  const hillPivots: THREE.Group[] = [];
   for (const d of hillDefs) {
-    const hill = makeHillLayer(d.w, d.h, d.amp, d.seed, d.color, d.depth);
-    hill.position.set(0, d.y, d.z);
-    world.add(hill);
+    const hill = makeHillLayer(d.w, d.h, d.amp, d.seed, d.color, d.depth, rand, coreMat);
+    hill.position.set(0, d.y - HINGE_Y, 0);
+    const pivot = new THREE.Group();
+    pivot.position.set(0, HINGE_Y, d.z);
+    pivot.add(hill);
+    world.add(pivot);
+    hillPivots.push(pivot);
   }
 
   // --- ラーメン丼 + 具 + 湯気（主役。温泉に見えないよう箸と具を載せる） ---
@@ -249,14 +251,14 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
   ];
   const bowl = new THREE.Mesh(
     new THREE.LatheGeometry(bowlPts, 22),
-    new THREE.MeshStandardMaterial({ color: COLORS.bowl, roughness: 0.8, flatShading: true }),
+    paperMaterial(COLORS.bowl),
   );
   ramen.add(bowl);
 
   const rimY = 0.46;
   const rim = new THREE.Mesh(
     new THREE.TorusGeometry(0.56, 0.03, 8, 22),
-    new THREE.MeshStandardMaterial({ color: COLORS.bowlRim, roughness: 0.7, flatShading: true }),
+    paperMaterial(COLORS.bowlRim),
   );
   rim.rotation.x = Math.PI / 2;
   rim.position.y = rimY;
@@ -266,7 +268,7 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
   const brothY = 0.4;
   const soup = new THREE.Mesh(
     new THREE.CircleGeometry(0.5, 22),
-    new THREE.MeshStandardMaterial({ color: COLORS.broth, roughness: 0.7 }),
+    paperMaterial(COLORS.broth),
   );
   soup.rotation.x = -Math.PI / 2;
   soup.position.y = brothY;
@@ -294,7 +296,7 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
   }
   const noodleNest = new THREE.Mesh(
     mergeGeometries(noodleGeos),
-    new THREE.MeshStandardMaterial({ color: COLORS.noodle, roughness: 0.85, flatShading: true }),
+    paperMaterial(COLORS.noodle),
   );
   for (const g of noodleGeos) g.dispose();
   noodleNest.position.set(-0.02, brothY + 0.02, 0.0);
@@ -304,7 +306,7 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
   const toppingY = brothY + 0.12; // 麺の盛り(～+0.10)の上
   const chashu = new THREE.Mesh(
     new THREE.CylinderGeometry(0.15, 0.15, 0.045, 14),
-    new THREE.MeshStandardMaterial({ color: COLORS.chashu, roughness: 0.8, flatShading: true }),
+    paperMaterial(COLORS.chashu),
   );
   chashu.position.set(0.2, toppingY, -0.04);
   chashu.rotation.x = -0.12;
@@ -312,7 +314,7 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
 
   const naruto = new THREE.Mesh(
     new THREE.CylinderGeometry(0.09, 0.09, 0.045, 14),
-    new THREE.MeshStandardMaterial({ color: COLORS.naruto, roughness: 0.8, flatShading: true }),
+    paperMaterial(COLORS.naruto),
   );
   naruto.position.set(-0.26, toppingY, -0.1);
   naruto.rotation.x = -0.1;
@@ -321,13 +323,13 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
   // 味玉（半割り）: 小さめに。白いドーム＋黄身の断面
   const egg = new THREE.Mesh(
     new THREE.SphereGeometry(0.08, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2),
-    new THREE.MeshStandardMaterial({ color: COLORS.egg, roughness: 0.7, flatShading: true }),
+    paperMaterial(COLORS.egg),
   );
   egg.position.set(0.0, toppingY - 0.02, 0.28);
   ramen.add(egg);
   const yolk = new THREE.Mesh(
     new THREE.SphereGeometry(0.035, 10, 8),
-    new THREE.MeshStandardMaterial({ color: COLORS.yolk, roughness: 0.6, flatShading: true }),
+    paperMaterial(COLORS.yolk),
   );
   yolk.position.set(0.0, toppingY + 0.02, 0.28);
   ramen.add(yolk);
@@ -336,7 +338,7 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
   const negiCount = 8;
   const negi = new THREE.InstancedMesh(
     new THREE.BoxGeometry(0.05, 0.04, 0.05),
-    new THREE.MeshStandardMaterial({ color: COLORS.negi, roughness: 0.9, flatShading: true }),
+    paperMaterial(COLORS.negi),
     negiCount,
   );
   const _dummy = new THREE.Object3D();
@@ -351,11 +353,7 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
   ramen.add(negi);
 
   // 箸: 丼の奥側の縁に「渡して置く」（立て箸に見えないよう水平に寝かせる）
-  const chopMat = new THREE.MeshStandardMaterial({
-    color: COLORS.chopstick,
-    roughness: 0.85,
-    flatShading: true,
-  });
+  const chopMat = paperMaterial(COLORS.chopstick);
   // 先細りの角柱。長さ方向を x 軸に寝かせる
   const chopGeo = new THREE.CylinderGeometry(0.011, 0.017, 1.25, 6);
   chopGeo.rotateZ(Math.PI / 2);
@@ -407,13 +405,13 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
     const g = new THREE.Group();
     const env = new THREE.Mesh(
       new THREE.SphereGeometry(radius, 12, 12),
-      new THREE.MeshStandardMaterial({ color, roughness: 0.85, flatShading: true }),
+      paperMaterial(color),
     );
     env.scale.y = 1.25;
     g.add(env);
     const basket = new THREE.Mesh(
       new THREE.BoxGeometry(radius * 0.3, radius * 0.3, radius * 0.3),
-      new THREE.MeshStandardMaterial({ color: COLORS.basket, roughness: 1, flatShading: true }),
+      paperMaterial(COLORS.basket),
     );
     basket.position.y = -radius * 1.7;
     g.add(basket);
@@ -428,6 +426,9 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
 
   // 気球の基準位置（横長 / 縦長でブレンド）
   const balloonBase = { x1: -3.0, y1: 3.0, x2: 2.6, y2: 4.3 };
+  // コマ撮りのブレ（コマごとに置き直したときの微小なずれ）と、導入で丘の後ろから昇る量
+  const jit = { x1: 0, y1: 0, r1: 0, x2: 0, y2: 0, r2: 0 };
+  let introRise = 0;
   // 突かれたときの浮き上がり（減衰ばね）
   const lift1 = { y: 0, v: 0 };
   const lift2 = { y: 0, v: 0 };
@@ -440,17 +441,17 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
   }
   function updateBalloons(t: number) {
     balloon.position.set(
-      balloonBase.x1 + Math.sin(t * 0.18) * 0.7,
-      balloonBase.y1 + Math.sin(t * 0.5) * 0.12 + lift1.y,
+      balloonBase.x1 + Math.sin(t * 0.18) * 0.7 + jit.x1,
+      balloonBase.y1 + Math.sin(t * 0.5) * 0.12 + lift1.y + jit.y1 + introRise,
       -1.5,
     );
-    balloon.rotation.z = Math.sin(t * 0.4) * 0.05;
+    balloon.rotation.z = Math.sin(t * 0.4) * 0.05 + jit.r1;
     balloon2.position.set(
-      balloonBase.x2 + Math.sin(t * 0.13 + 2) * 1.0,
-      balloonBase.y2 + Math.sin(t * 0.42 + 1) * 0.14 + lift2.y,
+      balloonBase.x2 + Math.sin(t * 0.13 + 2) * 1.0 + jit.x2,
+      balloonBase.y2 + Math.sin(t * 0.42 + 1) * 0.14 + lift2.y + jit.y2 + introRise * 1.2,
       -3.2,
     );
-    balloon2.rotation.z = Math.sin(t * 0.33 + 1) * 0.06;
+    balloon2.rotation.z = Math.sin(t * 0.33 + 1) * 0.06 + jit.r2;
   }
 
   // --- 初雪（Points） ---
@@ -496,9 +497,43 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
   let running = false;
   let raf = 0;
   let lastTime = 0;
+  const STEP = 1 / 12; // コマ撮りの間隔
+  let stepAcc = STEP;
   // 60fps 時の「毎フレーム係数」と同じ見た目になる指数追従の速さ
   const FOLLOW_PROGRESS = -Math.log(1 - 0.07) * 60;
   const FOLLOW_POINTER = -Math.log(1 - 0.04) * 60;
+
+  // --- 描画（紙の後処理を通す） ---
+  function renderFrame(time: number) {
+    post.render(renderer, scene, camera, time);
+  }
+
+  // --- 起き上がる導入（しかけ絵本が開く） ---
+  // 丘が奥から順にページから起き上がり、丼が弾んで現れ、気球が丘の後ろから昇る
+  const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
+  const easeOutBack = (x: number) => {
+    const c1 = 1.5;
+    const c3 = c1 + 1;
+    return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+  };
+  const easeOutCubic = (x: number) => 1 - Math.pow(1 - x, 3);
+  const INTRO_SEC = 2.0;
+  let introStart = -1;
+  let introDone = reducedMotion;
+  function applyIntro(sec: number) {
+    hillPivots.forEach((p, i) => {
+      const k = clamp01((sec - i * 0.16) / 0.8);
+      p.rotation.x = -1.45 * (1 - easeOutBack(k));
+    });
+    const kb = clamp01((sec - 0.6) / 0.6);
+    ramen.scale.setScalar(Math.max(0.0001, 1.3 * easeOutBack(kb)));
+    steam.visible = kb >= 1;
+    const kl = clamp01((sec - 0.8) / 1.1);
+    introRise = -4.5 * (1 - easeOutCubic(kl));
+    // 昇り始める前は隠す（丘が平らな間に、下に控えた気球が覗かないように）
+    balloon.visible = balloon2.visible = sec >= 0.8;
+  }
+  if (!reducedMotion) applyIntro(0);
 
   // --- サイズ調整 ---
   function resize() {
@@ -507,6 +542,7 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     renderer.setPixelRatio(dpr);
     renderer.setSize(w, h, false);
+    post.setSize(w, h, dpr);
     aspect = w / h;
     portrait = aspect < 1 ? Math.min(1, (1 - aspect) * 1.6) : 0;
     camera.aspect = aspect;
@@ -515,7 +551,7 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
     // setSize はキャンバスをクリアする。ループ停止中（reduced-motion 等）は描き直す
     if (!running) {
       updateBalloons(0);
-      renderer.render(scene, camera);
+      renderFrame(0);
     }
   }
 
@@ -530,7 +566,6 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
     // タブ復帰などの大きな飛びは抑える
     const dt = Math.min(0.05, Math.max(0, (now - lastTime) / 1000));
     lastTime = now;
-    const f = dt * 60; // 60fps 基準のフレーム数換算
 
     // スクロール進捗を滑らかに追従してカメラを移動
     currentProgress += (targetProgress - currentProgress) * (1 - Math.exp(-FOLLOW_PROGRESS * dt));
@@ -543,40 +578,59 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
     world.rotation.y = target.x * 0.1;
     world.rotation.x = target.y * 0.05;
 
-    // 湯気
-    for (const puff of steamPuffs) {
-      let ph = (puff.userData.phase as number) + 0.0035 * f * (1 + steamBurst * 2.5);
-      if (ph > 1) ph -= 1;
-      puff.userData.phase = ph;
+    // 導入（24fps のコマ送り）
+    if (!introDone) {
+      if (introStart < 0) introStart = t + 0.2; // 最初の数コマは平らなページのまま見せる
+      const sec = Math.max(0, Math.floor((t - introStart) * 24) / 24);
+      applyIntro(sec);
+      if (sec >= INTRO_SEC) introDone = true;
     }
-    updateSteam(t);
-    // 気球
-    // 突かれた反応を減衰させる（湯気は指数減衰、気球は減衰ばね）
+
+    // 突かれた反応の減衰（湯気は指数減衰、気球は減衰ばね）
     steamBurst *= Math.exp(-1.6 * dt);
     for (const l of [lift1, lift2]) {
       l.v += (-l.y * 9 - l.v * 2.2) * dt;
       l.y += l.v * dt;
     }
-    updateBalloons(t);
-    // 雪
-    if (snow) {
-      const attr = snow.geometry.getAttribute("position") as THREE.BufferAttribute;
-      const arr = attr.array as Float32Array;
-      for (let i = 0; i < snowCount; i++) {
-        arr[i * 3 + 1] -= snowVel[i] * f;
-        arr[i * 3] += Math.sin(t + i) * 0.002 * f;
-        if (arr[i * 3 + 1] < -1) arr[i * 3 + 1] = 9 + Math.random();
+
+    // コマ撮り: 湯気・気球・雪は 12fps でだけ動かす（カメラは滑らかなまま）
+    stepAcc += dt;
+    if (stepAcc >= STEP) {
+      const sf = stepAcc * 60; // このコマまでに経過した 60fps 換算のフレーム数
+      stepAcc = 0;
+      for (const puff of steamPuffs) {
+        let ph = (puff.userData.phase as number) + 0.0035 * sf * (1 + steamBurst * 2.5);
+        if (ph > 1) ph -= 1;
+        puff.userData.phase = ph;
       }
-      attr.needsUpdate = true;
+      updateSteam(t);
+      // 置き直したときの微小なブレ
+      jit.x1 = (Math.random() - 0.5) * 0.012;
+      jit.y1 = (Math.random() - 0.5) * 0.012;
+      jit.r1 = (Math.random() - 0.5) * 0.012;
+      jit.x2 = (Math.random() - 0.5) * 0.012;
+      jit.y2 = (Math.random() - 0.5) * 0.012;
+      jit.r2 = (Math.random() - 0.5) * 0.012;
+      updateBalloons(t);
+      if (snow) {
+        const attr = snow.geometry.getAttribute("position") as THREE.BufferAttribute;
+        const arr = attr.array as Float32Array;
+        for (let i = 0; i < snowCount; i++) {
+          arr[i * 3 + 1] -= snowVel[i] * sf;
+          arr[i * 3] += Math.sin(t + i) * 0.002 * sf;
+          if (arr[i * 3 + 1] < -1) arr[i * 3 + 1] = 9 + Math.random();
+        }
+        attr.needsUpdate = true;
+      }
     }
 
-    renderer.render(scene, camera);
+    renderFrame(t);
     if (running) raf = requestAnimationFrame(render);
   }
 
   function start() {
     if (running || reducedMotion) {
-      if (reducedMotion) renderer.render(scene, camera); // 静止1フレーム
+      if (reducedMotion) renderFrame(0); // 静止1フレーム
       return;
     }
     running = true;
@@ -595,6 +649,7 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
     window.removeEventListener("pointermove", onPointerMove);
     ro.disconnect();
     softTex.dispose();
+    post.dispose();
     scene.traverse((obj) => {
       // Sprite のジオメトリは three 内部で共有されているので触らない
       if ((obj as THREE.Sprite).isSprite) {
@@ -620,7 +675,7 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
       // 停止中でもスクロールに追従して1フレーム更新
       currentProgress = targetProgress;
       applyCamera(currentProgress);
-      renderer.render(scene, camera);
+      renderFrame(performance.now() / 1000);
     }
   }
 
@@ -635,7 +690,7 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
     }
     if (!running && !reducedMotion) {
       applyCamera(currentProgress);
-      renderer.render(scene, camera);
+      renderFrame(performance.now() / 1000);
     }
   }
 
