@@ -39,7 +39,7 @@ const roadmap = [
   <Hero3D />
 
   <!-- ============ 日程・会場 + カレンダー ============ -->
-  <section id="dates" class="section">
+  <section id="dates" class="section" data-beat="dates">
     <div class="wrap sheet reveal">
       <p class="eyebrow">日程と会場</p>
       <h2 class="section-title">
@@ -80,7 +80,7 @@ const roadmap = [
   </section>
 
   <!-- ============ アクセス・宿泊 ============ -->
-  <section id="access" class="section">
+  <section id="access" class="section" data-beat="access">
     <div class="wrap sheet reveal">
       <p class="eyebrow">行き方と、おやど</p>
       <h2 class="section-title jp" set:html={jp("富良野は、ちょっと遠い。") + "<br />" + jp("だから早めの計画を。")} />
@@ -116,7 +116,7 @@ const roadmap = [
   </section>
 
   <!-- ============ 富良野 観光・モデル旅程（別ページへ誘導） ============ -->
-  <section id="travel" class="section">
+  <section id="travel" class="section" data-beat="travel">
     <div class="wrap sheet reveal">
       <p class="eyebrow">来たついでに、</p>
       <h2 class="section-title jp" set:html={jp("富良野を、もう一日。")} />
@@ -131,7 +131,7 @@ const roadmap = [
   </section>
 
   <!-- ============ 公開ロードマップ ============ -->
-  <section id="roadmap" class="section">
+  <section id="roadmap" class="section" data-beat="roadmap">
     <div class="wrap sheet reveal">
       <p class="eyebrow">これから出ます</p>
       <h2 class="section-title">公開ロードマップ</h2>
@@ -155,7 +155,7 @@ const roadmap = [
   </section>
 
   <!-- ============ 過去回 ============ -->
-  <section class="section">
+  <section class="section" data-beat="past">
     <div class="wrap sheet reveal">
       <p class="eyebrow">これまでの</p>
       <h2 class="section-title jp" set:html={jp("過去の") + "TechRAMEN Conference"} />
