@@ -20,6 +20,8 @@ export interface VenueMapController {
   focus: (roomId: string | null) => void;
   /** 選択を解除し、カメラを最初の向きに戻す */
   reset: () => void;
+  /** 拡大・縮小（1 より小さいと寄る） */
+  zoomBy: (factor: number) => void;
   dispose: () => void;
 }
 
@@ -74,6 +76,12 @@ export function createVenueMap(
   labelLayer: HTMLElement,
   floors: Floor[],
   onSelect: (roomId: string | null) => void,
+  hooks: {
+    /** カメラの向き（ラジアン、北が 0）が変わったとき。方角の印を回すのに使う */
+    onAzimuth?: (rad: number) => void;
+    /** 1 本指で触った／ctrl なしでホイールを回したとき（操作方法の案内を出す） */
+    onHint?: (kind: "touch" | "wheel") => void;
+  } = {},
 ): VenueMapController {
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const isSmall = Math.min(innerWidth, innerHeight) < 640;
@@ -98,6 +106,38 @@ export function createVenueMap(
   controls.screenSpacePanning = true;
   controls.minDistance = 8;
   controls.maxDistance = 200;
+  // ページのスクロールを邪魔しない:
+  //  - タッチは 1 本指＝ページのスクロール、2 本指＝回転と拡大
+  //  - ホイールはページのスクロール。拡大は ctrl（⌘）＋ホイール（トラックパッドのピンチも同じ）とボタン
+  controls.enableZoom = false;
+  controls.touches = { ONE: null, TWO: THREE.TOUCH.DOLLY_ROTATE };
+  canvas.style.touchAction = "pan-y";
+  canvas.addEventListener(
+    "touchmove",
+    (e) => {
+      if (e.touches.length >= 2) e.preventDefault(); // 2 本指のときだけページを動かさない
+      else hooks.onHint?.("touch");
+    },
+    { passive: false },
+  );
+  canvas.addEventListener(
+    "wheel",
+    (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        zoomBy(Math.exp(e.deltaY * 0.0025));
+      } else hooks.onHint?.("wheel");
+    },
+    { passive: false },
+  );
+  const _off = new THREE.Vector3();
+  function zoomBy(factor: number) {
+    _off.copy(camera.position).sub(controls.target);
+    const d = THREE.MathUtils.clamp(_off.length() * factor, controls.minDistance, controls.maxDistance);
+    camera.position.copy(controls.target).add(_off.setLength(d));
+    camGoal.active = false;
+    kick();
+  }
 
   const coreMat = paperMaterial(PAPER_CORE, { kind: "cardboard", thick: WALL_H });
   const wallMat = paperMaterial(0xfbf6ea, { kind: "stock", seed: 4 });
@@ -260,11 +300,15 @@ export function createVenueMap(
   }
   function aimAll(f: BuiltFloor) {
     // 縦長は斜め視点で横幅が広がって見えるので少し引く
-    const r = fitDistance(f.radius) * (camera.aspect < 1 ? 0.76 : 0.55);
+    const r = fitDistance(f.radius) * (camera.aspect < 1 ? 0.84 : 0.47);
     camGoal.target.copy(f.center);
     // 真上: 少しだけ南に寄せて、北（図面の上）が画面の上に来る向きに固定する
     if (view === "top") camGoal.pos.set(f.center.x, r * 1.6, f.center.z + r * 0.03);
-    else camGoal.pos.set(f.center.x - r * 0.35, r * 0.95, f.center.z + r * 0.95);
+    else {
+      // 斜めから見ると手前が大きく見えて模型が下に寄るので、注視点を少し手前（南）にずらして中央に
+      camGoal.target.z += f.radius * (camera.aspect < 1 ? 0.28 : 0.12);
+      camGoal.pos.set(camGoal.target.x - r * 0.35, r * 0.95, camGoal.target.z + r * 0.95);
+    }
   }
   function aimRoom(br: BuiltRoom) {
     const r = Math.max(6, fitDistance(br.size * 0.75) * 0.62);
@@ -489,6 +533,7 @@ export function createVenueMap(
 
   let raf = 0;
   let idleFrames = 0;
+  let lastAz = NaN;
   let inLoop = false;
   // ループは常に 1 本だけ。描画中にカメラの change 等から kick されても、二重に予約しない
   // （以前は 1 フレームに何本もループが走り、ドラッグ中に同じ絵を何度も描いていた）
@@ -519,6 +564,11 @@ export function createVenueMap(
       moving = true;
     }
     if (controls.update()) moving = true;
+    const az = controls.getAzimuthalAngle();
+    if (!(Math.abs(az - lastAz) <= 1e-4)) {
+      lastAz = az;
+      hooks.onAzimuth?.(az);
+    }
     post.render(renderer, scene, camera, t);
     placeLabels(w, h);
     // 線のふるえ（8fps）があるので、止まっても少しの間は描き続けてから休む
@@ -563,5 +613,5 @@ export function createVenueMap(
     retarget();
   }
 
-  return { setFloor, setView, focus, reset, dispose };
+  return { setFloor, setView, focus, reset, zoomBy, dispose };
 }

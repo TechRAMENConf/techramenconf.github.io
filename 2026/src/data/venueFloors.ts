@@ -24,6 +24,8 @@ export interface Room {
 export interface Floor {
   id: string;
   label: string;
+  /** フロアのボタンに添える中身の説明 */
+  sub: string;
   note?: string;
   rooms: Room[];
   /** 柱（中心） */
@@ -47,6 +49,7 @@ export const FLOORS: Floor[] = [
   {
     id: "1F",
     label: "1F",
+    sub: "入口・ラウンジ",
     note: "駅側の出入口から。上の階へは EV・階段で",
     rooms: [
       { id: "restaurant", name: "レストラン", use: null, kind: "room", poly: rect(0, 11.2, 11.7, Y4) },
@@ -98,6 +101,7 @@ export const FLOORS: Floor[] = [
   {
     id: "4F",
     label: "4F",
+    sub: "セミナールーム",
     note: "フラノデザインのフロア",
     rooms: [
       { id: "seminar", name: "セミナールーム", use: null, kind: "room", poly: rect(0, 2.2, 11.8, 9.2) },
