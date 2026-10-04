@@ -8,6 +8,7 @@
  */
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { paperMaterial, PaperPost, PAPER_CORE, setPaperLite, type PaperKind } from "./paper";
 import type { Floor, Room, RoomKind } from "../data/venueFloors";
 
@@ -49,6 +50,8 @@ interface BuiltFloor {
   floor: Floor;
   group: THREE.Group;
   walls: THREE.Object3D[];
+  /** 起き上がり終わった壁・柱・段・台紙を材質ごとに結合したもの（描画回数を減らす） */
+  baked: THREE.Group | null;
   rooms: BuiltRoom[];
   center: THREE.Vector3;
   radius: number;
@@ -230,7 +233,15 @@ export function createVenueMap(
 
     const center = new THREE.Vector3((minX + maxX) / 2, 0, -(minY + maxY) / 2);
     walls.sort((a, b) => (a.userData.order ?? 0) - (b.userData.order ?? 0));
-    return { floor, group, walls, rooms, center, radius: Math.hypot(maxX - minX, maxY - minY) / 2 };
+    return {
+      floor,
+      group,
+      walls,
+      rooms,
+      center,
+      radius: Math.hypot(maxX - minX, maxY - minY) / 2,
+      baked: null,
+    };
   });
 
   // --- カメラの行き先（滑らかに移る） ---
@@ -288,6 +299,77 @@ export function createVenueMap(
     });
   }
 
+  /**
+   * 静的な部品（壁・柱・階段・台紙）を、今の姿勢のまま材質ごとに 1 つのメッシュへ結合する。
+   * 壁は 1 枚ごとに 6 面×別材質のため、そのままだとフロアあたり数百回の描画になり、
+   * ドラッグで回すと遅い端末では 10fps 程度まで落ちていた
+   */
+  function bake(f: BuiltFloor) {
+    if (f.baked) return;
+    f.group.updateMatrixWorld(true);
+    const inv = new THREE.Matrix4().copy(f.group.matrixWorld).invert();
+    const byMat = new Map<THREE.Material, THREE.BufferGeometry[]>();
+    const sources: THREE.Mesh[] = [];
+    const roomFloors = new Set(f.rooms.map((r) => r.floorMesh));
+    f.group.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh || (m as THREE.InstancedMesh).isInstancedMesh || roomFloors.has(m)) return;
+      sources.push(m);
+    });
+    const local = new THREE.Matrix4();
+    for (const m of sources) {
+      local.multiplyMatrices(inv, m.matrixWorld);
+      const src = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone();
+      const keep = ["position", "normal", "uv"];
+      for (const name of Object.keys(src.attributes)) if (!keep.includes(name)) src.deleteAttribute(name);
+      src.applyMatrix4(local);
+      const mats = Array.isArray(m.material) ? m.material : [m.material];
+      const groups = m.geometry.groups.length ? m.geometry.groups : [{ start: 0, count: Infinity, materialIndex: 0 }];
+      // toNonIndexed 後は index の範囲がそのまま頂点の範囲になる
+      for (const g of groups) {
+        // 材質が 1 つのメッシュでも BoxGeometry は 6 面のグループを持つので、配列でなければ常にその材質
+        const mat = Array.isArray(m.material) ? mats[g.materialIndex ?? 0] : m.material;
+        if (!mat) continue;
+        const start = g.start;
+        const count = Math.min(g.count, src.attributes.position.count - start);
+        const part = new THREE.BufferGeometry();
+        for (const name of keep) {
+          const a = src.getAttribute(name) as THREE.BufferAttribute | undefined;
+          if (!a) continue;
+          part.setAttribute(
+            name,
+            new THREE.BufferAttribute(
+              (a.array as Float32Array).slice(start * a.itemSize, (start + count) * a.itemSize),
+              a.itemSize,
+            ),
+          );
+        }
+        if (!part.getAttribute("uv") || !part.getAttribute("normal")) continue;
+        (byMat.get(mat) ?? byMat.set(mat, []).get(mat)!).push(part);
+      }
+      src.dispose();
+    }
+    const baked = new THREE.Group();
+    for (const [mat, geos] of byMat) {
+      const merged = mergeGeometries(geos);
+      geos.forEach((g) => g.dispose());
+      if (merged) baked.add(new THREE.Mesh(merged, mat));
+    }
+    for (const m of sources) m.visible = false;
+    f.group.add(baked);
+    f.baked = baked;
+  }
+  /** 導入をやり直すときは、結合版を外して元の部品に戻す */
+  function unbake(f: BuiltFloor) {
+    if (!f.baked) return;
+    f.group.remove(f.baked);
+    f.baked.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+    f.baked = null;
+    f.group.traverse((o) => {
+      if ((o as THREE.Mesh).isMesh) o.visible = true;
+    });
+  }
+
   function setFloor(id: string) {
     const next = built.find((b) => b.floor.id === id) ?? built[0];
     for (const b of built) {
@@ -297,8 +379,11 @@ export function createVenueMap(
     current = next;
     focused = null;
     paintFocus();
-    if (reduced) applyIntro(next, 99);
-    else {
+    if (reduced) {
+      applyIntro(next, 99);
+      bake(next);
+    } else {
+      unbake(next);
       applyIntro(next, 0);
       introT0 = performance.now() / 1000;
     }
@@ -364,7 +449,8 @@ export function createVenueMap(
   function resize() {
     w = canvas.clientWidth || 1;
     h = canvas.clientHeight || 1;
-    const dpr = Math.min(devicePixelRatio || 1, 2);
+    // 後処理は全画面 2 パスなので、画素密度は 1.5 倍までにする（見た目の差は小さい）
+    const dpr = Math.min(devicePixelRatio || 1, 1.5);
     renderer.setPixelRatio(dpr);
     renderer.setSize(w, h, false);
     post.setSize(w, h, dpr);
@@ -377,19 +463,27 @@ export function createVenueMap(
 
   let raf = 0;
   let idleFrames = 0;
+  let inLoop = false;
+  // ループは常に 1 本だけ。描画中にカメラの change 等から kick されても、二重に予約しない
+  // （以前は 1 フレームに何本もループが走り、ドラッグ中に同じ絵を何度も描いていた）
   function kick() {
     idleFrames = 0;
-    if (!raf) raf = requestAnimationFrame(loop);
+    if (!raf && !inLoop) raf = requestAnimationFrame(loop);
   }
   function loop(now: number) {
     raf = 0;
+    inLoop = true;
     const t = now / 1000;
     let moving = false;
     if (current && introT0 >= 0) {
       // 24fps のコマ送りで起き上がる
       const sec = Math.floor((t - introT0) * 24) / 24;
       applyIntro(current, sec);
-      if (sec > 1.6) introT0 = -1;
+      if (sec > 1.6) {
+        introT0 = -1;
+        applyIntro(current, 99);
+        bake(current);
+      }
       moving = true;
     }
     if (camGoal.active) {
@@ -404,7 +498,8 @@ export function createVenueMap(
     // 線のふるえ（8fps）があるので、止まっても少しの間は描き続けてから休む
     if (moving) idleFrames = 0;
     else idleFrames++;
-    if (idleFrames < 90) raf = requestAnimationFrame(loop);
+    inLoop = false;
+    if (idleFrames < 90 && !raf) raf = requestAnimationFrame(loop);
   }
 
   resize();
