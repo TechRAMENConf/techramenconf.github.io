@@ -96,9 +96,12 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
         <p class="venue__addr">
           〒{venue.postal}<br /><span class="nowrap">{venue.address}</span><br />{venue.walk}
         </p>
-        <a class="btn btn--ghost venue__map" href={venueMap} target="_blank" rel="noopener">
-          地図アプリで開く
-        </a>
+        <div class="venue__btns">
+          <a class="btn venue__map" href={`${BASE}venue/`}>会場マップをみる</a>
+          <a class="btn btn--ghost venue__map" href={venueMap} target="_blank" rel="noopener">
+            地図アプリで開く
+          </a>
+        </div>
       </div>
     </div>
   </section>
@@ -253,7 +256,10 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
   .nowrap {
     white-space: nowrap;
   }
-  .venue__map {
+  .venue__btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
     justify-self: start;
     margin-top: 0.8rem;
   }
@@ -267,9 +273,10 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
     .venue__addr {
       grid-column: 1;
     }
-    .venue__map {
+    .venue__btns {
       grid-column: 2;
       grid-row: 1 / 4;
+      flex-direction: column;
       align-self: center;
       margin-top: 0;
     }

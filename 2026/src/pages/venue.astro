@@ -1,0 +1,365 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import venue from "../data/venue.json";
+import { FLOORS } from "../data/venueFloors";
+import { jp } from "../lib/jp";
+
+const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+// 一覧に出す部屋（関係者のみ・廊下は除く）
+const listed = (f: (typeof FLOORS)[number]) =>
+  f.rooms.filter((r) => r.kind !== "staff" && r.id !== "corridor");
+---
+
+<BaseLayout
+  title="会場マップ — TechRAMEN 2026 Conference"
+  description={`${venue.name}（${venue.address}）の会場マップ。`}
+>
+  <main class="vp">
+    <div class="wrap">
+      <a class="back hand" href={`${BASE}#access`}>← TechRAMEN 2026 へ戻る</a>
+      <p class="eyebrow">ここで会いましょう</p>
+      <h1 class="section-title">会場マップ</h1>
+      <p class="lead jp">
+        <b>{venue.name}</b>（{venue.address}・{venue.walk}）
+      </p>
+      <p
+        class="note jp"
+        set:html={jp(
+          "※ 図面をもとにした模式図です。どの部屋で何をするかは、決まり次第ここに載せます。",
+        )}
+      />
+    </div>
+
+    <div class="wrap vm-ui">
+      <div class="vm-floors" role="tablist" aria-label="フロア">
+        {
+          FLOORS.map((f, i) => (
+            <button
+              type="button"
+              class="vm-floor torn"
+              role="tab"
+              aria-selected={i === 0 ? "true" : "false"}
+              data-floor={f.id}
+            >
+              {f.label}
+            </button>
+          ))
+        }
+      </div>
+      <div class="vm-views">
+        <button type="button" class="btn btn--ghost vm-view" data-view="all" aria-pressed="true">全体</button>
+        <button type="button" class="btn btn--ghost vm-view" data-view="top" aria-pressed="false">真上から</button>
+      </div>
+    </div>
+
+    <div class="vm" aria-label="会場の 3D マップ（ドラッグで回転、ピンチ・ホイールで拡大）">
+      <canvas class="vm__canvas"></canvas>
+      <div class="vm__labels"></div>
+      <p class="vm__floor-note hand" data-floor-note></p>
+    </div>
+
+    <!-- 部屋の一覧（3D が使えないときも、これで内容が分かる） -->
+    <div class="wrap">
+      {
+        FLOORS.map((f, i) => (
+          <div class="vm-rooms" data-rooms={f.id} hidden={i !== 0}>
+            <h2 class="vm-rooms__h hand">{f.label} の部屋</h2>
+            {f.note && <p class="vm-rooms__note">{f.note}</p>}
+            <ul>
+              {listed(f).map((r) => (
+                <li>
+                  <button type="button" class="vm-room" data-room={r.id}>
+                    {r.use ? (
+                      <>
+                        <b>{r.use}</b>
+                        <small>{r.name}</small>
+                      </>
+                    ) : (
+                      r.name
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+      <a class="back hand back--bottom" href={`${BASE}#access`}>← TechRAMEN 2026 へ戻る</a>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .vp {
+    padding-block: clamp(2rem, 6vw, 4rem) 4rem;
+  }
+  .back {
+    display: block;
+    width: fit-content;
+    font-size: 1.2rem;
+    color: var(--wine);
+    text-decoration: none;
+    margin-bottom: 1.2rem;
+  }
+  .back--bottom {
+    margin-top: 2.5rem;
+  }
+  .lead,
+  .note {
+    max-width: 42rem;
+  }
+  .note {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+
+  .vm-ui {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: end;
+    gap: 1rem;
+    margin-top: 1.6rem;
+  }
+  .vm-floors {
+    display: flex;
+    gap: 0.6rem;
+  }
+  .vm-floor {
+    padding: 0.4rem 1.2rem;
+    border: 0;
+    background: none;
+    font-family: var(--font-hand);
+    font-weight: 700;
+    font-size: 1.6rem;
+    color: var(--ink-soft);
+    cursor: pointer;
+    --torn-bg: var(--paper-card);
+    transition: translate 0.15s ease;
+  }
+  .vm-floor[aria-selected="true"] {
+    --torn-bg: var(--gold);
+    color: var(--ink);
+    translate: 0 -4px;
+  }
+  .vm-views {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .vm-view[aria-pressed="true"] {
+    --torn-bg: var(--grape);
+    color: var(--snow);
+  }
+
+  /* 3D の舞台: 方眼の入った机の上に模型を置いた感じ */
+  .vm {
+    position: relative;
+    height: clamp(380px, 68vh, 680px);
+    margin-top: 1rem;
+    overflow: hidden;
+    background-color: #e6dcc6;
+    background-image:
+      linear-gradient(rgba(110, 139, 61, 0.12) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(110, 139, 61, 0.12) 1px, transparent 1px);
+    background-size: 28px 28px;
+    border-block: 3px solid var(--ink);
+    touch-action: none;
+  }
+  .vm__canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+  }
+  .vm__canvas:active {
+    cursor: grabbing;
+  }
+  .vm__labels {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .vm__floor-note {
+    position: absolute;
+    left: 1rem;
+    bottom: 0.6rem;
+    margin: 0;
+    font-size: 1.15rem;
+    color: var(--ink-soft);
+  }
+  /* 3D が使えない環境では舞台ごと隠し、下の部屋の一覧で伝える */
+  .vm--fallback {
+    display: none;
+  }
+
+  /* 荷札のラベル（JS で生成するので :global） */
+  :global(.vm-tag) {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: grid;
+    gap: 0.05rem;
+    padding: 0.25rem 0.7rem 0.3rem 1.3rem;
+    border: 0;
+    border-radius: 10px 4px 4px 10px / 50% 4px 4px 50%;
+    background: var(--paper-card);
+    box-shadow: 0 4px 6px -3px rgba(46, 40, 38, 0.45);
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.8rem;
+    line-height: 1.25;
+    color: var(--grape);
+    white-space: nowrap;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: opacity 0.2s ease;
+  }
+  :global(.vm-tag[hidden]) {
+    display: none;
+  }
+  :global(.vm-tag)::before {
+    content: "";
+    position: absolute;
+    left: 0.45rem;
+    top: 50%;
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--gold);
+    transform: translateY(-50%);
+  }
+  :global(.vm-tag small) {
+    font-weight: 400;
+    font-size: 0.7rem;
+    color: var(--ink-soft);
+  }
+  :global(.vm-tag--stairs),
+  :global(.vm-tag--wc),
+  :global(.vm-tag--entrance) {
+    font-size: 0.7rem;
+    color: var(--ink-soft);
+  }
+  :global(.vm-tag.is-active) {
+    background: var(--gold);
+    color: var(--ink);
+    z-index: 1;
+  }
+  :global(.vm-tag.is-dim) {
+    opacity: 0.45;
+  }
+
+  .vm-rooms__h {
+    margin: 2rem 0 0.4rem;
+    font-size: 1.6rem;
+    color: var(--wine);
+  }
+  .vm-rooms__note {
+    margin: 0 0 0.8rem;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+  .vm-rooms ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .vm-room {
+    display: grid;
+    padding: 0.45rem 0.9rem;
+    border: 1.5px solid rgba(46, 40, 38, 0.35);
+    border-radius: 8px;
+    background: var(--paper-card);
+    font: inherit;
+    font-size: 0.95rem;
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+  }
+  .vm-room small {
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+  }
+  .vm-room[aria-pressed="true"] {
+    background: var(--gold);
+    border-color: var(--ink);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .vm-floor,
+    :global(.vm-tag) {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import { FLOORS } from "../data/venueFloors";
+  import type { VenueMapController, ViewMode } from "../scenes/venueMap";
+
+  const root = document.querySelector<HTMLElement>(".vm")!;
+  const canvas = root.querySelector<HTMLCanvasElement>(".vm__canvas")!;
+  const labels = root.querySelector<HTMLElement>(".vm__labels")!;
+  const floorNote = root.querySelector<HTMLElement>("[data-floor-note]")!;
+  const floorBtns = [...document.querySelectorAll<HTMLButtonElement>("[data-floor]")];
+  const viewBtns = [...document.querySelectorAll<HTMLButtonElement>("[data-view]")];
+  const roomBtns = [...document.querySelectorAll<HTMLButtonElement>(".vm-room")];
+  let map: VenueMapController | null = null;
+  let selected: string | null = null;
+
+  const select = (id: string | null) => {
+    selected = selected === id ? null : id; // 同じ部屋をもう一度押すと解除
+    roomBtns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.room === selected)));
+    map?.focus(selected);
+  };
+  const showFloor = (id: string) => {
+    floorBtns.forEach((b) => b.setAttribute("aria-selected", String(b.dataset.floor === id)));
+    document.querySelectorAll<HTMLElement>("[data-rooms]").forEach((el) => {
+      el.hidden = el.dataset.rooms !== id;
+    });
+    floorNote.textContent = FLOORS.find((f) => f.id === id)?.note ?? "";
+    selected = null;
+    roomBtns.forEach((b) => b.setAttribute("aria-pressed", "false"));
+    map?.setFloor(id);
+  };
+
+  floorBtns.forEach((b) => b.addEventListener("click", () => showFloor(b.dataset.floor!)));
+  viewBtns.forEach((b) =>
+    b.addEventListener("click", () => {
+      viewBtns.forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      map?.setView(b.dataset.view as ViewMode);
+    }),
+  );
+  roomBtns.forEach((b) => b.addEventListener("click", () => select(b.dataset.room!)));
+
+  const hasWebGL = (() => {
+    try {
+      const gl = document.createElement("canvas").getContext("webgl");
+      gl?.getExtension("WEBGL_lose_context")?.loseContext();
+      return !!gl;
+    } catch {
+      return false;
+    }
+  })();
+
+  floorNote.textContent = FLOORS[0].note ?? "";
+  if (hasWebGL) {
+    import("../scenes/venueMap")
+      .then(({ createVenueMap }) => {
+        map = createVenueMap(canvas, labels, FLOORS, (id) => {
+          if (id === null) {
+            selected = null;
+            roomBtns.forEach((b) => b.setAttribute("aria-pressed", "false"));
+            map?.focus(null);
+          } else select(id);
+        });
+      })
+      .catch((err) => {
+        console.warn("[venue] 3D を表示できませんでした", err);
+        root.classList.add("vm--fallback");
+      });
+  } else {
+    root.classList.add("vm--fallback");
+  }
+</script>
