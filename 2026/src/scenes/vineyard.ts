@@ -26,6 +26,8 @@ export interface VineyardController {
   start: () => void;
   stop: () => void;
   dispose: () => void;
+  /** シェーダのコンパイルが終わると解決する（KHR_parallel_shader_compile があれば裏で並列に） */
+  ready: Promise<void>;
   /** スクロール進捗 0..1 を渡すとカメラが富良野を巡る */
   setProgress: (p: number) => void;
   /** 各ビート（セクション）がスクロール進捗のどこにあるか（0..1）を渡す */
@@ -379,6 +381,8 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
   let lastTime = 0;
   const STEP = 1 / 12; // コマ撮りの間隔
   let stepAcc = STEP;
+  let lastWobble = -1;
+  let forceRender = true; // サイズ変更・開始直後などは必ず 1 回描く
   // 60fps 時の「毎フレーム係数」と同じ見た目になる指数追従の速さ
   const FOLLOW_PROGRESS = -Math.log(1 - 0.07) * 60;
   const FOLLOW_POINTER = -Math.log(1 - 0.04) * 60;
@@ -419,10 +423,12 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
   function resize() {
     const w = canvas.clientWidth || 1;
     const h = canvas.clientHeight || 1;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // スマホは後処理（全画面 2 パス）の画素数を抑える
+    const dpr = Math.min(window.devicePixelRatio || 1, isSmall ? 1.5 : 2);
     renderer.setPixelRatio(dpr);
     renderer.setSize(w, h, false);
     post.setSize(w, h, dpr);
+    forceRender = true; // setSize でキャンバスが消えるので次のフレームで必ず描く
     aspect = w / h;
     portrait = aspect < 1 ? Math.min(1, (1 - aspect) * 1.6) : 0;
     camera.aspect = aspect;
@@ -447,16 +453,28 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
     const dt = Math.min(0.05, Math.max(0, (now - lastTime) / 1000));
     lastTime = now;
 
+    // 描き直しが要るか（カメラ・視差・コマ撮り・線のふるえ・導入のどれかが変わったときだけ描く）
+    let dirty = false;
+
     // スクロール進捗を滑らかに追従してカメラを移動
-    currentProgress += (targetProgress - currentProgress) * (1 - Math.exp(-FOLLOW_PROGRESS * dt));
-    applyCamera(currentProgress);
+    const dp = (targetProgress - currentProgress) * (1 - Math.exp(-FOLLOW_PROGRESS * dt));
+    if (Math.abs(targetProgress - currentProgress) > 1e-5) {
+      currentProgress += dp;
+      applyCamera(currentProgress);
+      dirty = true;
+    }
 
     // ごく軽いポインタ視差（旅の邪魔をしない程度）
     const kp = 1 - Math.exp(-FOLLOW_POINTER * dt);
-    target.x += (pointer.x * 0.2 - target.x) * kp;
-    target.y += (pointer.y * 0.12 - target.y) * kp;
-    world.rotation.y = target.x * 0.1;
-    world.rotation.x = target.y * 0.05;
+    const ddx = (pointer.x * 0.2 - target.x) * kp;
+    const ddy = (pointer.y * 0.12 - target.y) * kp;
+    if (Math.abs(ddx) + Math.abs(ddy) > 1e-6) {
+      target.x += ddx;
+      target.y += ddy;
+      world.rotation.y = target.x * 0.1;
+      world.rotation.x = target.y * 0.05;
+      dirty = true;
+    }
 
     // 導入（24fps のコマ送り）
     if (!introDone) {
@@ -464,6 +482,7 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
       const sec = Math.max(0, Math.floor((t - introStart) * 24) / 24);
       applyIntro(sec);
       if (sec >= INTRO_SEC) introDone = true;
+      dirty = true;
     }
 
     // 突かれた反応の減衰（湯気は指数減衰、気球は減衰ばね）
@@ -478,6 +497,7 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
     if (stepAcc >= STEP) {
       const sf = stepAcc * 60; // このコマまでに経過した 60fps 換算のフレーム数
       stepAcc = 0;
+      dirty = true;
       for (const puff of steamPuffs) {
         let ph = (puff.userData.phase as number) + 0.0035 * sf * (1 + steamBurst * 2.5);
         if (ph > 1) ph -= 1;
@@ -504,7 +524,16 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
       }
     }
 
-    renderFrame(t);
+    // 線のふるえは 8fps で変わる
+    const wobble = Math.floor(t * 8);
+    if (wobble !== lastWobble) {
+      lastWobble = wobble;
+      dirty = true;
+    }
+    if (dirty || forceRender) {
+      forceRender = false;
+      renderFrame(t);
+    }
     if (running) raf = requestAnimationFrame(render);
   }
 
@@ -515,6 +544,7 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
     }
     running = true;
     lastTime = performance.now();
+    forceRender = true;
     raf = requestAnimationFrame(render);
   }
 
@@ -605,5 +635,10 @@ export function createVineyard(canvas: HTMLCanvasElement): VineyardController {
     return !reducedMotion && hitAt(clientX, clientY) !== null;
   }
 
-  return { start, stop, dispose, setProgress, setBeats, poke, canPoke };
+  const ready = renderer
+    .compileAsync(scene, camera)
+    .then(() => undefined)
+    .catch(() => undefined);
+
+  return { ready, start, stop, dispose, setProgress, setBeats, poke, canPoke };
 }

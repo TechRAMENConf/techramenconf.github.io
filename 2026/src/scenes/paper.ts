@@ -23,23 +23,31 @@ function toonRamp(): THREE.DataTexture {
 }
 
 /**
- * 紙の繊維の模様（起動時に 1 回だけ Canvas で描く、繰り返し可能な 1024px のタイル）
+ * 紙の繊維の模様（起動時に 1 回だけ Canvas で描く、繰り返し可能な 512px のタイル）
  *  R: 和紙の細い繊維  G: 雲竜紙の太く長い繊維  B: クラフト紙の斑点と短い繊維
  * シェーダは毎フレーム繊維を計算せず、このタイルを読むだけ（軽く、遠景でもちらつかない）。
  */
 let paperTex: THREE.Texture | null = null;
 function paperDetailTexture(): THREE.Texture {
   if (paperTex) return paperTex;
-  const S = 1024;
+  const S = 512;
   let seed = 7;
   const rnd = () => {
     seed = (seed * 16807) % 2147483647;
     return seed / 2147483647;
   };
-  // タイルの継ぎ目で途切れないよう、端にかかる線は上下左右にずらして 9 回描く
-  const strokeWrapped = (g: CanvasRenderingContext2D, draw: () => void) => {
-    for (const dx of [-S, 0, S]) {
-      for (const dy of [-S, 0, S]) {
+  // タイルの継ぎ目で途切れないよう、端にかかる線だけ上下左右にずらして描き足す
+  const strokeWrapped = (
+    g: CanvasRenderingContext2D,
+    draw: () => void,
+    x0 = 0,
+    y0 = 0,
+    reach = S,
+  ) => {
+    const xs = [0, ...(x0 - reach < 0 ? [S] : []), ...(x0 + reach > S ? [-S] : [])];
+    const ys = [0, ...(y0 - reach < 0 ? [S] : []), ...(y0 + reach > S ? [-S] : [])];
+    for (const dx of xs) {
+      for (const dy of ys) {
         g.save();
         g.translate(dx, dy);
         draw();
@@ -71,32 +79,44 @@ function paperDetailTexture(): THREE.Texture {
     const my = (y + ey) / 2 + Math.cos(a) * bend;
     g.globalAlpha = alpha * (0.4 + rnd() * 0.6);
     g.lineWidth = width * (0.6 + rnd() * 0.8);
-    strokeWrapped(g, () => {
-      g.beginPath();
-      g.moveTo(x, y);
-      g.quadraticCurveTo(mx, my, ex, ey);
-      g.stroke();
-    });
+    strokeWrapped(
+      g,
+      () => {
+        g.beginPath();
+        g.moveTo(x, y);
+        g.quadraticCurveTo(mx, my, ex, ey);
+        g.stroke();
+      },
+      x,
+      y,
+      L + Math.abs(bend) + 4,
+    );
   };
   const r = layer((g) => {
-    for (let i = 0; i < 1400; i++) fiber(g, 60, 1.1, 0.7);
+    for (let i = 0; i < 350; i++) fiber(g, 30, 0.8, 0.7);
   });
   const gch = layer((g) => {
-    for (let i = 0; i < 70; i++) fiber(g, 260, 3.2, 0.9);
+    for (let i = 0; i < 18; i++) fiber(g, 130, 1.8, 0.9);
   });
   const b = layer((g) => {
-    for (let i = 0; i < 900; i++) {
+    for (let i = 0; i < 225; i++) {
       const x = rnd() * S;
       const y = rnd() * S;
-      const rad = 0.6 + Math.pow(rnd(), 3) * 3;
+      const rad = 0.4 + Math.pow(rnd(), 3) * 1.6;
       g.globalAlpha = 0.5 + rnd() * 0.5;
-      strokeWrapped(g, () => {
-        g.beginPath();
-        g.arc(x, y, rad, 0, 7);
-        g.fill();
-      });
+      strokeWrapped(
+        g,
+        () => {
+          g.beginPath();
+          g.arc(x, y, rad, 0, 7);
+          g.fill();
+        },
+        x,
+        y,
+        rad + 1,
+      );
     }
-    for (let i = 0; i < 500; i++) fiber(g, 22, 1.2, 0.6);
+    for (let i = 0; i < 125; i++) fiber(g, 11, 0.8, 0.6);
   });
   const out = new Uint8Array(S * S * 4);
   for (let i = 0; i < S * S; i++) {
@@ -153,7 +173,7 @@ const PAPER_APPLY = /* glsl */ `
   float mottle = paperNoise(pp * 2.6 + uSeed) * 0.6 + paperNoise(pp * 7.0 + uSeed) * 0.4; // 厚い所・薄い所
   vec3 col = diffuseColor.rgb;
 #if defined(PAPER_WASHI) || defined(PAPER_UNRYU)
-  vec4 t = paperTile(pp * 0.33 * uGrain);
+  vec4 t = paperTile(pp * 0.66 * uGrain);
   // 和紙: 明暗のムラが強く、細い繊維がわずかに明るく浮く
   col *= 0.88 + 0.16 * mottle + 0.04 * grain;
   col = mix(col, col * 1.06 + 0.012, t.r * 0.55);
@@ -162,7 +182,7 @@ const PAPER_APPLY = /* glsl */ `
   col = mix(col, mix(col, vec3(0.96, 0.94, 0.86), 0.45), t.g * 0.8);
   #endif
 #elif defined(PAPER_KRAFT)
-  vec4 t = paperTile(pp * 0.33 * uGrain);
+  vec4 t = paperTile(pp * 0.66 * uGrain);
   // クラフト紙: 粗い粒、濃い斑点（再生紙の混ざりもの）、短く濃い繊維
   col *= 0.88 + 0.1 * mottle + 0.1 * paperNoise(pp * 160.0 * uGrain + uSeed);
   col *= 1.0 - t.b * 0.32;

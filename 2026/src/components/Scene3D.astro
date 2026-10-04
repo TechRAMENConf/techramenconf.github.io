@@ -155,7 +155,14 @@
     (async () => {
       try {
         const { createVineyard } = await import("../scenes/vineyard");
+        // 組み立て（テクスチャ生成など）は、ブラウザが空いているときに回す
+        await new Promise<void>((r) =>
+          "requestIdleCallback" in window
+            ? requestIdleCallback(() => r(), { timeout: 1500 })
+            : setTimeout(r, 200),
+        );
         controller = createVineyard(canvas);
+        await controller.ready; // シェーダの準備ができてから表示（初回描画でのカクつきを避ける）
         if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
           root?.classList.add("has-intro");
         }

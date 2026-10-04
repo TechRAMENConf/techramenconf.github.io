@@ -1,7 +1,7 @@
 // DOM の紙を不揃いにする（3D の paper.ts と同じ考え方）。
 // - ちぎれ: 種と細かさの違う SVG フィルタを複数作り、要素ごとに別のものを割り当てる
 //   （今までは 2 種類の使い回しで、破れ方が均一だった）
-// - 地紙: 和紙の繊維を Canvas で一度だけ描き、CSS 変数 --paper-grain に入れる
+// - 地紙: 和紙の繊維を Canvas で一度だけ描き、Blob URL にして CSS 変数 --paper-grain に入れる
 // 失敗しても CSS 側の既定（従来のフィルタと地模様）のまま表示される。
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -94,7 +94,16 @@ function grain() {
       }
     }
   }
-  document.documentElement.style.setProperty("--paper-grain", `url(${c.toDataURL("image/png")})`);
+  // data URL（約 15 万文字）を CSS 変数に入れると、その変数を使う要素のスタイルを計算し直すたびに
+  // 巨大な文字列を解析し直すことになり、スクロールやアニメーション中に重くなる。
+  // Blob URL（短い "blob:…" の文字列）にして渡す
+  c.toBlob((blob) => {
+    if (!blob) return;
+    document.documentElement.style.setProperty(
+      "--paper-grain",
+      `url("${URL.createObjectURL(blob)}")`,
+    );
+  }, "image/png");
 }
 
 try {

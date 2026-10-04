@@ -409,6 +409,16 @@ export function createVenueMap(
 
   resize();
   setFloor(floors[0].id);
+  // シェーダを裏で並列にコンパイルしておく（全フロアの材質を含む）
+  for (const b of built) b.group.visible = true;
+  renderer
+    .compileAsync(scene, camera)
+    .catch(() => undefined)
+    .finally(() => {
+      for (const b of built) b.group.visible = b === current;
+      kick();
+    });
+  for (const b of built) b.group.visible = b === current;
 
   function dispose() {
     cancelAnimationFrame(raf);

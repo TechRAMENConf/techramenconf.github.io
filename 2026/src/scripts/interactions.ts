@@ -25,6 +25,14 @@ if (reduced || !("IntersectionObserver" in window)) {
   stamps.forEach((el) => io.observe(el));
 }
 
+// ---------- 終わった一度きりのアニメーションを外す ----------
+// fill: both のまま残ったアニメーションは、スクロール中も毎フレームのスタイル再計算を招くので、
+// 終わったら静的な最終状態（CSS の .is-done）に置き換える
+const ONE_SHOT = new Set(["write-in", "stamp-in"]);
+document.addEventListener("animationend", (e) => {
+  if (ONE_SHOT.has(e.animationName)) (e.target as HTMLElement).classList.add("is-done");
+});
+
 // ---------- 荷札: 触れると揺れる ----------
 for (const tag of document.querySelectorAll<HTMLElement>(".swing")) {
   const swing = () => {

@@ -84,20 +84,9 @@
   }
 
   /* ---------- 荷札: 紐を支点に揺れる ----------
-     普段はごくわずかに風で揺れ、触れると大きく揺れて減衰して止まる */
-  .swing {
-    animation: sway 5.5s ease-in-out infinite alternate;
-  }
+     触れると大きく揺れて減衰して止まる（常時の揺れは、毎フレームのスタイル再計算になるのでやめた） */
   .swing.is-swinging {
     animation: swing 1.3s ease-out;
-  }
-  @keyframes sway {
-    from {
-      rotate: -0.8deg;
-    }
-    to {
-      rotate: 0.8deg;
-    }
   }
   @keyframes swing {
     0% {
@@ -163,6 +152,16 @@
   }
   .js .reveal.is-in .concept__ln:nth-child(3) {
     animation-delay: 1.8s;
+  }
+  /* 書き終わったら（JS が .is-done を付ける）アニメーションを外し、最終状態の静的なスタイルにする。
+     fill: both のまま残すと、スクロール中も毎フレームのスタイル再計算の対象になる */
+  .js .concept__ln.is-done {
+    animation: none !important;
+    clip-path: none;
+  }
+  .js [data-stamp].is-done {
+    animation: none !important;
+    opacity: 1;
   }
   @keyframes write-in {
     to {
