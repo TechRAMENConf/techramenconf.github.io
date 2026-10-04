@@ -35,7 +35,9 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
 
 <BaseLayout>
   <Scene3D />
+  <a class="skip" href="#main">本文へスキップ</a>
   <Shiori />
+  <main id="main">
   <Hero3D />
 
   <!-- ============ コンセプト ============ -->
@@ -44,12 +46,46 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
   <!-- ============ 日程・会場 + カレンダー ============ -->
   <section id="dates" class="section" data-beat="dates">
     <div class="wrap sheet reveal">
-      <p class="eyebrow">日程と会場</p>
+      <p class="eyebrow">日程と会場、行き方</p>
       <h2 class="section-title">
         <span class="underline-wobble jp" set:html={jp("寒い富良野で、あったかい二日間。")} />
       </h2>
 
       <Ticket ics={ics} gcalPre={gcalPre} gcalMain={gcalMain} />
+
+      <!-- 会場と行き方（しおりの「会場」はここ） -->
+      <div id="access" class="access" data-beat="access">
+        <div class="card venue">
+          <span class="tape-strip" aria-hidden="true"></span>
+          <p class="venue__tag hand">会場</p>
+          <p class="venue__name">{venue.name}</p>
+          <p class="venue__addr">
+            〒{venue.postal}<br /><span class="nowrap">{venue.address}</span><br />{venue.walk}
+          </p>
+          <div class="venue__btns">
+            <a class="btn venue__map" href={`${BASE}venue/`}>会場マップをみる</a>
+            <a class="btn btn--ghost venue__map" href={venueMap} target="_blank" rel="noopener">
+              地図アプリで開く
+            </a>
+          </div>
+        </div>
+
+        <h3 class="access__title hand jp" set:html={"富良野は、ちょっと遠い。" + "<wbr>" + "早めの計画を。"} />
+        <ul class="access-list">
+          <li>
+            <span class="access__icon" aria-hidden="true"><Icon name="plane" /></span>
+            <p set:html={jpHtml("<b>飛行機</b>旭川空港から車で約60分。新千歳空港からは約2.5〜3時間。")} />
+          </li>
+          <li>
+            <span class="access__icon" aria-hidden="true"><Icon name="train" /></span>
+            <p set:html={jpHtml("<b>鉄道</b>JR「富良野駅」下車、会場まで徒歩約4分。旭川・札幌から特急＋普通。")} />
+          </li>
+          <li>
+            <span class="access__icon" aria-hidden="true"><Icon name="house" /></span>
+            <p set:html={jpHtml("<b>おやど</b>期間中は埋まりやすいので、早めの予約がおすすめです。")} />
+          </li>
+        </ul>
+      </div>
     </div>
   </section>
 
@@ -57,54 +93,6 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
   <Cfp />
   <Guest />
 
-  <!-- ============ アクセス・宿泊 ============ -->
-  <section id="access" class="section" data-beat="access">
-    <div class="wrap sheet reveal">
-      <p class="eyebrow">行き方と、おやど</p>
-      <h2 class="section-title jp" set:html={"富良野は、<br class=\"sp\" />" + jp("ちょっと遠い。") + "<br />" + jp("だから早めの計画を。")} />
-
-      <div class="access-grid">
-        <div class="card">
-          <h3 class="access__h hand"><Icon name="plane" /> 飛行機で</h3>
-          <p
-            set:html={jpHtml(
-              "<b>旭川空港</b>からレンタカーで約60分。<br /><b>新千歳空港</b>からは約2.5〜3時間（車）。",
-            )}
-          />
-        </div>
-        <div class="card">
-          <h3 class="access__h hand"><Icon name="train" /> 鉄道で</h3>
-          <p
-            set:html={jpHtml(
-              "JR富良野線・根室本線<b>「富良野駅」</b>下車、会場まで徒歩約4分。<br />旭川・札幌から特急＋普通を乗り継ぎ。",
-            )}
-          />
-        </div>
-        <div class="card">
-          <h3 class="access__h hand"><Icon name="house" /> おやど</h3>
-          <p
-            set:html={jpHtml(
-              "イベント期間は宿が埋まりやすいです。<br /><b>早めの予約</b>をおすすめします。",
-            )}
-          />
-        </div>
-      </div>
-      <div class="card venue">
-        <span class="tape-strip" aria-hidden="true"></span>
-        <p class="venue__tag hand">会場</p>
-        <p class="venue__name">{venue.name}</p>
-        <p class="venue__addr">
-          〒{venue.postal}<br /><span class="nowrap">{venue.address}</span><br />{venue.walk}
-        </p>
-        <div class="venue__btns">
-          <a class="btn venue__map" href={`${BASE}venue/`}>会場マップをみる</a>
-          <a class="btn btn--ghost venue__map" href={venueMap} target="_blank" rel="noopener">
-            地図アプリで開く
-          </a>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <!-- ============ 富良野 観光・モデル旅程（別ページへ誘導） ============ -->
   <section id="travel" class="section" data-beat="travel">
@@ -174,23 +162,10 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
   <!-- ============ お知らせ（公式 note） ============ -->
   <NoteFeed />
 
-  <!-- ============ 過去回 ============ -->
-  <section class="section" data-beat="past">
-    <div class="wrap sheet reveal">
-      <p class="eyebrow">これまでの</p>
-      <h2 class="section-title jp" set:html={"過去の<br class=\"sp\" />TechRAMEN Conference"} />
-      <div class="past">
-        <a class="past__tag torn swing" href="../2024/">
-          <span class="past__string" aria-hidden="true"></span>2024<small>旭川</small>
-        </a>
-        <a class="past__tag torn swing" href="../2025/">
-          <span class="past__string" aria-hidden="true"></span>2025<small>旭川</small>
-        </a>
-      </div>
-    </div>
-  </section>
 
-  <footer class="foot">
+  </main>
+
+  <footer class="foot" data-beat="past">
     <div class="wrap">
       <p class="foot__logo hand">TechRAMEN 2026 Conference</p>
       <p class="foot__copy">富良野・北海道 ／ 2026.11.20–21</p>
@@ -198,8 +173,11 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
         <li><a href="https://note.com/techramenconf/m/m0938ea0596c0" target="_blank" rel="noopener">公式 note</a></li>
         <li><a href="https://x.com/techramenconf" target="_blank" rel="noopener">X @techramenconf</a></li>
         <li><a href="mailto:techramenconf@gmail.com">お問い合わせ</a></li>
-        <li><a href="../2025/">2025</a></li>
-        <li><a href="../2024/">2024</a></li>
+      </ul>
+      <p class="foot__past-h hand">これまでの TechRAMEN</p>
+      <ul class="foot__links foot__links--past">
+        <li><a href="../2025/">2025<small>旭川</small></a></li>
+        <li><a href="../2024/">2024<small>旭川</small></a></li>
       </ul>
       <p class="foot__small">© TechRAMEN Conference</p>
     </div>
@@ -207,35 +185,59 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
 </BaseLayout>
 
 <style>
-  /* アクセス */
-  .access-grid {
-    display: grid;
-    gap: 1.2rem;
-    grid-template-columns: 1fr;
-    margin-top: 1.5rem;
+  /* 会場と行き方（日程のシート内） */
+  .access {
+    margin-top: 2.6rem;
+    scroll-margin-top: 1.5rem;
   }
-  @media (min-width: 640px) {
-    .access-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-  .access__h {
-    display: flex;
-    align-items: center;
-    gap: 0.45em;
-    margin: 0 0 0.4rem;
-    font-size: 1.4rem;
+  .access__title {
+    margin: 2rem 0 0.6rem;
+    font-size: clamp(1.4rem, 4.5vw, 1.8rem);
     color: var(--wine);
   }
-  .access-grid p {
+  .access-list {
+    display: grid;
+    gap: 0.6rem;
     margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .access-list li {
+    display: grid;
+    grid-template-columns: 2.2rem 1fr;
+    align-items: start;
+    gap: 0.6rem;
+  }
+  .access-list p {
+    margin: 0;
+  }
+  /* 見出し語は 1 行目に単独で、説明は 2 行目から（スマホで途中改行が詰まらないように） */
+  .access-list :global(b) {
+    display: block;
+    color: var(--grape);
+  }
+  .access__icon {
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    background: var(--paper-card);
+    color: var(--wine);
+    font-size: 1.15rem;
+  }
+  @media (min-width: 900px) {
+    .access-list {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.2rem;
+    }
   }
 
   /* 会場 */
   .venue {
     display: grid;
     gap: 0.25rem 1.5rem;
-    margin-top: 2.2rem;
+    margin-top: 0;
     padding-top: 1.6rem;
   }
   .venue p {
@@ -366,77 +368,6 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
     }
   }
 
-  /* 過去回: 旅の荷札。紐を支点に揺れる（.swing） */
-  .past {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.4rem 2.6rem;
-    margin-top: 2rem;
-    padding-left: 1.8rem;
-  }
-  .past__tag {
-    display: inline-grid;
-    padding: 0.55em 1.3em 0.55em 2.1em;
-    --torn-bg: var(--paper-card);
-    font-family: var(--font-hand);
-    font-weight: 700;
-    font-size: 1.8rem;
-    line-height: 1.1;
-    color: var(--grape);
-    text-decoration: none;
-    transform-origin: 0 50%;
-    transition: transform 0.2s var(--ease-settle, ease);
-  }
-  .past__tag small {
-    font-family: var(--font-body);
-    font-size: 0.8rem;
-    color: var(--ink-soft);
-  }
-  .past__tag:nth-child(1) {
-    transform: rotate(-5deg);
-  }
-  .past__tag:nth-child(2) {
-    transform: rotate(4deg) translateY(0.6rem);
-  }
-  /* 紐を通す穴（金のハトメ） */
-  .past__tag::before {
-    content: "";
-    position: absolute;
-    left: 0.75rem;
-    top: 50%;
-    z-index: 1;
-    width: 0.55rem;
-    height: 0.55rem;
-    border: 2px solid var(--ink-soft);
-    border-radius: 50%;
-    box-shadow: 0 0 0 3px var(--gold);
-    transform: translateY(-50%);
-  }
-  .past__string {
-    position: absolute;
-    left: -1.3rem;
-    top: calc(50% - 1px);
-    width: 2.3rem;
-    height: 2px;
-    background: var(--gold);
-    transform: rotate(-20deg);
-    transform-origin: right center;
-  }
-  @media (hover: hover) {
-    .past__tag:hover {
-      --torn-bg: var(--gold);
-      color: var(--ink);
-    }
-    .past__tag:hover small {
-      color: var(--ink);
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .past__tag {
-      transition: none;
-    }
-  }
-
   /* フッター */
   .foot {
     position: relative;
@@ -473,11 +404,31 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
     padding: 0;
     list-style: none;
   }
+  /* タップしやすいよう高さ 44px 以上の札に */
   .foot__links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    min-height: 44px;
+    padding: 0 0.9rem;
+    border: 1.5px solid rgba(243, 232, 216, 0.4);
+    border-radius: 8px;
     color: var(--paper-card);
     font-weight: 700;
     text-decoration-color: var(--gold);
     text-decoration-thickness: 2px;
+  }
+  .foot__links a small {
+    font-size: 0.75rem;
+    opacity: 0.8;
+  }
+  .foot__past-h {
+    margin: 0 0 0.4rem;
+    font-size: 1.2rem;
+    color: var(--gold);
+  }
+  .foot__links a:hover {
+    background: rgba(243, 232, 216, 0.12);
   }
   .foot__links a:focus-visible {
     outline: 3px solid var(--gold);

@@ -38,7 +38,13 @@ const tag =
     </p>
     <div class="hero__cta">
       <a class="btn" href="#dates">日程と会場</a>
-      <a class="btn btn--ghost" href="#concept">今年のテーマ</a>
+      {
+        cfp.status === "open" ? (
+          <a class="btn btn--ghost" href="#cfp">登壇者を募集中</a>
+        ) : (
+          <a class="btn btn--ghost" href="#concept">今年のテーマ</a>
+        )
+      }
     </div>
   </div>
 
@@ -216,7 +222,7 @@ const tag =
     font-weight: 700;
   }
   .hero__sep {
-    color: var(--gold);
+    color: var(--wine);
     font-weight: 700;
   }
 
@@ -235,7 +241,10 @@ const tag =
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 0.1em;
+    min-width: 48px;
+    min-height: 48px;
     color: var(--ink-soft);
     text-decoration: none;
     font-size: 1.1rem;

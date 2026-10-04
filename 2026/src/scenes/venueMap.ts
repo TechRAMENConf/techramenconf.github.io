@@ -18,6 +18,8 @@ export interface VenueMapController {
   setFloor: (id: string) => void;
   setView: (mode: ViewMode) => void;
   focus: (roomId: string | null) => void;
+  /** 選択を解除し、カメラを最初の向きに戻す */
+  reset: () => void;
   dispose: () => void;
 }
 
@@ -378,6 +380,10 @@ export function createVenueMap(
     }
     current = next;
     focused = null;
+    for (const r of next.rooms) {
+      delete r.label.dataset.w;
+      delete r.label.dataset.h;
+    }
     paintFocus();
     if (reduced) {
       applyIntro(next, 99);
@@ -432,14 +438,34 @@ export function createVenueMap(
 
   // --- ラベルを 3D の位置に合わせる ---
   const _v = new THREE.Vector3();
+  // 札の優先度（重なったら低いものから隠す）
+  const PRIORITY: Record<RoomKind, number> = { room: 3, hall: 3, entrance: 2, stairs: 1, wc: 1, staff: 0 };
   function placeLabels(w: number, h: number) {
     if (!current) return;
-    for (const r of current.rooms) {
-      if (r.label.hidden) continue;
-      _v.copy(r.center).setY(WALL_H + 0.4).project(camera);
-      const visible = _v.z < 1 && Math.abs(_v.x) < 1.1 && Math.abs(_v.y) < 1.1;
-      r.label.style.visibility = visible ? "visible" : "hidden";
-      r.label.style.transform = `translate(-50%, -100%) translate(${((_v.x + 1) / 2) * w}px, ${((1 - _v.y) / 2) * h}px)`;
+    const placed: { x0: number; y0: number; x1: number; y1: number }[] = [];
+    const items = current.rooms
+      .filter((r) => !r.label.hidden)
+      .map((r) => {
+        _v.copy(r.center).setY(WALL_H + 0.4).project(camera);
+        const x = ((_v.x + 1) / 2) * w;
+        const y = ((1 - _v.y) / 2) * h;
+        const onScreen = _v.z < 1 && Math.abs(_v.x) < 1.1 && Math.abs(_v.y) < 1.1;
+        // 選んだ部屋の札は必ず出す
+        const pri = r === focused ? 9 : PRIORITY[r.room.kind];
+        return { r, x, y, onScreen, pri };
+      })
+      .sort((a, b) => b.pri - a.pri);
+    for (const it of items) {
+      const el = it.r.label;
+      // 札の大きさはフロア表示中は変わらないので初回だけ測る
+      const lw = (el.dataset.w ??= String(el.offsetWidth || 80));
+      const lh = (el.dataset.h ??= String(el.offsetHeight || 24));
+      const box = { x0: it.x - +lw / 2 - 3, y0: it.y - +lh - 3, x1: it.x + +lw / 2 + 3, y1: it.y + 3 };
+      const hit = placed.some((p) => box.x0 < p.x1 && p.x0 < box.x1 && box.y0 < p.y1 && p.y0 < box.y1);
+      const show = it.onScreen && !hit;
+      if (show) placed.push(box);
+      el.style.visibility = show ? "visible" : "hidden";
+      el.style.transform = `translate(-50%, -100%) translate(${it.x}px, ${it.y}px)`;
     }
   }
 
@@ -531,5 +557,11 @@ export function createVenueMap(
     labelLayer.replaceChildren();
   }
 
-  return { setFloor, setView, focus, dispose };
+  function reset() {
+    focused = null;
+    paintFocus();
+    retarget();
+  }
+
+  return { setFloor, setView, focus, reset, dispose };
 }

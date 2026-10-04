@@ -49,6 +49,7 @@ const listed = (f: (typeof FLOORS)[number]) =>
       <div class="vm-views">
         <button type="button" class="btn btn--ghost vm-view" data-view="all" aria-pressed="true">全体</button>
         <button type="button" class="btn btn--ghost vm-view" data-view="top" aria-pressed="false">真上から</button>
+        <button type="button" class="btn btn--ghost vm-reset" aria-label="選択を解除して元の向きに戻す">リセット</button>
       </div>
     </div>
 
@@ -56,6 +57,8 @@ const listed = (f: (typeof FLOORS)[number]) =>
       <canvas class="vm__canvas"></canvas>
       <div class="vm__labels"></div>
       <p class="vm__floor-note hand" data-floor-note></p>
+      <!-- 選んだ部屋の説明（一覧までスクロールしなくても分かるように） -->
+      <p class="vm__info" data-info aria-live="polite" hidden></p>
     </div>
 
     <!-- 部屋の一覧（3D が使えないときも、これで内容が分かる） -->
@@ -188,6 +191,31 @@ const listed = (f: (typeof FLOORS)[number]) =>
     color: var(--ink-soft);
   }
   /* 3D が使えない環境では舞台ごと隠し、下の部屋の一覧で伝える */
+  .vm__info {
+    position: absolute;
+    left: 50%;
+    bottom: 0.8rem;
+    translate: -50% 0;
+    max-width: calc(100% - 2rem);
+    margin: 0;
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    background: var(--paper-card);
+    box-shadow: 0 6px 12px -6px rgba(46, 40, 38, 0.5);
+    font-weight: 700;
+    color: var(--grape);
+    text-align: center;
+  }
+  .vm__info small {
+    display: block;
+    font-weight: 400;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
+  .vm__info:not([hidden]) ~ .vm__floor-note,
+  .vm__floor-note:has(~ .vm__info:not([hidden])) {
+    visibility: hidden;
+  }
   .vm--fallback {
     display: none;
   }
@@ -308,11 +336,24 @@ const listed = (f: (typeof FLOORS)[number]) =>
   let map: VenueMapController | null = null;
   let selected: string | null = null;
 
+  const info = root.querySelector<HTMLElement>("[data-info]")!;
+  const showInfo = (id: string | null) => {
+    const room = FLOORS.flatMap((f) => f.rooms).find((r) => r.id === id);
+    info.hidden = !room;
+    if (room) info.innerHTML = room.use ? `${room.use}<small>${room.name}</small>` : room.name;
+  };
   const select = (id: string | null) => {
     selected = selected === id ? null : id; // 同じ部屋をもう一度押すと解除
     roomBtns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.room === selected)));
+    showInfo(selected);
     map?.focus(selected);
   };
+  document.querySelector(".vm-reset")?.addEventListener("click", () => {
+    selected = null;
+    roomBtns.forEach((b) => b.setAttribute("aria-pressed", "false"));
+    showInfo(null);
+    map?.reset();
+  });
   const showFloor = (id: string) => {
     floorBtns.forEach((b) => b.setAttribute("aria-selected", String(b.dataset.floor === id)));
     document.querySelectorAll<HTMLElement>("[data-rooms]").forEach((el) => {
@@ -321,6 +362,7 @@ const listed = (f: (typeof FLOORS)[number]) =>
     floorNote.textContent = FLOORS.find((f) => f.id === id)?.note ?? "";
     selected = null;
     roomBtns.forEach((b) => b.setAttribute("aria-pressed", "false"));
+    showInfo(null);
     map?.setFloor(id);
   };
 
@@ -351,6 +393,7 @@ const listed = (f: (typeof FLOORS)[number]) =>
           if (id === null) {
             selected = null;
             roomBtns.forEach((b) => b.setAttribute("aria-pressed", "false"));
+            showInfo(null);
             map?.focus(null);
           } else select(id);
         });

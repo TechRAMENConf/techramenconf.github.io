@@ -8,7 +8,7 @@ import Icon from "./Icon.astro";
 const items = [
   { id: "dates", label: "日程・会場", short: "日程", icon: "calendar" },
   { id: "cfp", label: "登壇募集", short: "登壇", icon: "mic" },
-  { id: "access", label: "アクセス", short: "アクセス", icon: "train" },
+  { id: "access", label: "会場・アクセス", short: "会場", icon: "train" },
   { id: "travel", label: "観光", short: "観光", icon: "map" },
   { id: "news", label: "おしらせ", short: "おしらせ", icon: "note" },
 ] as const;
@@ -116,6 +116,7 @@ const items = [
       gap: 0.55rem;
       /* 右端は画面外へはみ出させ、左の破れ目だけ見せる */
       margin-right: -8px;
+      min-height: 44px;
       padding: 0.5rem 1.9rem 0.5rem 0.9rem;
       font-family: var(--font-hand);
       font-weight: 700;

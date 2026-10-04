@@ -430,3 +430,21 @@ h3 {
 .nametag__body {
   padding: clamp(1rem, 3.5vw, 1.5rem);
 }
+
+/* 本文へスキップ（キーボードで Tab を押したときだけ見える） */
+.skip {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  z-index: 100;
+  padding: 0.7rem 1.1rem;
+  background: var(--grape);
+  color: var(--snow);
+  font-weight: 700;
+  border-radius: 8px;
+  transform: translateY(-200%);
+}
+.skip:focus {
+  transform: none;
+  outline: 3px solid var(--gold);
+}

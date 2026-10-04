@@ -4,6 +4,8 @@
 import venue from "../data/venue.json";
 import Icon from "./Icon.astro";
 
+const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+
 interface Props {
   ics: string;
   gcalPre: string;
@@ -38,11 +40,14 @@ const { ics, gcalPre, gcalMain } = Astro.props;
         <dt class="hand">place</dt>
         <dd>
           <b>{venue.name}</b><span class="ticket__walk">{venue.walk}</span>
+          <a class="ticket__maplink" href={`${BASE}venue/`}>会場マップ →</a>
         </dd>
       </div>
     </dl>
 
-    <p class="ticket__fine">※ 開始時刻は決まり次第お知らせします。参加チケットは別途発売します。</p>
+    <p class="ticket__fine">
+      ※ 開始時刻は決まり次第お知らせします。参加チケットの発売は<a href="#roadmap">公開予定</a>をご覧ください。
+    </p>
   </div>
 
   <!-- 駅の記念スタンプ（mask で切られないよう、本体・半券の外に置いてグリッドで重ねる） -->
@@ -148,9 +153,9 @@ const { ics, gcalPre, gcalMain } = Astro.props;
   }
   .ticket__kind {
     padding: 0.05em 0.6em;
-    border: 1.5px solid var(--leaf);
+    border: 1.5px solid #4f6a29;
     border-radius: 4px;
-    color: var(--leaf);
+    color: #4f6a29;
     font-weight: 700;
   }
   .ticket__dest {
@@ -230,6 +235,19 @@ const { ics, gcalPre, gcalMain } = Astro.props;
     display: inline-block;
     font-size: 0.9rem;
     color: var(--ink-soft);
+  }
+  .ticket__maplink {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-left: 0.6rem;
+    padding: 0 0.2rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--wine);
+  }
+  .ticket__fine a {
+    color: var(--wine);
   }
   .ticket__fine {
     margin: 1rem 0 0;
