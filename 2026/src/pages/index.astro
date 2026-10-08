@@ -29,12 +29,41 @@ const gcal = (text: string, start: string, end: string) =>
     `${venue.name}（${venue.address}）`,
   )}&details=${encodeURIComponent("詳細は順次公開 https://techramenconf.net/2026/")}`;
 
+// 検索結果にイベントとして表示されるための構造化データ（schema.org/Event）
+const eventLd = {
+  "@context": "https://schema.org",
+  "@type": "Event",
+  name: "TechRAMEN 2026 Conference",
+  description:
+    "北海道・富良野で開催する、手作りのテックカンファレンス。テーマは「ちゃんと初めましてしましょう」。",
+  startDate: "2026-11-20",
+  endDate: "2026-11-21",
+  eventStatus: "https://schema.org/EventScheduled",
+  eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+  url: "https://techramenconf.net/2026/",
+  image: ["https://techramenconf.net/2026/og-image.png"],
+  location: {
+    "@type": "Place",
+    name: venue.name,
+    address: {
+      "@type": "PostalAddress",
+      postalCode: venue.postal,
+      addressRegion: "北海道",
+      addressLocality: "富良野市",
+      streetAddress: "本町2番27号",
+      addressCountry: "JP",
+    },
+    geo: { "@type": "GeoCoordinates", latitude: venue.lat, longitude: venue.lng },
+  },
+  organizer: { "@type": "Organization", name: "TechRAMEN Conference", url: "https://techramenconf.net/" },
+};
+
 const gcalPre = gcal("TechRAMEN 2026 (pre event)", "20261120", "20261121");
 const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
 
 ---
 
-<BaseLayout>
+<BaseLayout jsonLd={eventLd}>
   <Scene3D />
   <a class="skip" href="#main">本文へスキップ</a>
   <Shiori />
