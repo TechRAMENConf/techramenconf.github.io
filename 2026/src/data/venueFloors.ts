@@ -3,6 +3,7 @@
  *
  * 出典:
  *  - 1F: 改修工事図面「1 階平面図」（2018/01/31）。柱は X 方向 8m 間隔、Y1–Y4 = 0 / 6.25 / 15.45 / 24.65
+ *  - 2F: フロア案内図（寸法なし）。外形が 1F と同じ縦横比（約 1.95）なので、1F の外形 48 × 24.65m に合わせて換算
  *  - 4F: 「フラノデザイン PLAN」（2022/09/20）（4 階）
  * 図面からの読み取りなので寸法は概略。裏方（守衛室・荷解場・機械室など）は「関係者のみ」にまとめている。
  *
@@ -96,6 +97,55 @@ export const FLOORS: Floor[] = [
       [38.5, 15.0],
       [33.0, 9.5],
       [31.0, 5.0],
+    ],
+  },
+  {
+    id: "2F",
+    label: "2F",
+    sub: "ホール・ラウンジ",
+    note: "ホール A・B（仕切りを外すと大ホール）とラウンジのある階。ほかは団体の事務所です",
+    rooms: [
+      { id: "hallA", name: "ホール A", use: null, kind: "room", poly: rect(7.25, 15.02, 15.62, 24.65) },
+      { id: "hallB", name: "ホール B", use: null, kind: "room", poly: rect(7.25, 10.95, 15.62, 15.02) },
+      { id: "lounge", name: "ラウンジ", use: null, kind: "hall", poly: rect(20.29, 17.64, 31.92, 19.9) },
+      { id: "kitchen", name: "シェアキッチン", use: null, kind: "room", poly: rect(20.29, 15.47, 31.92, 17.64) },
+      { id: "meeting", name: "特別会議室", use: null, kind: "room", poly: rect(31.92, 17.87, 38.04, 24.65) },
+      { id: "ev2N", name: "EV・階段", use: null, kind: "stairs", poly: rect(18.11, 20.13, 28.53, 24.65) },
+      { id: "stairs2S", name: "階段", use: null, kind: "stairs", poly: rect(26.35, 2.8, 33.74, 6.42) },
+      { id: "ev2S", name: "EV", use: null, kind: "stairs", poly: rect(33.96, 2.8, 36.23, 6.42) },
+      { id: "wc2", name: "トイレ", use: null, kind: "wc", poly: rect(8.15, 2.8, 16.08, 6.42) },
+      { id: "corridor-s", name: "廊下", use: null, kind: "hall", poly: rect(5.89, 6.42, 42.25, 8.82) },
+      { id: "corridor-w", name: "廊下", use: null, kind: "hall", poly: rect(15.62, 8.82, 17.8, 20.13) },
+      { id: "corridor-m", name: "廊下", use: null, kind: "hall", poly: rect(17.8, 15.47, 20.29, 20.13) },
+      { id: "corridor-e", name: "廊下", use: null, kind: "hall", poly: rect(38.04, 8.37, 39.85, 24.65) },
+      // 団体・行政の事務所（関係者のみ）
+      { id: "office-city", name: "関係者のみ", use: null, kind: "staff", poly: rect(0, 14.02, 5.43, 24.65) },
+      { id: "office-kankou", name: "関係者のみ", use: null, kind: "staff", poly: rect(0, 6.42, 5.89, 14.02) },
+      { id: "office-jc", name: "関係者のみ", use: null, kind: "staff", poly: rect(8.92, 8.82, 15.62, 10.95) },
+      { id: "office-tenants", name: "関係者のみ", use: null, kind: "staff", poly: rect(17.8, 8.82, 35.32, 15.47) },
+      {
+        id: "office-exec",
+        name: "関係者のみ",
+        use: null,
+        kind: "staff",
+        poly: [
+          [39.85, 18.09],
+          [48.0, 18.09],
+          [48.0, 22.6],
+          [46.3, 24.65],
+          [39.85, 24.65],
+        ],
+      },
+      { id: "office-cci", name: "関係者のみ", use: null, kind: "staff", poly: rect(39.85, 8.37, 48.0, 18.09) },
+      { id: "office-consult", name: "関係者のみ", use: null, kind: "staff", poly: rect(42.25, 6.33, 48.0, 8.37) },
+    ],
+    columns: [],
+    // 北側の EV・階段からホールへ
+    path: [
+      [19.25, 20.6],
+      [16.7, 19.4],
+      [16.7, 13.1],
+      [15.62, 12.7],
     ],
   },
   {

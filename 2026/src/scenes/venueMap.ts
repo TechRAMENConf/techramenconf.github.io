@@ -179,7 +179,9 @@ export function createVenueMap(
 
       // 壁: 外形の各辺に厚紙の板を立てる（関係者のみは低い塊にする）
       const h = room.kind === "staff" ? 0.6 : room.kind === "entrance" ? WALL_H * 0.6 : WALL_H;
-      for (let i = 0; i < room.poly.length; i++) {
+      // 廊下は複数の長方形をつないでいるので壁を立てない（つなぎ目をふさがないように）
+      const isCorridor = room.id.startsWith("corridor");
+      for (let i = 0; i < (isCorridor ? 0 : room.poly.length); i++) {
         const [ax, ay] = room.poly[i];
         const [bx, by] = room.poly[(i + 1) % room.poly.length];
         const len = Math.hypot(bx - ax, by - ay);
@@ -227,7 +229,7 @@ export function createVenueMap(
         : `<span>${room.name}</span>`;
       label.hidden = true;
       label.dataset.room = room.id;
-      if (room.kind === "staff") label.dataset.skip = "1";
+      if (room.kind === "staff" || isCorridor) label.dataset.skip = "1";
       label.addEventListener("click", () => onSelect(room.id));
       labelLayer.append(label);
 

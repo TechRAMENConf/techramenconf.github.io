@@ -9,7 +9,7 @@ const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
 const ORDER = { room: 0, hall: 0, entrance: 1, stairs: 2, wc: 2, staff: 9 } as const;
 const listed = (f: (typeof FLOORS)[number]) =>
   f.rooms
-    .filter((r) => r.kind !== "staff" && r.id !== "corridor")
+    .filter((r) => r.kind !== "staff" && !r.id.startsWith("corridor"))
     .sort((a, b) => ORDER[a.kind] - ORDER[b.kind]);
 
 const LEGEND = [
