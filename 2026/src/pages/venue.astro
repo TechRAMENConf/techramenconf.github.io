@@ -10,7 +10,7 @@ const ORDER = { room: 0, hall: 0, entrance: 1, stairs: 2, wc: 2, staff: 9 } as c
 const listed = (f: (typeof FLOORS)[number]) =>
   f.rooms
     .filter((r) => r.kind !== "staff" && !r.id.startsWith("corridor"))
-    .sort((a, b) => ORDER[a.kind] - ORDER[b.kind]);
+    .sort((a, b) => (a.use ? -1 : 0) - (b.use ? -1 : 0) || ORDER[a.kind] - ORDER[b.kind]);
 
 const LEGEND = [
   { label: "部屋・ホール", color: "#f1e4c8" },
@@ -109,7 +109,10 @@ const LEGEND = [
                       {r.use ? (
                         <>
                           <b>{r.use}</b>
-                          <small>{r.name}</small>
+                          <small>
+                            {r.name}
+                            {r.detail && `・${r.detail}`}
+                          </small>
                         </>
                       ) : (
                         r.name
@@ -553,6 +556,26 @@ const LEGEND = [
     pointer-events: auto;
     transition: opacity 0.2s ease;
   }
+  :global(.vm-tag__short) {
+    display: none;
+  }
+  @media (max-width: 639px) {
+    :global(.vm-tag__short) {
+      display: inline;
+    }
+    :global(.vm-tag__long),
+    :global(.vm-tag small) {
+      display: none;
+    }
+    /* フロアのボタンは階だけに（方角ボタンと重ならないように） */
+    .vm-floor__sub {
+      display: none;
+    }
+    .vm-floor {
+      padding: 0.3rem 0.8rem;
+      align-content: center;
+    }
+  }
   :global(.vm-tag[hidden]) {
     display: none;
   }
@@ -631,7 +654,8 @@ const LEGEND = [
     const room = FLOORS.flatMap((f) => f.rooms).find((r) => r.id === id);
     // 用途が決まった部屋だけ説明札を出す（名前だけなら、選んだボタンと地図の札で足りる）
     info.hidden = !room?.use;
-    if (room?.use) info.innerHTML = `${room.use}<small>${room.name}</small>`;
+    if (room?.use)
+      info.innerHTML = `${room.use}<small>${room.name}${room.detail ? `・${room.detail}` : ""}</small>`;
   };
   const markRooms = () =>
     roomBtns().forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.room === selected)));

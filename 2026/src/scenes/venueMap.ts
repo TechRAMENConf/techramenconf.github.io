@@ -38,6 +38,13 @@ const FLOOR_PAPER: Record<RoomKind, { color: number; kind: PaperKind }> = {
   wc: { color: 0xe4e0d8, kind: "stock" },
   staff: { color: 0xc9c2b4, kind: "kraft" },
 };
+/** トラックごとの床の紙の色（ラーメンの具になぞらえて） */
+const TRACK_COLOR: [string, number][] = [
+  ["醤油", 0xd9a86a],
+  ["味噌", 0xe8c27a],
+  ["塩", 0xeef0e6],
+  ["チャーシュー", 0xe6b9a6],
+];
 /** 選んだ部屋の床（色が付く） */
 const FOCUS_COLOR = 0xcf9b3e;
 
@@ -167,7 +174,9 @@ export function createVenueMap(
 
     const walls: THREE.Object3D[] = [];
     const rooms: BuiltRoom[] = floor.rooms.map((room, ri) => {
-      const paper = FLOOR_PAPER[room.kind];
+      // 用途が決まった部屋は、トラック（醤油・味噌・塩・チャーシュー）の色の紙にして目立たせる
+      const track = room.use ? TRACK_COLOR.find(([k]) => room.use!.startsWith(k)) : undefined;
+      const paper = track ? { color: track[1], kind: "washi" as PaperKind } : FLOOR_PAPER[room.kind];
       const shape = new THREE.Shape(room.poly.map(([x, y]) => new THREE.Vector2(x, y)));
       const geo = new THREE.ShapeGeometry(shape);
       geo.rotateX(-Math.PI / 2); // XY → XZ（y がそのまま -z になる）
@@ -225,7 +234,8 @@ export function createVenueMap(
       label.type = "button";
       label.className = `vm-tag vm-tag--${room.kind}`;
       label.innerHTML = room.use
-        ? `<span class="vm-tag__use">${room.use}</span><small>${room.name}</small>`
+        ? // 「醤油｜トーク」を、短い札（醤油）と詳しい札で出し分ける（狭い画面は短い方）
+          `<span class="vm-tag__use"><span class="vm-tag__short">${room.use.split("｜")[0]}</span><span class="vm-tag__long">${room.use}</span></span><small>${room.name}</small>`
         : `<span>${room.name}</span>`;
       label.hidden = true;
       label.dataset.room = room.id;
@@ -497,7 +507,8 @@ export function createVenueMap(
         const y = ((1 - _v.y) / 2) * h;
         const onScreen = _v.z < 1 && Math.abs(_v.x) < 1.1 && Math.abs(_v.y) < 1.1;
         // 選んだ部屋の札は必ず出す
-        const pri = r === focused ? 9 : PRIORITY[r.room.kind];
+        // 選んだ部屋 > 用途が決まった部屋 > そのほか
+        const pri = r === focused ? 9 : r.room.use ? 5 : PRIORITY[r.room.kind];
         return { r, x, y, onScreen, pri };
       })
       .sort((a, b) => b.pri - a.pri);

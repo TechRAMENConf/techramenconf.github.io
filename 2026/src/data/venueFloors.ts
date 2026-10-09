@@ -17,6 +17,8 @@ export interface Room {
   name: string;
   /** 当日の用途（未定なら null） */
   use: string | null;
+  /** 定員・注意などの補足（地図の説明札と一覧に出る） */
+  detail?: string;
   kind: RoomKind;
   /** 外形（反時計回りでも時計回りでもよい） */
   poly: [number, number][];
@@ -50,15 +52,35 @@ export const FLOORS: Floor[] = [
   {
     id: "1F",
     label: "1F",
-    sub: "入口・ラウンジ",
+    sub: "ハンズオン・展示・カフェ",
     note: "駅側の出入口から。上の階へは EV・階段で",
     rooms: [
-      { id: "restaurant", name: "レストラン", use: null, kind: "room", poly: rect(0, 11.2, 11.7, Y4) },
+      {
+        id: "restaurant",
+        name: "カフェラウンジ EVELSA",
+        use: "チャーシュー｜本に向き合う会",
+        detail: "50 席。一般の方も利用します",
+        kind: "room",
+        poly: rect(0, 11.2, 11.7, Y4),
+      },
       { id: "kitchen", name: "キッチン", use: null, kind: "staff", poly: rect(0, 7.4, 11.7, 11.2) },
       { id: "vestibule2", name: "北の出入口", use: null, kind: "entrance", poly: rect(11.9, 20.2, 15.8, Y4) },
-      { id: "shop", name: "ショップ・ラウンジ", use: null, kind: "hall", poly: rect(15.8, 7.6, 32.2, 18.0) },
+      {
+        id: "shop",
+        name: "中央広間",
+        use: "味噌｜ライトニングハンズオン",
+        detail: "5 名 × 6 卓（講師含む）",
+        kind: "hall",
+        poly: rect(15.8, 7.6, 32.2, 18.0),
+      },
       { id: "ev2", name: "EV・階段", use: null, kind: "stairs", poly: rect(17.5, 18.0, 28.0, Y4) },
-      { id: "east", name: "東ホール", use: null, kind: "hall", poly: rect(32.2, Y2, 40.2, 17.0) },
+      {
+        id: "east",
+        name: "中央広間（入口側）",
+        use: "塩｜ものづくり展示",
+        kind: "hall",
+        poly: rect(32.2, Y2, 40.2, 17.0),
+      },
       {
         id: "vestibule1",
         name: "東の出入口",
@@ -102,11 +124,18 @@ export const FLOORS: Floor[] = [
   {
     id: "2F",
     label: "2F",
-    sub: "ホール・ラウンジ",
-    note: "ホール A・B（仕切りを外すと大ホール）とラウンジのある階。ほかは団体の事務所です",
+    sub: "トーク",
+    note: "大ホールでトーク。ほかは団体の事務所です",
     rooms: [
-      { id: "hallA", name: "ホール A", use: null, kind: "room", poly: rect(7.25, 15.02, 15.62, 24.65) },
-      { id: "hallB", name: "ホール B", use: null, kind: "room", poly: rect(7.25, 10.95, 15.62, 15.02) },
+      // ホール A・B の仕切りを外した大ホールとして使う
+      {
+        id: "hall",
+        name: "大ホール",
+        use: "醤油｜トーク",
+        detail: "90 名",
+        kind: "room",
+        poly: rect(7.25, 10.95, 15.62, 24.65),
+      },
       { id: "lounge", name: "ラウンジ", use: null, kind: "hall", poly: rect(20.29, 17.64, 31.92, 19.9) },
       { id: "kitchen", name: "シェアキッチン", use: null, kind: "room", poly: rect(20.29, 15.47, 31.92, 17.64) },
       { id: "meeting", name: "特別会議室", use: null, kind: "room", poly: rect(31.92, 17.87, 38.04, 24.65) },
