@@ -353,6 +353,18 @@ const LEGEND = [
     font-weight: 700;
     color: var(--grape);
   }
+  .vm__info :global(.vm-guide) {
+    display: block;
+    margin: 0.4rem auto 0;
+    min-height: 40px;
+    padding: 0 1rem;
+    border: 0;
+    border-radius: 20px;
+    background: var(--grape);
+    color: var(--snow);
+    font: 700 0.85rem var(--font-body);
+    cursor: pointer;
+  }
   .vm__info :global(small) {
     display: block;
     font-weight: 400;
@@ -621,7 +633,7 @@ const LEGEND = [
 </style>
 
 <script>
-  import { FLOORS } from "../data/venueFloors";
+  import { FLOORS, ROUTES } from "../data/venueFloors";
   import type { VenueMapController } from "../scenes/venueMap";
 
   const root = document.querySelector<HTMLElement>(".vm")!;
@@ -654,8 +666,20 @@ const LEGEND = [
     const room = FLOORS.flatMap((f) => f.rooms).find((r) => r.id === id);
     // 用途が決まった部屋だけ説明札を出す（名前だけなら、選んだボタンと地図の札で足りる）
     info.hidden = !room?.use;
-    if (room?.use)
+    if (room?.use) {
       info.innerHTML = `${room.use}<small>${room.name}${room.detail ? `・${room.detail}` : ""}</small>`;
+      if (ROUTES[room.id]) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "vm-guide";
+        b.textContent = "入口から歩いて案内";
+        b.addEventListener("click", () => {
+          info.hidden = true;
+          map?.guide(room.id);
+        });
+        info.append(b);
+      }
+    }
   };
   const markRooms = () =>
     roomBtns().forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.room === selected)));
@@ -716,7 +740,18 @@ const LEGEND = [
   if (hasWebGL) {
     import("../scenes/venueMap")
       .then(({ createVenueMap }) => {
-        map = createVenueMap(canvas, labels, FLOORS, (id) => select(id, true), {
+        map = createVenueMap(canvas, labels, FLOORS, ROUTES, (id) => select(id, true), {
+          onFloor: (id) => {
+            floorBtns.forEach((b) => b.setAttribute("aria-selected", String(b.dataset.floor === id)));
+            document.querySelectorAll<HTMLElement>("[data-rooms]").forEach((el) => {
+              el.hidden = el.dataset.rooms !== id;
+            });
+          },
+          onGuideEnd: (id) => {
+            selected = id;
+            markRooms();
+            showInfo(id);
+          },
           // 北の印は、地図の回転に合わせて回す
           onAzimuth: (rad) => compass.style.setProperty("--az", `${rad}rad`),
           onHint: showHint,

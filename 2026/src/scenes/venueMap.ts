@@ -10,7 +10,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { paperMaterial, PaperPost, PAPER_CORE, setPaperLite, type PaperKind } from "./paper";
-import type { Floor, Room, RoomKind } from "../data/venueFloors";
+import type { Floor, Room, RoomKind, RouteLeg } from "../data/venueFloors";
 
 export type ViewMode = "all" | "top";
 
@@ -22,6 +22,8 @@ export interface VenueMapController {
   reset: () => void;
   /** 拡大・縮小（1 より小さいと寄る） */
   zoomBy: (factor: number) => void;
+  /** 紙の人形が出入口からその部屋まで歩いて案内する。道順がなければ false */
+  guide: (roomId: string) => boolean;
   dispose: () => void;
 }
 
@@ -68,6 +70,70 @@ interface BuiltFloor {
   radius: number;
 }
 
+const DOOR = 1.5; // 道順の所に開ける出入口の幅
+
+/** 壁 a→b を道順の線分が横切る位置（a からの距離）の一覧 */
+function doorCuts(ax: number, ay: number, bx: number, by: number, segs: [number, number, number, number][]) {
+  const out: number[] = [];
+  const rx = bx - ax;
+  const ry = by - ay;
+  const len = Math.hypot(rx, ry);
+  for (const [px, py, qx, qy] of segs) {
+    const sx = qx - px;
+    const sy = qy - py;
+    const den = rx * sy - ry * sx;
+    if (Math.abs(den) < 1e-9) continue;
+    const t = ((px - ax) * sy - (py - ay) * sx) / den;
+    const u = ((px - ax) * ry - (py - ay) * rx) / den;
+    if (t >= 0 && t <= 1 && u >= 0 && u <= 1) out.push(t * len);
+  }
+  return out;
+}
+
+/** 紙の人形（切り抜き）。名札付き。足元が原点 */
+function makeDoll(): THREE.Group {
+  const g = new THREE.Group();
+  const s = new THREE.Shape();
+  // 胴と脚（台形のワンピース形）
+  s.moveTo(-0.32, 0);
+  s.lineTo(-0.1, 0);
+  s.lineTo(-0.06, 0.32);
+  s.lineTo(0.06, 0.32);
+  s.lineTo(0.1, 0);
+  s.lineTo(0.32, 0);
+  s.lineTo(0.2, 0.95);
+  s.lineTo(0.12, 1.08);
+  s.lineTo(-0.12, 1.08);
+  s.lineTo(-0.2, 0.95);
+  s.closePath();
+  const body = new THREE.Mesh(
+    new THREE.ExtrudeGeometry(s, { depth: 0.06, bevelEnabled: false }),
+    [paperMaterial(0x7b2c3a, { kind: "stock", seed: 31 }), paperMaterial(PAPER_CORE, { kind: "cardboard", thick: 0.06 })],
+  );
+  body.position.z = -0.03;
+  const head = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.24, 0.24, 0.06, 18),
+    paperMaterial(0xf3d9bd, { kind: "washi", seed: 32 }),
+  );
+  head.rotation.x = Math.PI / 2;
+  head.position.y = 1.36;
+  const tag = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.16, 0.07), paperMaterial(0xfbf6ea));
+  tag.position.set(0, 0.72, 0.01);
+  // 足元の影（丸い紙）
+  const shadow = new THREE.Mesh(
+    new THREE.CircleGeometry(0.4, 16).rotateX(-Math.PI / 2),
+    new THREE.MeshBasicMaterial({ color: 0x2e2826, transparent: true, opacity: 0.18, depthWrite: false }),
+  );
+  shadow.position.y = 0.02;
+  const fig = new THREE.Group();
+  fig.add(body, head, tag);
+  fig.name = "fig";
+  g.add(fig, shadow);
+  g.scale.setScalar(1.6);
+  g.visible = false;
+  return g;
+}
+
 function centroid(poly: [number, number][]) {
   let x = 0;
   let y = 0;
@@ -82,12 +148,17 @@ export function createVenueMap(
   canvas: HTMLCanvasElement,
   labelLayer: HTMLElement,
   floors: Floor[],
+  routes: Record<string, RouteLeg[]>,
   onSelect: (roomId: string | null) => void,
   hooks: {
     /** カメラの向き（ラジアン、北が 0）が変わったとき。方角の印を回すのに使う */
     onAzimuth?: (rad: number) => void;
     /** 1 本指で触った／ctrl なしでホイールを回したとき（操作方法の案内を出す） */
     onHint?: (kind: "touch" | "wheel") => void;
+    /** 案内の途中で階が変わったとき（フロアのボタンを合わせる） */
+    onFloor?: (id: string) => void;
+    /** 案内が終わったとき */
+    onGuideEnd?: (roomId: string) => void;
   } = {},
 ): VenueMapController {
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -173,6 +244,17 @@ export function createVenueMap(
     group.add(plate);
 
     const walls: THREE.Object3D[] = [];
+    // この階で人形が通る線分（壁に出入口を開けるのに使う）
+    const routeSegs: [number, number, number, number][] = [];
+    for (const legs of Object.values(routes)) {
+      for (const leg of legs) {
+        if (leg.floor !== floor.id) continue;
+        for (let k = 1; k < leg.points.length; k++) {
+          const [p1, p2] = [leg.points[k - 1], leg.points[k]];
+          routeSegs.push([p1[0], p1[1], p2[0], p2[1]]);
+        }
+      }
+    }
     const rooms: BuiltRoom[] = floor.rooms.map((room, ri) => {
       // 用途が決まった部屋は、トラック（醤油・味噌・塩・チャーシュー）の色の紙にして目立たせる
       const track = room.use ? TRACK_COLOR.find(([k]) => room.use!.startsWith(k)) : undefined;
@@ -196,23 +278,39 @@ export function createVenueMap(
         const len = Math.hypot(bx - ax, by - ay);
         // 出入口の外側の辺は開けておく（入れる感じに）
         if (room.kind === "entrance" && i === 0) continue;
-        const wall = new THREE.Mesh(new THREE.BoxGeometry(len + WALL_T, h, WALL_T), [
-          coreMat,
-          coreMat,
-          wallMat,
-          coreMat,
-          wallMat,
-          wallMat,
-        ]);
-        // 起き上がる導入のため、壁は下端を軸にしたグループに入れる
-        const hinge = new THREE.Group();
-        hinge.position.set((ax + bx) / 2, 0, -(ay + by) / 2);
-        hinge.rotation.y = Math.atan2(by - ay, bx - ax);
-        wall.position.y = h / 2;
-        hinge.add(wall);
-        hinge.userData.order = Math.hypot((ax + bx) / 2, (ay + by) / 2);
-        group.add(hinge);
-        walls.push(hinge);
+        // 道順が横切る所に出入口（幅 DOOR）を開け、残りを壁の板にする
+        const cuts = doorCuts(ax, ay, bx, by, routeSegs).sort((p, q) => p - q);
+        let from = 0;
+        const pieces: [number, number][] = [];
+        for (const c of cuts) {
+          if (c - DOOR / 2 > from + 0.05) pieces.push([from, c - DOOR / 2]);
+          from = Math.max(from, c + DOOR / 2);
+        }
+        if (len - from > 0.05) pieces.push([from, len]);
+        const ux = (bx - ax) / len;
+        const uy = (by - ay) / len;
+        for (const [t0, t1] of pieces) {
+          const pl = t1 - t0;
+          const mx = ax + ux * (t0 + t1) * 0.5;
+          const my = ay + uy * (t0 + t1) * 0.5;
+          const wall = new THREE.Mesh(new THREE.BoxGeometry(pl + WALL_T, h, WALL_T), [
+            coreMat,
+            coreMat,
+            wallMat,
+            coreMat,
+            wallMat,
+            wallMat,
+          ]);
+          // 起き上がる導入のため、壁は下端を軸にしたグループに入れる
+          const hinge = new THREE.Group();
+          hinge.position.set(mx, 0, -my);
+          hinge.rotation.y = Math.atan2(by - ay, bx - ax);
+          wall.position.y = h / 2;
+          hinge.add(wall);
+          hinge.userData.order = Math.hypot(mx, my);
+          group.add(hinge);
+          walls.push(hinge);
+        }
       }
 
       // 階段: 段々の紙
@@ -428,6 +526,113 @@ export function createVenueMap(
     });
   }
 
+  // --- 紙の人形の案内 ---
+  const doll = makeDoll();
+  scene.add(doll);
+  const WALK_SPEED = 8; // m/秒（模型なので速め）
+  let walk: {
+    roomId: string;
+    legs: RouteLeg[];
+    leg: number;
+    dist: number;
+    lens: number[];
+    /** 階の切り替え後、この時刻（秒）まで待つ */
+    resumeAt: number;
+    /** 最後に進めたコマ番号（12fps） */
+    lastFrame: number;
+  } | null = null;
+
+  function legLengths(leg: RouteLeg) {
+    const out = [0];
+    for (let k = 1; k < leg.points.length; k++) {
+      const [a, b] = [leg.points[k - 1], leg.points[k]];
+      out.push(out[k - 1] + Math.hypot(b[0] - a[0], b[1] - a[1]));
+    }
+    return out;
+  }
+  /** 道順上の位置 d に人形を置き、進む向きに回す */
+  function placeDoll(leg: RouteLeg, lens: number[], d: number, step: number) {
+    let k = 1;
+    while (k < lens.length - 1 && d > lens[k]) k++;
+    const [a, b] = [leg.points[k - 1], leg.points[k]];
+    const segLen = lens[k] - lens[k - 1] || 1;
+    const u = Math.min(1, Math.max(0, (d - lens[k - 1]) / segLen));
+    const x = a[0] + (b[0] - a[0]) * u;
+    const y = a[1] + (b[1] - a[1]) * u;
+    doll.position.set(x, 0, -y);
+    doll.rotation.y = Math.atan2(b[0] - a[0], -(b[1] - a[1])) - Math.PI / 2;
+    // コマ撮りの歩き: 一歩ごとに少し跳ねて左右に傾く
+    const fig = doll.getObjectByName("fig")!;
+    fig.position.y = step % 2 ? 0.08 : 0;
+    fig.rotation.z = step % 2 ? 0.06 : -0.06;
+  }
+
+  function guide(roomId: string) {
+    const legs = routes[roomId];
+    if (!legs?.length) return false;
+    walk = { roomId, legs, leg: 0, dist: 0, lens: legLengths(legs[0]), resumeAt: 0, lastFrame: -1 };
+    focused = null;
+    if (current?.floor.id !== legs[0].floor) {
+      setFloor(legs[0].floor);
+      hooks.onFloor?.(legs[0].floor);
+    }
+    paintFocus();
+    view = "all";
+    retarget();
+    // 出入口に立たせてから歩き出す（初期位置のまま一瞬見えないように）
+    placeDoll(legs[0], walk.lens, 0, 0);
+    doll.visible = true;
+    if (reduced) {
+      // 動きを減らす設定: 目的の階・部屋に人形を置くだけ
+      const last = legs[legs.length - 1];
+      if (current?.floor.id !== last.floor) {
+        setFloor(last.floor);
+        hooks.onFloor?.(last.floor);
+      }
+      const lens = legLengths(last);
+      placeDoll(last, lens, lens[lens.length - 1], 0);
+      walk = null;
+      focus(roomId);
+      hooks.onGuideEnd?.(roomId);
+    }
+    kick();
+    return true;
+  }
+
+  /** 1 コマ進める。動いていれば true */
+  function stepWalk(now: number) {
+    if (!walk) return false;
+    if (now < walk.resumeAt || introT0 >= 0) return true; // 階が起き上がるのを待つ
+    const leg = walk.legs[walk.leg];
+    const total = walk.lens[walk.lens.length - 1];
+    // 12fps のコマ送りで進む
+    const frame = Math.floor(now * 12);
+    if (frame === walk.lastFrame) return true;
+    walk.lastFrame = frame;
+    walk.dist = Math.min(total, walk.dist + WALK_SPEED / 12);
+    placeDoll(leg, walk.lens, walk.dist, frame);
+    if (walk.dist >= total) {
+      if (walk.leg < walk.legs.length - 1) {
+        // EV で上の階へ: 人形を一度消し、次の階を起き上がらせてから続ける
+        walk.leg++;
+        const next = walk.legs[walk.leg];
+        walk.lens = legLengths(next);
+        walk.dist = 0;
+        setFloor(next.floor);
+        hooks.onFloor?.(next.floor);
+        retarget();
+        placeDoll(next, walk.lens, 0, 0);
+        walk.resumeAt = now + 0.3;
+      } else {
+        const id = walk.roomId;
+        walk = null;
+        focus(id);
+        hooks.onGuideEnd?.(id);
+      }
+    }
+    return true;
+  }
+
   function setFloor(id: string) {
     const next = built.find((b) => b.floor.id === id) ?? built[0];
     for (const b of built) {
@@ -436,6 +641,7 @@ export function createVenueMap(
     }
     current = next;
     focused = null;
+    if (!walk) doll.visible = false;
     for (const r of next.rooms) {
       delete r.label.dataset.w;
       delete r.label.dataset.h;
@@ -570,6 +776,7 @@ export function createVenueMap(
       }
       moving = true;
     }
+    if (stepWalk(t)) moving = true;
     if (camGoal.active) {
       camera.position.lerp(camGoal.pos, 0.09);
       controls.target.lerp(camGoal.target, 0.09);
@@ -621,10 +828,12 @@ export function createVenueMap(
   }
 
   function reset() {
+    walk = null;
+    doll.visible = false;
     focused = null;
     paintFocus();
     retarget();
   }
 
-  return { setFloor, setView, focus, reset, zoomBy, dispose };
+  return { setFloor, setView, focus, reset, zoomBy, guide, dispose };
 }
