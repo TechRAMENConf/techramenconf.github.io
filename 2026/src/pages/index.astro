@@ -1,133 +1,498 @@
 ---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Scene3D from "../components/Scene3D.astro";
+import Hero3D from "../components/Hero3D.astro";
+import Icon from "../components/Icon.astro";
+import Ticket from "../components/Ticket.astro";
+import Concept from "../components/Concept.astro";
+import Shiori from "../components/Shiori.astro";
+import Timetable from "../components/Timetable.astro";
+import Cfp from "../components/Cfp.astro";
+import Guest from "../components/Guest.astro";
+import NoteFeed from "../components/NoteFeed.astro";
+import Staff from "../components/Staff.astro";
+import venue from "../data/venue.json";
+import { FEATURES } from "../data/features";
+import { jp, jpHtml } from "../lib/jp";
+
+// 末尾スラッシュを保証（BASE_URL は環境によりスラッシュ無しのことがある）
+const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+const ics = `${BASE}techramen-2026.ics`;
+const venueMap = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+  `${venue.name} ${venue.address}`,
+)}`;
+
+// Googleカレンダー追加リンク（終日・end exclusive）
+const gcal = (text: string, start: string, end: string) =>
+  `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+    text,
+  )}&dates=${start}/${end}&location=${encodeURIComponent(
+    `${venue.name}（${venue.address}）`,
+  )}&details=${encodeURIComponent("詳細は順次公開 https://techramenconf.net/2026/")}`;
+
+// 検索結果にイベントとして表示されるための構造化データ（schema.org/Event）
+const eventLd = {
+  "@context": "https://schema.org",
+  "@type": "Event",
+  name: "TechRAMEN 2026 Conference",
+  description:
+    "北海道・富良野で開催する、手作りのテックカンファレンス。テーマは「ちゃんとはじめましてしましょう」。",
+  startDate: "2026-11-20",
+  endDate: "2026-11-21",
+  eventStatus: "https://schema.org/EventScheduled",
+  eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+  url: "https://techramenconf.net/2026/",
+  image: ["https://techramenconf.net/2026/og-image.png"],
+  location: {
+    "@type": "Place",
+    name: venue.name,
+    address: {
+      "@type": "PostalAddress",
+      postalCode: venue.postal,
+      addressRegion: "北海道",
+      addressLocality: "富良野市",
+      streetAddress: "本町2番27号",
+      addressCountry: "JP",
+    },
+    geo: { "@type": "GeoCoordinates", latitude: venue.lat, longitude: venue.lng },
+  },
+  organizer: { "@type": "Organization", name: "TechRAMEN Conference", url: "https://techramenconf.net/" },
+};
+
+const gcalPre = gcal("TechRAMEN 2026 (pre event)", "20261120", "20261121");
+const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
+
 ---
 
-<html lang="ja">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>TechRAMEN 2026 Conference</title>
-    <style>
-      body {
-        padding: 2rem;
-        font-family: monospace;
-      }
-      h1 {
-        font-size: 2em;
-        font-weight: bold;
-        margin-bottom: 1.5em;
-        cursor: default;
-        display: inline-block;
-      }
-      dl {
-        display: grid;
-        grid-template-columns: max-content max-content auto;
-        gap: 0.5em 0;
-        align-items: baseline;
-      }
-      dt {
-        text-align: right;
-        color: #555;
-        cursor: default;
-      }
-      .sep {
-        padding: 0 0.5em;
-        color: #999;
-        user-select: none;
-      }
-      dd {
-        margin: 0;
-        cursor: default;
-      }
-      .links {
-        margin-top: 2rem;
-        display: flex;
-        gap: 1rem;
-      }
-      a {
-        color: #0066cc;
-        text-decoration: underline;
-      }
-      a:hover {
-        color: #0052a3;
-      }
-    </style>
-  </head>
-  <body>
-    <h1 class="scramble">TechRAMEN 2026 Conference</h1>
+<BaseLayout jsonLd={eventLd}>
+  <Scene3D />
+  <a class="skip" href="#main">本文へスキップ</a>
+  <Shiori />
+  <main id="main">
+  <Hero3D />
 
-    <dl>
-      <dt class="scramble">pre event</dt>
-      <span class="sep">:</span>
-      <dd class="scramble">20, November, 2026</dd>
+  <!-- ============ コンセプト ============ -->
+  <Concept />
 
-      <dt class="scramble">main event</dt>
-      <span class="sep">:</span>
-      <dd class="scramble">21, November, 2026</dd>
+  <!-- ============ 日程・会場 + カレンダー ============ -->
+  <section id="dates" class="section" data-beat="dates">
+    <div class="wrap sheet reveal">
+      <p class="eyebrow">日程と会場、行き方</p>
+      <h2 class="section-title">
+        <span class="underline-wobble jp" set:html={jp("寒い富良野で、あったかい二日間。")} />
+      </h2>
 
-      <dt class="scramble">location</dt>
-      <span class="sep">:</span>
-      <dd class="scramble">Furano, Hokkaido, Japan</dd>
+      <Ticket ics={ics} gcalPre={gcalPre} gcalMain={gcalMain} />
 
-      <dt class="scramble">details</dt>
-      <span class="sep">:</span>
-      <dd class="scramble">coming soon...</dd>
-    </dl>
+      <!-- 会場と行き方（しおりの「会場」はここ） -->
+      <div id="access" class="access" data-beat="access">
+        <div class="card venue">
+          <span class="tape-strip" aria-hidden="true"></span>
+          <p class="venue__tag hand">会場</p>
+          <p class="venue__name">{venue.name}</p>
+          <p class="venue__addr">
+            〒{venue.postal}<br /><span class="nowrap">{venue.address}</span><br />{venue.walk}
+          </p>
+          <div class="venue__btns">
+            {FEATURES.venueMap && <a class="btn venue__map" href={`${BASE}venue/`}>会場マップをみる</a>}
+            <a class="btn btn--ghost venue__map" href={venueMap} target="_blank" rel="noopener">
+              地図アプリで開く
+            </a>
+          </div>
+        </div>
 
-    <div class="links">
-      <a href="../2024/">2024</a>
-      <a href="../2025/">2025</a>
+        <h3 class="access__title hand jp" set:html={"富良野は、ちょっと遠い。" + "<wbr>" + "早めの計画を。"} />
+        <ul class="access-list">
+          <li>
+            <span class="access__icon" aria-hidden="true"><Icon name="plane" /></span>
+            <p set:html={jpHtml("<b>飛行機</b>旭川空港から車で約60分。新千歳空港からは約2.5〜3時間。")} />
+          </li>
+          <li>
+            <span class="access__icon" aria-hidden="true"><Icon name="train" /></span>
+            <p set:html={jpHtml("<b>鉄道</b>JR「富良野駅」下車、会場まで徒歩約4分。旭川・札幌から特急＋普通。")} />
+          </li>
+          <li>
+            <span class="access__icon" aria-hidden="true"><Icon name="house" /></span>
+            <p set:html={jpHtml("<b>おやど</b>期間中は埋まりやすいので、早めの予約がおすすめです。")} />
+          </li>
+        </ul>
+      </div>
     </div>
+  </section>
 
-    <script>
-      import { animate } from 'animejs';
+  <!-- ============ CfP（登壇者募集）・ゲスト ============ -->
+  <Cfp />
+  <Guest />
 
-      const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*?';
 
-      function randomChar() {
-        return CHARS[Math.floor(Math.random() * CHARS.length)];
-      }
+  <!-- ============ 富良野 観光・モデル旅程（別ページへ誘導） ============ -->
+  <section id="travel" class="section" data-beat="travel">
+    <div class="wrap sheet reveal">
+      <p class="eyebrow" style="view-transition-name: travel-eyebrow">来たついでに、</p>
+      <h2
+        class="section-title jp"
+        style="view-transition-name: travel-title"
+        set:html={"富良野を、<br class=\"sp\" />もう一日。"}
+      />
+      <p
+        class="lead jp"
+        set:html={jp(
+          "11月の富良野でほんとうに行けるおすすめスポットと、カンファレンスに合わせたモデル旅程・地図をまとめました。",
+        )}
+      />
+      <a class="btn" href={`${BASE}travel/`}>観光・モデル旅程をみる</a>
 
-      document.querySelectorAll<HTMLElement>('.scramble').forEach(el => {
-        const original = el.textContent ?? '';
-        let anim: ReturnType<typeof animate> | null = null;
+      <!-- 切り絵のポストカード（装飾。写真が用意できたら差し替え） -->
+      <div class="cards" aria-hidden="true">
+        <figure class="postcard postcard--wine">
+          <svg viewBox="0 0 160 110">
+            <rect width="160" height="110" fill="#e9d6b4" />
+            <path d="M0 78 Q40 60 80 72 T160 66 V110 H0Z" fill="#7a934a" />
+            <path d="M0 92 Q50 80 100 90 T160 86 V110 H0Z" fill="#5b2a4e" />
+            <rect x="62" y="22" width="14" height="52" rx="4" fill="#5b2a4e" />
+            <rect x="66" y="12" width="6" height="14" fill="#5b2a4e" />
+            <path d="M92 40 h20 q0 16 -10 18 q-10 -2 -10 -18z" fill="#f6efe2" />
+            <path d="M93 46 h18 q-1 10 -9 11 q-8 -1 -9 -11z" fill="#7b2c3a" />
+            <rect x="101" y="57" width="2" height="14" fill="#f6efe2" />
+          </svg>
+          <figcaption class="hand">ワイン</figcaption>
+        </figure>
+        <figure class="postcard postcard--pond">
+          <svg viewBox="0 0 160 110">
+            <rect width="160" height="110" fill="#d7e3ea" />
+            <path d="M0 70 L30 40 L52 62 L80 30 L112 64 L134 46 L160 66 V110 H0Z" fill="#f3ece0" />
+            <ellipse cx="80" cy="88" rx="70" ry="16" fill="#3fa7c4" />
+            <path d="M44 88 V64 M60 90 V58 M100 89 V60 M116 88 V66" stroke="#8a6b4f" stroke-width="3" />
+          </svg>
+          <figcaption class="hand">青い池</figcaption>
+        </figure>
+        <figure class="postcard postcard--onsen">
+          <svg viewBox="0 0 160 110">
+            <rect width="160" height="110" fill="#ece2cf" />
+            <path d="M0 60 L40 30 L70 52 L100 24 L160 58 V110 H0Z" fill="#f3ece0" />
+            <ellipse cx="80" cy="86" rx="58" ry="14" fill="#b5733a" opacity="0.35" />
+            <ellipse cx="80" cy="84" rx="52" ry="11" fill="#9fc4cf" />
+            <path d="M62 70 q-6 -8 0 -16 q6 -8 0 -16 M80 68 q-6 -8 0 -16 q6 -8 0 -16 M98 70 q-6 -8 0 -16 q6 -8 0 -16" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" />
+          </svg>
+          <figcaption class="hand">温泉</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
 
-        el.addEventListener('mouseenter', () => {
-          if (anim) anim.cancel();
-          const obj = { progress: 0 };
-          anim = animate(obj, {
-            progress: 1,
-            duration: 800,
-            ease: 'outQuad',
-            onUpdate: () => {
-              const len = original.length;
-              const revealed = Math.floor(obj.progress * len);
-              let result = '';
-              for (let i = 0; i < len; i++) {
-                if (original[i] === ' ') {
-                  result += ' ';
-                } else if (i < revealed) {
-                  result += original[i];
-                } else {
-                  result += randomChar();
-                }
-              }
-              el.textContent = result;
-            },
-            onComplete: () => {
-              el.textContent = original;
-              anim = null;
-            },
-          });
-        });
+  <!-- ============ 公開ロードマップ ============ -->
+  <section id="roadmap" class="section" data-beat="roadmap">
+    <div class="wrap sheet reveal">
+      <p class="eyebrow">これから出ます</p>
+      <h2 class="section-title">公開ロードマップ</h2>
 
-        el.addEventListener('mouseleave', () => {
-          if (anim) {
-            anim.cancel();
-            anim = null;
+      <Timetable />
+    </div>
+  </section>
+
+  <!-- ============ お知らせ（公式 note） ============ -->
+  <NoteFeed />
+
+  <!-- ============ スタッフ（fortee で公開されると表示） ============ -->
+  {FEATURES.staff && <Staff />}
+
+
+  </main>
+
+  <footer class="foot" data-beat="past">
+    <div class="wrap">
+      <p class="foot__logo hand">TechRAMEN 2026 Conference</p>
+      <p class="foot__copy">富良野・北海道 ／ 2026.11.20–21</p>
+      <ul class="foot__links">
+        <li><a href="https://note.com/techramenconf/m/m0938ea0596c0" target="_blank" rel="noopener">公式 note</a></li>
+        <li><a href="https://x.com/techramenconf" target="_blank" rel="noopener">X @techramenconf</a></li>
+        <li><a href="mailto:techramenconf@gmail.com">お問い合わせ</a></li>
+      </ul>
+      <p class="foot__past-h hand">これまでの TechRAMEN</p>
+      <ul class="foot__links foot__links--past">
+        <li><a href="../2025/">2025<small>旭川</small></a></li>
+        <li><a href="../2024/">2024<small>旭川</small></a></li>
+      </ul>
+      <p class="foot__small">© TechRAMEN Conference</p>
+    </div>
+  </footer>
+</BaseLayout>
+
+<style>
+  /* 会場と行き方（日程のシート内） */
+  .access {
+    margin-top: 2.6rem;
+    scroll-margin-top: 1.5rem;
+  }
+  .access__title {
+    margin: 2rem 0 0.6rem;
+    font-size: clamp(1.4rem, 4.5vw, 1.8rem);
+    color: var(--wine);
+  }
+  .access-list {
+    display: grid;
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .access-list li {
+    display: grid;
+    grid-template-columns: 2.2rem 1fr;
+    align-items: start;
+    gap: 0.6rem;
+  }
+  .access-list p {
+    margin: 0;
+  }
+  /* 見出し語は 1 行目に単独で、説明は 2 行目から（スマホで途中改行が詰まらないように） */
+  .access-list :global(b) {
+    display: block;
+    color: var(--grape);
+  }
+  .access__icon {
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    background: var(--paper-card);
+    color: var(--wine);
+    font-size: 1.15rem;
+  }
+  @media (min-width: 900px) {
+    .access-list {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.2rem;
+    }
+  }
+
+  /* 会場 */
+  .venue {
+    display: grid;
+    gap: 0.25rem 1.5rem;
+    margin-top: 0;
+    padding-top: 1.6rem;
+  }
+  .venue p {
+    margin: 0;
+  }
+  .venue__tag {
+    font-size: 1.4rem;
+    color: var(--wine);
+  }
+  .venue__name {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+    font-weight: 700;
+    color: var(--grape);
+  }
+  .venue__addr {
+    color: var(--ink-soft);
+  }
+  .nowrap {
+    white-space: nowrap;
+  }
+  .venue__btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    justify-self: start;
+    margin-top: 0.8rem;
+  }
+  @media (min-width: 720px) {
+    .venue {
+      grid-template-columns: 1fr auto;
+      align-items: end;
+    }
+    .venue__tag,
+    .venue__name,
+    .venue__addr {
+      grid-column: 1;
+    }
+    .venue__btns {
+      grid-column: 2;
+      grid-row: 1 / 4;
+      flex-direction: column;
+      align-self: center;
+      margin-top: 0;
+    }
+  }
+
+  /* 観光への導線: 重ねたポストカード */
+  #travel .sheet {
+    display: grid;
+    align-items: center;
+    column-gap: 2rem;
+  }
+  #travel .sheet > :not(.cards) {
+    grid-column: 1;
+    justify-self: start;
+  }
+  .cards {
+    position: relative;
+    width: min(100%, 19rem);
+    height: 11rem;
+    margin-top: 2rem;
+  }
+  @media (min-width: 900px) {
+    #travel .sheet {
+      grid-template-columns: 1fr 17rem;
+    }
+    #travel .section-title {
+      white-space: nowrap;
+    }
+    .cards {
+      grid-column: 2;
+      grid-row: 1 / span 4;
+      width: 100%;
+      margin-top: 0;
+      height: 13rem;
+    }
+  }
+  .postcard {
+    position: absolute;
+    width: 47%;
+    margin: 0;
+    padding: 0.5rem 0.5rem 0.2rem;
+    background: var(--paper-card);
+    border-radius: 3px;
+    box-shadow: 0 10px 18px -10px rgba(46, 40, 38, 0.55);
+    transition: translate 0.25s var(--ease-settle, ease), rotate 0.25s var(--ease-settle, ease);
+  }
+  .postcard svg {
+    display: block;
+    width: 100%;
+    border-radius: 2px;
+  }
+  .postcard figcaption {
+    padding: 0.2rem 0.2rem 0.3rem;
+    font-size: 1.15rem;
+    color: var(--grape);
+  }
+  /* 扇状に重ねる。後ろのカードも左側（キャプション）が見えるよう 26% ずつずらす */
+  .postcard--wine {
+    left: 0;
+    top: 1.4rem;
+    rotate: -8deg;
+  }
+  .postcard--pond {
+    left: 26%;
+    top: 0.2rem;
+    rotate: 2deg;
+    z-index: 1;
+  }
+  .postcard--onsen {
+    left: 52%;
+    top: 1.8rem;
+    rotate: 10deg;
+    z-index: 2;
+  }
+  /* セクションに触れると、カードが少し広がる */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    #travel .sheet:hover .postcard--wine {
+      translate: -10px -6px;
+      rotate: -11deg;
+    }
+    #travel .sheet:hover .postcard--onsen {
+      translate: 10px -4px;
+      rotate: 13deg;
+    }
+    #travel .sheet:hover .postcard--pond {
+      translate: 0 -8px;
+    }
+  }
+
+  /* フッター */
+  .foot {
+    position: relative;
+    background: var(--grape);
+    color: var(--paper);
+    padding-block: 2.5rem;
+    text-align: center;
+  }
+  /* フッター上端を波形に（グレープ色が波打って立ち上がる） */
+  .foot::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -27px;
+    height: 28px;
+    background: repeat-x left bottom / 200px 28px
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='28'%3E%3Cpath d='M0 14 C 25 4 75 4 100 14 C 125 24 175 24 200 14 L200 28 L0 28 Z' fill='%235b2a4e'/%3E%3C/svg%3E");
+  }
+  .foot__logo {
+    font-size: 1.8rem;
+    margin: 0 0 0.2rem;
+    color: var(--paper-card);
+  }
+  .foot__copy {
+    margin: 0 0 1rem;
+  }
+  .foot__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem 1.4rem;
+    margin: 0 0 1.2rem;
+    padding: 0;
+    list-style: none;
+  }
+  /* タップしやすいよう高さ 44px 以上の札に */
+  .foot__links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    min-height: 44px;
+    padding: 0 0.9rem;
+    border: 1.5px solid rgba(243, 232, 216, 0.4);
+    border-radius: 8px;
+    color: var(--paper-card);
+    font-weight: 700;
+    text-decoration-color: var(--gold);
+    text-decoration-thickness: 2px;
+  }
+  .foot__links a small {
+    font-size: 0.75rem;
+    opacity: 0.8;
+  }
+  .foot__past-h {
+    margin: 0 0 0.4rem;
+    font-size: 1.2rem;
+    color: var(--gold);
+  }
+  .foot__links a:hover {
+    background: rgba(243, 232, 216, 0.12);
+  }
+  .foot__links a:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 3px;
+  }
+  .foot__small {
+    margin: 0;
+    opacity: 0.7;
+    font-size: 0.85rem;
+  }
+</style>
+
+<script>
+  // 控えめなスクロール表示（デコラティブ・PE / reduced-motionはCSS側で無効化）
+  const els = document.querySelectorAll<HTMLElement>(".reveal");
+  if (els.length && !("IntersectionObserver" in window)) {
+    // IO非対応なら即表示（内容を隠さない）
+    els.forEach((el) => el.classList.add("is-in"));
+  } else if (els.length) {
+    const io = new IntersectionObserver(
+      (entries, obs) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            e.target.classList.add("is-in");
+            obs.unobserve(e.target);
           }
-          el.textContent = original;
-        });
-      });
-    </script>
-  </body>
-</html>
+        }
+      },
+      { threshold: 0.12 },
+    );
+    els.forEach((el) => io.observe(el));
+  }
+</script>

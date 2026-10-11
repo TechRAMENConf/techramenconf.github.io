@@ -1,0 +1,214 @@
+---
+// ヒーロー: 情報を即表示（3Dは Scene3D が固定背景で担当）
+import Icon from "./Icon.astro";
+import Logo from "./Logo.astro";
+import cfp from "../data/cfp.json";
+import { dotDate } from "../lib/jp";
+
+// 「いま」いちばん伝えたいこと（CfP）を荷札で出す。締切後は出さない
+const tag =
+  cfp.status === "open"
+    ? { head: "登壇者募集中", sub: cfp.deadline ? `〜${dotDate(cfp.deadline).slice(5)} まで` : "応募受付中" }
+    : cfp.status === "soon"
+      ? { head: "登壇者募集", sub: "まもなく開始" }
+      : null;
+---
+
+<section class="hero" aria-label="TechRAMEN 2026 Conference" data-beat="hero">
+  <div class="hero__content wrap">
+    {
+      tag && (
+        <a class:list={["hero__tag torn swing", cfp.status === "open" && "hero__tag--open"]} href="#cfp">
+          <span class="hero__tag-string" aria-hidden="true" />
+          <span class="hero__tag-head">{tag.head}</span>
+          <span class="hero__tag-sub hand">{tag.sub} →</span>
+        </a>
+      )
+    }
+    <h1 class="hero__logo">
+      <Logo />
+    </h1>
+    <p class="hero__facts">
+      <span class="hero__fact"><b>2026.11.20–21</b><small>pre &amp; main</small></span>
+      <span class="hero__sep" aria-hidden="true">/</span>
+      <span class="hero__fact"><b>富良野</b><small>北海道</small></span>
+    </p>
+    <div class="hero__cta">
+      <a class="btn" href="#dates">日程と会場</a>
+      {
+        cfp.status === "open" ? (
+          <a class="btn btn--ghost" href="#cfp">登壇者を募集中</a>
+        ) : (
+          <a class="btn btn--ghost" href="#concept">今年のテーマ</a>
+        )
+      }
+    </div>
+  </div>
+
+  <a class="hero__scroll hand" href="#dates" aria-label="下へスクロール">
+    <span aria-hidden="true">scroll</span>
+    <Icon name="chevron-down" size="1.1em" />
+  </a>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    align-items: end;
+    /* 背景は Scene3D（固定）が担当。ここは透過 */
+  }
+
+  /* 下部スクリム: 3Dの上でも情報が読めるよう、ほんのり紙を敷く（下ほど濃く・でも透ける） */
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      transparent 44%,
+      rgba(243, 232, 216, 0.35) 70%,
+      rgba(243, 232, 216, 0.62) 100%
+    );
+  }
+
+  .hero__content {
+    position: relative;
+    z-index: 2;
+    padding-bottom: clamp(4rem, 12vh, 8rem);
+    padding-top: 6rem;
+  }
+
+  /* 荷札: 紐で吊られた紙札。CfP の「いま」を一番上に */
+  .hero__tag {
+    display: inline-grid;
+    gap: 0.1rem;
+    margin: 0 0 1.6rem 1.6rem;
+    padding: 0.6rem 1.2rem 0.65rem 2.2rem;
+    --torn-bg: var(--paper-card);
+    color: var(--ink);
+    text-decoration: none;
+    line-height: 1.25;
+    transform: rotate(-4deg);
+    transform-origin: left center;
+    transition: transform 0.2s ease;
+  }
+  /* 紐を通す穴（金のハトメ） */
+  .hero__tag::before {
+    content: "";
+    position: absolute;
+    left: 0.8rem;
+    top: 50%;
+    z-index: 1;
+    width: 0.6rem;
+    height: 0.6rem;
+    border: 2px solid var(--ink-soft);
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px var(--gold);
+    transform: translateY(-50%);
+  }
+  /* 穴から垂れる紐 */
+  .hero__tag-string {
+    position: absolute;
+    left: -1.4rem;
+    top: calc(50% - 1px);
+    width: 2.5rem;
+    height: 2px;
+    background: var(--gold);
+    transform: rotate(-18deg);
+    transform-origin: right center;
+  }
+  .hero__tag:hover {
+    transform: rotate(-1deg);
+  }
+  .hero__tag-head {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--grape);
+  }
+  .hero__tag-sub {
+    font-size: 1.15rem;
+    color: var(--wine);
+  }
+  .hero__tag--open {
+    --torn-bg: var(--gold);
+  }
+  .hero__tag--open .hero__tag-head {
+    color: var(--ink);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero__tag {
+      transition: none;
+    }
+  }
+
+  /* ロゴ・日付・ボタンの箱を中身の幅に。右側の空き（3D の丼）を突けるようにする */
+  .hero__logo,
+  .hero__facts,
+  .hero__cta {
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  /* 切り絵のロゴ（SVG）。画面幅に合わせて大きく */
+  .hero__logo {
+    width: min(100%, 46rem);
+    margin: 0 0 1.4rem -0.2rem;
+  }
+
+  .hero__facts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4em 0.9em;
+    margin: 0 0 1.6rem;
+    font-size: clamp(1rem, 3vw, 1.2rem);
+  }
+  .hero__fact {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4em;
+  }
+  .hero__fact b {
+    font-weight: 700;
+  }
+  .hero__fact small {
+    font-size: 0.7em;
+    color: var(--ink-soft);
+    font-family: var(--font-hand);
+    font-weight: 700;
+  }
+  .hero__sep {
+    color: var(--wine);
+    font-weight: 700;
+  }
+
+  .hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+  }
+
+  .hero__scroll {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.1em;
+    min-width: 48px;
+    min-height: 48px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+</style>

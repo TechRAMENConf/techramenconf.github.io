@@ -1,0 +1,205 @@
+---
+// スタッフ一覧（2025 と同じく fortee のスタッフ API からビルド時に取得）。
+// 取得できない（イベントが非公開・未設定など）か 0 人のときは、セクションごと出さない。
+// fortee で公開されると、次のデプロイから自動で表示される。
+const FORTEE_EVENT = "techramen-26-conf";
+
+interface Staff {
+  name: string;
+  link_url: string;
+  avatar_url: string;
+  type: string;
+}
+
+let staff: Staff[] = [];
+try {
+  const res = await fetch(`https://fortee.jp/${FORTEE_EVENT}/api/staff/v1`, {
+    signal: AbortSignal.timeout(8000),
+  });
+  if (res.ok) {
+    const data = await res.json();
+    staff = ((data.staff ?? []) as Staff[]).filter((s) => s.name && s.name.trim() !== "");
+  }
+} catch (err) {
+  console.warn("[Staff] fortee のスタッフを取得できませんでした（セクションは出しません）", err);
+}
+
+// 区分ごとにまとめる。既知の区分はこの順、それ以外は fortee の並びのまま後ろに
+const KNOWN = ["コアスタッフ", "サポートスタッフ", "当日スタッフ"];
+const groups = [...new Set([...KNOWN, ...staff.map((s) => s.type)])]
+  .map((type) => ({
+    type,
+    // 序列をつけないよう、区分の中はランダムに（ビルドのたびに変わる）
+    members: staff.filter((s) => s.type === type).sort(() => Math.random() - 0.5),
+  }))
+  .filter((g) => g.members.length > 0);
+
+const BAND: Record<string, string> = {
+  コアスタッフ: "var(--wine)",
+  サポートスタッフ: "var(--grape)",
+  当日スタッフ: "#4f6a29",
+};
+---
+
+{
+  groups.length > 0 && (
+    <section id="staff" class="section">
+      <div class="wrap sheet reveal">
+        <p class="eyebrow">つくっている人たち</p>
+        <h2 class="section-title">スタッフ</h2>
+
+        {groups.map((g) => (
+          <div class="staff">
+            <h3 class="staff__h hand">
+              {g.type}
+              <small>{g.members.length} 人</small>
+            </h3>
+            <ul class="staff__list" style={`--band: ${BAND[g.type] ?? "var(--ink-soft)"}`}>
+              {g.members.map((s) => {
+                const Tag = s.link_url ? "a" : "div";
+                return (
+                  <li>
+                    <Tag
+                      class="tag"
+                      {...(s.link_url ? { href: s.link_url, target: "_blank", rel: "noopener" } : {})}
+                    >
+                      <span class="tag__band" aria-hidden="true">
+                        HELLO
+                      </span>
+                      {s.avatar_url && s.avatar_url.trim() !== "" ? (
+                        <img
+                          class="tag__face"
+                          src={s.avatar_url}
+                          alt=""
+                          width="64"
+                          height="64"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      ) : (
+                        <span class="tag__face tag__face--none" aria-hidden="true">
+                          ?
+                        </span>
+                      )}
+                      <span class="tag__name">{s.name}</span>
+                    </Tag>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .staff + .staff {
+    margin-top: 1.8rem;
+  }
+  .staff__h {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin: 1.6rem 0 0.8rem;
+    font-size: 1.5rem;
+    color: var(--wine);
+  }
+  .staff__h small {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
+  .staff__list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.9rem 0.6rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* 小さな HELLO 名札。上の帯の色で区分が分かる */
+  .tag {
+    display: grid;
+    justify-items: center;
+    gap: 0.35rem;
+    height: 100%;
+    padding-bottom: 0.6rem;
+    overflow: hidden;
+    border-radius: 10px;
+    background: var(--paper-card);
+    box-shadow: 0 6px 10px -6px rgba(46, 40, 38, 0.5);
+    color: var(--ink);
+    text-decoration: none;
+    transition: translate 0.15s ease, rotate 0.15s ease;
+  }
+  li:nth-child(3n + 1) .tag {
+    rotate: -1.5deg;
+  }
+  li:nth-child(3n + 2) .tag {
+    rotate: 1deg;
+  }
+  a.tag:hover {
+    translate: 0 -3px;
+    rotate: 0deg;
+  }
+  a.tag:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 3px;
+  }
+  .tag__band {
+    justify-self: stretch;
+    padding: 0.2rem 0;
+    background: var(--band);
+    color: var(--paper-card);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-align: center;
+  }
+  .tag__face {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--paper-deep);
+  }
+  .tag__face--none {
+    display: grid;
+    place-items: center;
+    font-family: var(--font-hand);
+    font-size: 2rem;
+    color: var(--ink-soft);
+  }
+  /* 名札に手で書いた名前 */
+  .tag__name {
+    padding: 0 0.4rem;
+    font-family: "Yomogi", var(--font-hand);
+    font-size: 0.95rem;
+    line-height: 1.3;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+  @media (min-width: 640px) {
+    .staff__list {
+      grid-template-columns: repeat(auto-fill, minmax(7.2rem, 1fr));
+    }
+  }
+  /* スマホは 3 列で収まるよう名札を小さく */
+  @media (max-width: 639px) {
+    .tag__face {
+      width: 52px;
+      height: 52px;
+    }
+    .tag__name {
+      font-size: 0.82rem;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tag {
+      transition: none;
+    }
+  }
+</style>

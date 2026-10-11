@@ -1,0 +1,769 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import venue from "../data/venue.json";
+import { FLOORS } from "../data/venueFloors";
+import { jp } from "../lib/jp";
+import { FEATURES } from "../data/features";
+
+const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+// 一覧に出す部屋（関係者のみ・廊下は除く）。主役の部屋を先に、階段・トイレ・出入口は後ろに
+const ORDER = { room: 0, hall: 0, entrance: 1, stairs: 2, wc: 2, staff: 9 } as const;
+const listed = (f: (typeof FLOORS)[number]) =>
+  f.rooms
+    .filter((r) => r.kind !== "staff" && !r.id.startsWith("corridor"))
+    .sort((a, b) => (a.use ? -1 : 0) - (b.use ? -1 : 0) || ORDER[a.kind] - ORDER[b.kind]);
+
+const LEGEND = [
+  { label: "部屋・ホール", color: "#f1e4c8" },
+  { label: "出入口", color: "#d9e2bf" },
+  { label: "階段・EV", color: "#d7e3ea" },
+  { label: "トイレ", color: "#e4e0d8" },
+  { label: "関係者のみ", color: "#c9c2b4" },
+];
+---
+
+<BaseLayout
+  title="会場マップ — TechRAMEN 2026 Conference"
+  description={`${venue.name}（${venue.address}）の会場マップ。`}
+  noindex={!FEATURES.venueMap}
+>
+  <main class="vp">
+    <div class="wrap vp__head">
+      <a class="back hand" href={`${BASE}#access`}>← TechRAMEN 2026 へ戻る</a>
+      <h1 class="section-title vp__title">会場マップ</h1>
+      <p class="vp__venue jp">
+        <b>{venue.name}</b><span>{venue.address}・{venue.walk}</span>
+      </p>
+    </div>
+
+    <div class="vm-wrap">
+      <!-- 地図（操作ボタンは地図の中に重ねる） -->
+      <div class="vm" aria-label="会場の 3D マップ">
+        <canvas class="vm__canvas" aria-hidden="true"></canvas>
+        <div class="vm__labels"></div>
+
+        <div class="vm-floors" role="tablist" aria-label="フロア">
+          {
+            FLOORS.map((f, i) => (
+              <button
+                type="button"
+                class="vm-floor torn"
+                role="tab"
+                aria-selected={i === 0 ? "true" : "false"}
+                data-floor={f.id}
+              >
+                <span class="vm-floor__label">{f.label}</span>
+                <span class="vm-floor__sub">{f.sub}</span>
+              </button>
+            ))
+          }
+        </div>
+
+        <div class="vm-tools">
+          <span class="vm-compass" aria-hidden="true" title="北">
+            <svg viewBox="0 0 40 40"
+              ><path d="M20 4 L26 21 H14 Z" fill="#7b2c3a"></path><path d="M20 36 L14 21 H26 Z" fill="#c9c2b4"
+              ></path></svg
+            >
+            <b>N</b>
+          </span>
+          <button type="button" class="vm-tool" data-zoom="0.8" aria-label="拡大">＋</button>
+          <button type="button" class="vm-tool" data-zoom="1.25" aria-label="縮小">−</button>
+          <button type="button" class="vm-tool vm-tool--text" data-view="top" aria-pressed="false">真上</button>
+          <button type="button" class="vm-tool vm-tool--text vm-reset" aria-label="選択を解除して元の向きに戻す"
+            >戻す</button
+          >
+        </div>
+
+        <p class="vm__hint" data-hint aria-live="polite" hidden></p>
+        <p class="vm__info" data-info aria-live="polite" hidden></p>
+
+        <!-- スマホ: 部屋の札を地図の下端に横並び（選んだ結果が地図で同時に見える） -->
+        {
+          FLOORS.map((f, i) => (
+            <ul class="vm-strip" data-rooms={f.id} hidden={i !== 0} aria-label={`${f.label} の部屋`}>
+              {listed(f).map((r) => (
+                <li>
+                  <button type="button" class:list={["vm-room", `vm-room--${r.kind}`]} data-room={r.id}>
+                    {r.use ?? r.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ))
+        }
+      </div>
+
+      <!-- PC: 右のパネル（部屋一覧・凡例）。スマホでは凡例だけ地図の下に -->
+      <aside class="vm-panel">
+        {
+          FLOORS.map((f, i) => (
+            <div class="vm-panel__floor" data-rooms={f.id} hidden={i !== 0}>
+              <h2 class="vm-panel__h hand">
+                {f.label}
+                <small>{f.sub}</small>
+              </h2>
+              {f.note && <p class="vm-panel__note">{f.note}</p>}
+              <ul class="vm-list">
+                {listed(f).map((r) => (
+                  <li>
+                    <button type="button" class:list={["vm-room", `vm-room--${r.kind}`]} data-room={r.id}>
+                      {r.use ? (
+                        <>
+                          <b>{r.use}</b>
+                          <small>
+                            {r.name}
+                            {r.detail && `・${r.detail}`}
+                          </small>
+                        </>
+                      ) : (
+                        r.name
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+
+        <h2 class="vm-panel__h vm-panel__h--legend hand">見かた</h2>
+        <ul class="vm-legend">
+          {
+            LEGEND.map((l) => (
+              <li>
+                <span class="vm-legend__chip" style={`--chip:${l.color}`} aria-hidden="true" />
+                {l.label}
+              </li>
+            ))
+          }
+          <li>
+            <span class="vm-legend__steps" aria-hidden="true"><i></i><i></i><i></i></span>
+            入口から EV・階段への道順
+          </li>
+        </ul>
+        <p class="vm-panel__ops">
+          <span class="vm-ops--touch">2 本指で回す・拡大</span>
+          <span class="vm-ops--mouse">ドラッグで回す／ctrl＋スクロールで拡大</span>
+        </p>
+        <p
+          class="vm-panel__note jp"
+          set:html={jp("※ 図面をもとにした模式図です。どの部屋で何をするかは、決まり次第ここに載せます。")}
+        />
+      </aside>
+    </div>
+
+    <div class="wrap">
+      <a class="back hand back--bottom" href={`${BASE}#access`}>← TechRAMEN 2026 へ戻る</a>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .vp {
+    padding-block: clamp(1.2rem, 4vw, 2.6rem) 4rem;
+  }
+  .back {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: 1.15rem;
+    color: var(--wine);
+    text-decoration: none;
+  }
+  .back--bottom {
+    margin-top: 1.6rem;
+  }
+  .vp__title {
+    margin: 0.2rem 0 0.3rem;
+    font-size: clamp(1.8rem, 6vw, 2.8rem);
+  }
+  .vp__venue {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 0.8rem;
+    margin: 0 0 1rem;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+  }
+  .vp__venue b {
+    color: var(--grape);
+  }
+
+  /* ---------- 地図とパネル ---------- */
+  .vm-wrap {
+    display: grid;
+    border-block: 3px solid var(--ink);
+  }
+  @media (min-width: 960px) {
+    .vm-wrap {
+      grid-template-columns: 1fr 21rem;
+    }
+  }
+
+  /* 方眼の入った机の上に模型を置いた感じ */
+  .vm {
+    position: relative;
+    height: min(78svh, 720px);
+    min-height: 440px;
+    overflow: hidden;
+    background-color: #e6dcc6;
+    background-image:
+      linear-gradient(rgba(110, 139, 61, 0.12) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(110, 139, 61, 0.12) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .vm__canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+  }
+  .vm__canvas:active {
+    cursor: grabbing;
+  }
+  .vm__labels {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .vm--fallback .vm__canvas,
+  .vm--fallback .vm-tools {
+    display: none;
+  }
+
+  /* フロア切替（左上） */
+  .vm-floors {
+    position: absolute;
+    top: 0.8rem;
+    left: 0.8rem;
+    z-index: 2;
+    display: flex;
+    gap: 0.5rem;
+  }
+  .vm-floor {
+    display: grid;
+    justify-items: start;
+    min-height: 44px;
+    padding: 0.3rem 0.9rem 0.35rem;
+    border: 0;
+    background: none;
+    color: var(--ink-soft);
+    cursor: pointer;
+    --torn-bg: var(--paper-card);
+    line-height: 1.1;
+  }
+  .vm-floor__label {
+    font-family: var(--font-hand);
+    font-weight: 700;
+    font-size: 1.45rem;
+  }
+  .vm-floor__sub {
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+  .vm-floor[aria-selected="true"] {
+    --torn-bg: var(--gold);
+    color: var(--ink);
+  }
+
+  /* 道具（右上） */
+  .vm-tools {
+    position: absolute;
+    top: 0.8rem;
+    right: 0.8rem;
+    z-index: 2;
+    display: grid;
+    gap: 0.4rem;
+    justify-items: end;
+  }
+  .vm-compass {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--paper-card);
+    box-shadow: 0 3px 6px -3px rgba(46, 40, 38, 0.45);
+    transform: rotate(var(--az, 0rad));
+  }
+  .vm-compass svg {
+    width: 30px;
+    height: 30px;
+  }
+  .vm-compass b {
+    position: absolute;
+    top: 1px;
+    font-size: 0.62rem;
+    line-height: 1;
+    color: var(--wine);
+  }
+  .vm-tool {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--paper-card);
+    box-shadow: 0 3px 6px -3px rgba(46, 40, 38, 0.45);
+    font: 700 1.3rem/1 var(--font-body);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .vm-tool--text {
+    width: auto;
+    min-width: 44px;
+    padding: 0 0.7rem;
+    border-radius: 22px;
+    font-size: 0.85rem;
+  }
+  .vm-tool[aria-pressed="true"] {
+    background: var(--grape);
+    color: var(--snow);
+  }
+  .vm-tool:focus-visible,
+  .vm-floor:focus-visible,
+  .vm-room:focus-visible {
+    outline: 3px solid var(--grape);
+    outline-offset: 2px;
+  }
+
+  /* 操作の案内・選んだ部屋の説明 */
+  .vm__hint,
+  .vm__info {
+    position: absolute;
+    left: 50%;
+    z-index: 3;
+    translate: -50% 0;
+    max-width: calc(100% - 2rem);
+    margin: 0;
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    text-align: center;
+  }
+  .vm__hint {
+    top: 42%;
+    background: rgba(46, 40, 38, 0.82);
+    color: var(--snow);
+    font-weight: 700;
+    pointer-events: none;
+  }
+  .vm__info {
+    bottom: 4.6rem;
+    background: var(--paper-card);
+    box-shadow: 0 6px 12px -6px rgba(46, 40, 38, 0.5);
+    font-weight: 700;
+    color: var(--grape);
+  }
+  .vm__info :global(.vm-guide) {
+    display: block;
+    margin: 0.4rem auto 0;
+    min-height: 40px;
+    padding: 0 1rem;
+    border: 0;
+    border-radius: 20px;
+    background: var(--grape);
+    color: var(--snow);
+    font: 700 0.85rem var(--font-body);
+    cursor: pointer;
+  }
+  .vm__info :global(small) {
+    display: block;
+    font-weight: 400;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
+
+  /* スマホの部屋の帯（下端・横スクロール） */
+  .vm-strip {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0.7rem 0.8rem 0.8rem;
+    overflow-x: auto;
+    list-style: none;
+    background: linear-gradient(to top, rgba(230, 220, 198, 0.95) 60%, transparent);
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+  .vm-strip::-webkit-scrollbar {
+    display: none;
+  }
+  .vm-strip[hidden] {
+    display: none;
+  }
+  .vm-room {
+    min-height: 44px;
+    padding: 0.4rem 0.9rem;
+    border: 1.5px solid rgba(46, 40, 38, 0.3);
+    border-radius: 22px;
+    background: var(--paper-card);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--grape);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .vm-room--stairs,
+  .vm-room--wc,
+  .vm-room--entrance {
+    font-weight: 400;
+    color: var(--ink-soft);
+  }
+  .vm-room[aria-pressed="true"] {
+    background: var(--gold);
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+
+  /* パネル */
+  .vm-panel {
+    padding: 1.2rem clamp(1rem, 4vw, 1.4rem) 1.4rem;
+    background: var(--paper);
+  }
+  .vm-panel__floor[hidden] {
+    display: none;
+  }
+  .vm-panel__h {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin: 0 0 0.3rem;
+    font-size: 1.5rem;
+    color: var(--wine);
+  }
+  .vm-panel__h small {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+  }
+  .vm-panel__h--legend {
+    margin-top: 1.2rem;
+    font-size: 1.25rem;
+  }
+  .vm-panel__note {
+    margin: 0 0 0.8rem;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+  }
+  .vm-list {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0.4rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .vm-list .vm-room {
+    display: grid;
+    width: 100%;
+    border-radius: 10px;
+    text-align: left;
+    white-space: normal;
+  }
+  .vm-list .vm-room small {
+    font-weight: 400;
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+  }
+  .vm-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+    margin: 0.3rem 0 0.8rem;
+    padding: 0;
+    list-style: none;
+    font-size: 0.85rem;
+  }
+  .vm-legend li {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .vm-legend__chip {
+    width: 1.3rem;
+    height: 0.95rem;
+    border: 1px solid rgba(46, 40, 38, 0.3);
+    border-radius: 2px 4px 3px 2px;
+    background: var(--chip);
+  }
+  .vm-legend__steps {
+    display: inline-flex;
+    gap: 3px;
+  }
+  .vm-legend__steps i {
+    width: 5px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--wine);
+  }
+  .vm-legend__steps i:nth-child(even) {
+    translate: 0 3px;
+  }
+  .vm-panel__ops {
+    margin: 0 0 0.6rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .vm-ops--mouse {
+    display: none;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .vm-ops--touch {
+      display: none;
+    }
+    .vm-ops--mouse {
+      display: inline;
+    }
+  }
+
+  /* スマホ: 一覧はパネルではなく地図の下端の帯で選ぶ */
+  @media (max-width: 959px) {
+    .vm-list {
+      display: none;
+    }
+    .vm-panel__floor .vm-panel__h,
+    .vm-panel__floor .vm-panel__note {
+      display: none;
+    }
+  }
+  /* PC: 下端の帯はなし（右のパネルで選ぶ） */
+  @media (min-width: 960px) {
+    .vm-strip {
+      display: none;
+    }
+    .vm__info {
+      bottom: 1.2rem;
+    }
+    .vm-panel {
+      border-left: 2px solid rgba(46, 40, 38, 0.2);
+      overflow-y: auto;
+      max-height: min(78svh, 720px);
+    }
+  }
+
+  /* 荷札のラベル（JS で生成するので :global） */
+  :global(.vm-tag) {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: grid;
+    gap: 0.05rem;
+    padding: 0.3rem 0.75rem 0.35rem 1.35rem;
+    border: 0;
+    border-radius: 10px 4px 4px 10px / 50% 4px 4px 50%;
+    background: var(--paper-card);
+    box-shadow: 0 4px 6px -3px rgba(46, 40, 38, 0.45);
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.88rem;
+    line-height: 1.25;
+    color: var(--grape);
+    white-space: nowrap;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: opacity 0.2s ease;
+  }
+  :global(.vm-tag__short) {
+    display: none;
+  }
+  @media (max-width: 639px) {
+    :global(.vm-tag__short) {
+      display: inline;
+    }
+    :global(.vm-tag__long),
+    :global(.vm-tag small) {
+      display: none;
+    }
+    /* フロアのボタンは階だけに（方角ボタンと重ならないように） */
+    .vm-floor__sub {
+      display: none;
+    }
+    .vm-floor {
+      padding: 0.3rem 0.8rem;
+      align-content: center;
+    }
+  }
+  :global(.vm-tag[hidden]) {
+    display: none;
+  }
+  :global(.vm-tag)::before {
+    content: "";
+    position: absolute;
+    left: 0.45rem;
+    top: 50%;
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--gold);
+    transform: translateY(-50%);
+  }
+  :global(.vm-tag small) {
+    font-weight: 400;
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+  }
+  /* 階段・トイレ・出入口は控えめに（主役の部屋を目立たせる） */
+  :global(.vm-tag--stairs),
+  :global(.vm-tag--wc),
+  :global(.vm-tag--entrance) {
+    padding: 0.15rem 0.5rem 0.2rem 1.1rem;
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: var(--ink-soft);
+    background: rgba(251, 244, 230, 0.85);
+  }
+  :global(.vm-tag.is-active) {
+    background: var(--gold);
+    color: var(--ink);
+    z-index: 1;
+  }
+  :global(.vm-tag.is-dim) {
+    opacity: 0.45;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global(.vm-tag) {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import { FLOORS, ROUTES } from "../data/venueFloors";
+  import type { VenueMapController } from "../scenes/venueMap";
+
+  const root = document.querySelector<HTMLElement>(".vm")!;
+  const canvas = root.querySelector<HTMLCanvasElement>(".vm__canvas")!;
+  const labels = root.querySelector<HTMLElement>(".vm__labels")!;
+  const info = root.querySelector<HTMLElement>("[data-info]")!;
+  const hint = root.querySelector<HTMLElement>("[data-hint]")!;
+  const compass = root.querySelector<HTMLElement>(".vm-compass")!;
+  const floorBtns = [...document.querySelectorAll<HTMLButtonElement>("[data-floor]")];
+  const topBtn = document.querySelector<HTMLButtonElement>("[data-view=top]")!;
+  const roomBtns = () => [...document.querySelectorAll<HTMLButtonElement>(".vm-room")];
+  let map: VenueMapController | null = null;
+  let selected: string | null = null;
+
+  const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
+  let hintTimer = 0;
+  let hintShownAt = -1e9;
+  const showHint = (kind: "touch" | "wheel") => {
+    const now = performance.now();
+    if (now - hintShownAt < 4000) return; // 何度も出さない
+    hintShownAt = now;
+    hint.textContent =
+      kind === "touch" ? "2 本指で地図を動かせます" : `${isMac ? "⌘" : "ctrl"}＋スクロールで拡大できます`;
+    hint.hidden = false;
+    clearTimeout(hintTimer);
+    hintTimer = window.setTimeout(() => (hint.hidden = true), 1600);
+  };
+
+  const showInfo = (id: string | null) => {
+    const room = FLOORS.flatMap((f) => f.rooms).find((r) => r.id === id);
+    // 用途が決まった部屋だけ説明札を出す（名前だけなら、選んだボタンと地図の札で足りる）
+    info.hidden = !room?.use;
+    if (room?.use) {
+      info.innerHTML = `${room.use}<small>${room.name}${room.detail ? `・${room.detail}` : ""}</small>`;
+      if (ROUTES[room.id]) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "vm-guide";
+        b.textContent = "入口から歩いて案内";
+        b.addEventListener("click", () => {
+          info.hidden = true;
+          map?.guide(room.id);
+        });
+        info.append(b);
+      }
+    }
+  };
+  const markRooms = () =>
+    roomBtns().forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.room === selected)));
+
+  const select = (id: string | null, fromMap = false) => {
+    selected = fromMap ? id : selected === id ? null : id; // 一覧で同じ部屋をもう一度押すと解除
+    markRooms();
+    showInfo(selected);
+    map?.focus(selected);
+    // 帯の中で、選んだ札が見える位置までスクロール
+    if (selected) {
+      document
+        .querySelector<HTMLElement>(`.vm-strip:not([hidden]) [data-room="${selected}"]`)
+        ?.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+    }
+  };
+
+  const showFloor = (id: string) => {
+    floorBtns.forEach((b) => b.setAttribute("aria-selected", String(b.dataset.floor === id)));
+    document.querySelectorAll<HTMLElement>("[data-rooms]").forEach((el) => {
+      el.hidden = el.dataset.rooms !== id;
+    });
+    selected = null;
+    markRooms();
+    showInfo(null);
+    map?.setFloor(id);
+  };
+
+  floorBtns.forEach((b) => b.addEventListener("click", () => showFloor(b.dataset.floor!)));
+  topBtn.addEventListener("click", () => {
+    const on = topBtn.getAttribute("aria-pressed") !== "true";
+    topBtn.setAttribute("aria-pressed", String(on));
+    map?.setView(on ? "top" : "all");
+  });
+  document.querySelectorAll<HTMLButtonElement>("[data-zoom]").forEach((b) =>
+    b.addEventListener("click", () => map?.zoomBy(Number(b.dataset.zoom))),
+  );
+  document.querySelector(".vm-reset")?.addEventListener("click", () => {
+    selected = null;
+    markRooms();
+    showInfo(null);
+    topBtn.setAttribute("aria-pressed", "false");
+    map?.setView("all");
+    map?.reset();
+  });
+  roomBtns().forEach((b) => b.addEventListener("click", () => select(b.dataset.room!)));
+
+  const hasWebGL = (() => {
+    try {
+      const gl = document.createElement("canvas").getContext("webgl");
+      gl?.getExtension("WEBGL_lose_context")?.loseContext();
+      return !!gl;
+    } catch {
+      return false;
+    }
+  })();
+
+  if (hasWebGL) {
+    import("../scenes/venueMap")
+      .then(({ createVenueMap }) => {
+        map = createVenueMap(canvas, labels, FLOORS, ROUTES, (id) => select(id, true), {
+          onFloor: (id) => {
+            floorBtns.forEach((b) => b.setAttribute("aria-selected", String(b.dataset.floor === id)));
+            document.querySelectorAll<HTMLElement>("[data-rooms]").forEach((el) => {
+              el.hidden = el.dataset.rooms !== id;
+            });
+          },
+          onGuideEnd: (id) => {
+            selected = id;
+            markRooms();
+            showInfo(id);
+          },
+          // 北の印は、地図の回転に合わせて回す
+          onAzimuth: (rad) => compass.style.setProperty("--az", `${rad}rad`),
+          onHint: showHint,
+        });
+      })
+      .catch((err) => {
+        console.warn("[venue] 3D を表示できませんでした", err);
+        root.classList.add("vm--fallback");
+      });
+  } else {
+    root.classList.add("vm--fallback");
+  }
+</script>
