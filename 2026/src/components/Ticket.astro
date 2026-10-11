@@ -48,12 +48,7 @@ const { ics, gcalPre, gcalMain } = Astro.props;
     </dl>
 
     <p class="ticket__fine jp">
-      <Fragment
-        set:html={jp("※ 開始時刻は決まり次第お知らせします。参加チケットの発売は").replace(
-          "決まり<wbr>次第",
-          "決まり次第",
-        )}
-      /><a
+      <Fragment set:html={jp("※ 開始時刻は決まり次第お知らせします。参加チケットの発売は")} /><a
         href="#roadmap">公開予定</a
       ><Fragment set:html={jp("をご覧ください。")} />
     </p>
