@@ -6,18 +6,10 @@ interface Staff {
   type: string;
 }
 
-// fortee のスタッフ取得 API を呼び出し
-let staffList: Staff[] = [];
-try {
-  const response = await fetch('https://fortee.jp/techramen-25-conf/api/staff/v1');
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-  const data = await response.json();
-  staffList = data.staff as Staff[];
-} catch (error) {
-  console.error('Failed to fetch staff data:', error);
-}
+// 2025 は開催済みのため、fortee から取得済みのデータ（固定）を使う。
+// GitHub Actions からの fortee へのアクセスは 403 で拒否され、スタッフが空になっていた
+import staffData from "../data/staff.json";
+const staffList: Staff[] = staffData.staff as Staff[];
 
 // スタッフをタイプ別に分類し、名前が空のスタッフは除外
 const coreStaff = staffList.filter((staff: Staff) => staff.type === 'コアスタッフ' && staff.name && staff.name.trim() !== '');
