@@ -7,10 +7,13 @@ import raw from "../assets/techramen2026_logo.svg?raw";
 
 interface Props {
   class?: string;
-  /** dark: 黒い切り絵（既定） / light: 白い切り絵 */
-  tone?: "dark" | "light";
+  /**
+   * ふだんの色。
+   * color: 文字ごとにサイトの色（既定） / wine: ワイン 1 色 / dark: 黒 / light: 白い切り絵
+   */
+  tone?: "color" | "wine" | "dark" | "light";
 }
-const { class: className, tone = "dark" } = Astro.props;
+const { class: className, tone = "color" } = Astro.props;
 
 // ウェーブの色紙（サイトの色をもとに、黒い文字の上でも見える明るさに上げたもの）
 // ワイン → 藤 → 金 → スープの茶 → 畑の緑
@@ -27,16 +30,22 @@ let body = raw
   .replaceAll('id="clip-', 'id="lg-clip-')
   .replaceAll('url(#clip-', "url(#lg-clip-")
   .replaceAll(WHITE, 'class="lg-white"')
+  // 最初のグループが丼のエンブレム（箸・外輪・内側・切り抜き）。1 枚の紙としてまとめて動かす
+  // （元の transform を持つグループに直接 transform-origin を付けると位置がずれるので、外側に包む）
+  .replace("<g transform=", '<g class="lg-emblem"><g transform=')
+  .replace('<g transform="translate(213.356,0)">', '</g><g transform="translate(213.356,0)">')
   .replace(new RegExp(DARK.replace(/[()%.]/g, "\\$&"), "g"), () => {
     const i = n++;
-    if (i <= 1) return `class="lg-chop" style="--i:${i}"`;
+    // 箸は外輪とつながった 1 枚の紙として扱う（色も外輪と同じ）
+    if (i <= 1) return `class="lg-ring lg-chop"`;
     if (i === 2) return `class="lg-ring"`;
     if (i === 3) return `class="lg-disc"`;
     const k = i - 4; // 文字の通し番号
     const color = PALETTE[k % PALETTE.length];
+    const next = PALETTE[(k + 2) % PALETTE.length];
     // 切り絵らしく、文字ごとに少し傾けて貼る（決まった並びで、毎回同じ）
     const r = ((k * 37) % 7) - 3;
-    return `class="lg-ch" style="--i:${k};--c:${color};--r:${r * 0.9}deg"`;
+    return `class="lg-ch" style="--i:${k};--c:${color};--c2:${next};--r:${r * 0.9}deg"`;
   });
 const letterCount = n - 4;
 ---
@@ -83,10 +92,17 @@ const letterCount = n - 4;
 </script>
 
 <style>
-  /* ふだんの色（--lg-base）と台紙の縁（--lg-edge）。data-tone="light" で白い切り絵に */
+  /*
+   * 色の決まり（--lg-base: ふだんの文字色、--lg-wave: ウェーブ中の文字色、
+   * --lg-ring / --lg-disc: エンブレムの外輪（箸も）と内側、--lg-edge: 台紙の縁）
+   */
   .logo {
-    --lg-base: var(--ink);
     --lg-edge: #fffaf0;
+    /* color（既定）: 文字ごとにサイトの色、ウェーブで隣の色へ（文字の色は .lg-ch で決める） */
+    --lg-ring: var(--wine);
+    --lg-disc: var(--grape);
+    --lg-ring-wave: #a8364a;
+    --lg-disc-wave: #9a5a88;
     display: block;
     width: 100%;
     height: auto;
@@ -94,10 +110,35 @@ const letterCount = n - 4;
     /* 台紙から少し浮いた影（切り絵全体に 1 回だけ） */
     filter: drop-shadow(0 4px 3px rgba(46, 40, 38, 0.28));
   }
+  .logo[data-tone="wine"] {
+    --lg-base: var(--wine);
+    --lg-ring: var(--wine);
+    --lg-disc: var(--wine);
+  }
+  .logo[data-tone="dark"] {
+    --lg-base: var(--ink);
+    --lg-ring: var(--ink);
+    --lg-disc: var(--ink);
+  }
+  .logo[data-tone="light"] {
+    --lg-edge: var(--ink);
+    --lg-base: #fffaf0;
+    --lg-ring: #fffaf0;
+    --lg-disc: #fffaf0;
+  }
 
-  /* 文字: 色紙を切って、白い台紙の縁を残して貼った形 */
+  /* 文字: 色紙を切って、台紙の縁を残して貼った形 */
+  /* 文字ごとの --c / --c2 は文字の要素に付いているので、ここで解決する */
+  .logo[data-tone="color"] :global(.lg-ch) {
+    --base: var(--c);
+    --wave: var(--c2);
+  }
+  .logo:not([data-tone="color"]) :global(.lg-ch) {
+    --base: var(--lg-base);
+    --wave: var(--c);
+  }
   .logo :global(.lg-ch) {
-    fill: var(--lg-base);
+    fill: var(--base);
     stroke: var(--lg-edge);
     stroke-width: 7px;
     stroke-linejoin: round;
@@ -106,52 +147,41 @@ const letterCount = n - 4;
     transform-origin: 50% 90%;
     rotate: var(--r);
   }
-  /* 丼のエンブレム: 外輪と内側の色紙、白い切り抜き */
+  /* 丼のエンブレム: 外輪と箸は 1 枚の紙、内側、白い切り抜き */
   .logo :global(.lg-ring) {
-    fill: var(--lg-base);
+    fill: var(--lg-ring);
     stroke: var(--lg-edge);
     stroke-width: 6px;
     paint-order: stroke;
   }
   .logo :global(.lg-disc) {
-    fill: var(--lg-base);
-  }
-  .logo[data-tone="light"] {
-    --lg-base: #fffaf0;
-    --lg-edge: var(--ink);
+    fill: var(--lg-disc);
   }
   .logo :global(.lg-white) {
     fill: var(--lg-edge);
   }
-  .logo :global(.lg-chop) {
-    fill: var(--lg-base);
-    stroke: var(--lg-edge);
-    stroke-width: 5px;
-    paint-order: stroke;
+  .logo :global(.lg-emblem) {
     transform-box: fill-box;
-    transform-origin: 0% 100%;
+    transform-origin: 50% 60%;
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    /* 文字が順に跳ねる（色紙が台紙から浮いて、また貼り付く） */
+    /* 文字が順に跳ね（色紙が台紙から浮いて、また貼り付く）、色が波のように流れる */
     .logo:global(.is-playing) :global(.lg-ch) {
       animation:
         lg-hop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both,
         lg-wave 0.9s ease-in-out both;
       animation-delay: calc(0.25s + var(--i) * 45ms);
     }
-    /* エンブレムから色が始まる: 丼に色が付き、箸がひょいと持ち上がる */
+    /* エンブレムは箸ごと 1 枚でぐらっと揺れ、色が変わる */
+    .logo:global(.is-playing) :global(.lg-emblem) {
+      animation: lg-wobble 0.8s ease-in-out both;
+    }
     .logo:global(.is-playing) :global(.lg-ring) {
       animation: lg-wave-ring 0.9s ease-in-out both;
     }
     .logo:global(.is-playing) :global(.lg-disc) {
       animation: lg-wave-disc 0.9s ease-in-out both;
-    }
-    .logo:global(.is-playing) :global(.lg-chop) {
-      animation:
-        lg-lift 0.7s ease-in-out both,
-        lg-wave-chop 0.9s ease-in-out both;
-      animation-delay: calc(var(--i) * 60ms);
     }
   }
   @keyframes lg-hop {
@@ -168,54 +198,48 @@ const letterCount = n - 4;
       rotate: var(--r);
     }
   }
-  /* 黒 → 色紙の色 → 黒 */
   @keyframes lg-wave {
     0%,
     100% {
-      fill: var(--lg-base);
+      fill: var(--base);
     }
     30%,
     55% {
-      fill: var(--c);
+      fill: var(--wave);
     }
   }
   @keyframes lg-wave-ring {
     0%,
     100% {
-      fill: var(--lg-base);
+      fill: var(--lg-ring);
     }
     30%,
     55% {
-      fill: #9a5a88;
+      fill: var(--lg-ring-wave);
     }
   }
   @keyframes lg-wave-disc {
     0%,
     100% {
-      fill: var(--lg-base);
+      fill: var(--lg-disc);
     }
     30%,
     55% {
-      fill: #a8364a;
+      fill: var(--lg-disc-wave);
     }
   }
-  @keyframes lg-wave-chop {
-    0%,
-    100% {
-      fill: var(--lg-base);
-    }
-    30%,
-    55% {
-      fill: var(--gold);
-    }
-  }
-  @keyframes lg-lift {
+  @keyframes lg-wobble {
     0%,
     100% {
       rotate: 0deg;
+      scale: 1;
     }
-    45% {
-      rotate: -10deg;
+    30% {
+      rotate: -8deg;
+      scale: 1.04;
+    }
+    65% {
+      rotate: 4deg;
     }
   }
 </style>
