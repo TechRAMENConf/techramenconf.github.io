@@ -16,8 +16,8 @@ interface Props {
 const { class: className, tone = "color" } = Astro.props;
 
 // ウェーブの色紙（サイトの色をもとに、黒い文字の上でも見える明るさに上げたもの）
-// ワイン → 藤 → 金 → スープの茶 → 畑の緑
-const PALETTE = ["#a8364a", "#9a5a88", "#d4a046", "#c07a3e", "#7a9a44"];
+// ワイン → 富良野のラベンダー → 金 → スープの茶 → 畑の緑
+const PALETTE = ["#a8364a", "#8a74c0", "#d4a046", "#c07a3e", "#7a9a44"];
 
 const DARK = 'fill="rgb(13.725281%, 9.803772%, 8.627319%)"';
 const WHITE = 'fill="rgb(100%, 100%, 100%)"';
@@ -102,7 +102,7 @@ const letterCount = n - 4;
     --lg-ring: var(--wine);
     --lg-disc: var(--grape);
     --lg-ring-wave: #a8364a;
-    --lg-disc-wave: #9a5a88;
+    --lg-disc-wave: #8a74c0;
     display: block;
     width: 100%;
     height: auto;
