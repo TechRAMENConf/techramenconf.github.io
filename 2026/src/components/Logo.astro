@@ -12,8 +12,9 @@ interface Props {
 }
 const { class: className, tone = "dark" } = Astro.props;
 
-// 切り絵の色紙（富良野とラーメンの色）
-const PALETTE = ["#b23a48", "#e0704f", "#d99a2b", "#6e9b3d", "#3d8fb5", "#7a5ba8", "#d4587a"];
+// ウェーブの色紙（サイトの色をもとに、黒い文字の上でも見える明るさに上げたもの）
+// ワイン → 藤 → 金 → スープの茶 → 畑の緑
+const PALETTE = ["#a8364a", "#9a5a88", "#d4a046", "#c07a3e", "#7a9a44"];
 
 const DARK = 'fill="rgb(13.725281%, 9.803772%, 8.627319%)"';
 const WHITE = 'fill="rgb(100%, 100%, 100%)"';
@@ -185,7 +186,7 @@ const letterCount = n - 4;
     }
     30%,
     55% {
-      fill: #5b2a4e;
+      fill: #9a5a88;
     }
   }
   @keyframes lg-wave-disc {
@@ -195,7 +196,7 @@ const letterCount = n - 4;
     }
     30%,
     55% {
-      fill: #b23a48;
+      fill: #a8364a;
     }
   }
   @keyframes lg-wave-chop {
@@ -205,7 +206,7 @@ const letterCount = n - 4;
     }
     30%,
     55% {
-      fill: #c7954a;
+      fill: var(--gold);
     }
   }
   @keyframes lg-lift {
