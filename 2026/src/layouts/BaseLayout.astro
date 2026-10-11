@@ -7,12 +7,15 @@ interface Props {
   description?: string;
   /** 構造化データ（schema.org の JSON-LD）。検索結果の表示に使われる */
   jsonLd?: Record<string, unknown>;
+  /** 検索エンジンに載せない（検討中のページなど） */
+  noindex?: boolean;
 }
 
 const {
   title = "TechRAMEN 2026 Conference",
   description = "2026年11月20日(pre)・21日(main)、北海道・富良野のコンシェルジュ フラノで開催するTechRAMEN Conference。手作りで、あたたかく。",
   jsonLd,
+  noindex = false,
 } = Astro.props;
 
 // ページごとの正規 URL（以前は全ページがトップを指していて、観光ページ・会場マップが検索に載らなかった）
@@ -29,6 +32,7 @@ const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
 
     <!-- favicon（2025から流用） -->
     <link rel="icon" href={`${base}favicon.svg`} sizes="any" type="image/svg+xml" />

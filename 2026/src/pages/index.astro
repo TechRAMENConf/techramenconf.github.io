@@ -12,6 +12,7 @@ import Guest from "../components/Guest.astro";
 import NoteFeed from "../components/NoteFeed.astro";
 import Staff from "../components/Staff.astro";
 import venue from "../data/venue.json";
+import { FEATURES } from "../data/features";
 import { jp, jpHtml } from "../lib/jp";
 
 // 末尾スラッシュを保証（BASE_URL は環境によりスラッシュ無しのことがある）
@@ -93,7 +94,7 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
             〒{venue.postal}<br /><span class="nowrap">{venue.address}</span><br />{venue.walk}
           </p>
           <div class="venue__btns">
-            <a class="btn venue__map" href={`${BASE}venue/`}>会場マップをみる</a>
+            {FEATURES.venueMap && <a class="btn venue__map" href={`${BASE}venue/`}>会場マップをみる</a>}
             <a class="btn btn--ghost venue__map" href={venueMap} target="_blank" rel="noopener">
               地図アプリで開く
             </a>

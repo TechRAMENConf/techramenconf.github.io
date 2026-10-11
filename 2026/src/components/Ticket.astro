@@ -3,6 +3,7 @@
 // ※ 参加チケットではない（誤解されないよう注記を入れる）
 import venue from "../data/venue.json";
 import Icon from "./Icon.astro";
+import { FEATURES } from "../data/features";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
 
@@ -40,7 +41,7 @@ const { ics, gcalPre, gcalMain } = Astro.props;
         <dt class="hand">place</dt>
         <dd>
           <b>{venue.name}</b><span class="ticket__walk">{venue.walk}</span>
-          <a class="ticket__maplink" href={`${BASE}venue/`}>会場マップ →</a>
+          {FEATURES.venueMap && <a class="ticket__maplink" href={`${BASE}venue/`}>会場マップ →</a>}
         </dd>
       </div>
     </dl>

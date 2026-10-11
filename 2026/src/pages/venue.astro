@@ -3,6 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import venue from "../data/venue.json";
 import { FLOORS } from "../data/venueFloors";
 import { jp } from "../lib/jp";
+import { FEATURES } from "../data/features";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
 // 一覧に出す部屋（関係者のみ・廊下は除く）。主役の部屋を先に、階段・トイレ・出入口は後ろに
@@ -24,6 +25,7 @@ const LEGEND = [
 <BaseLayout
   title="会場マップ — TechRAMEN 2026 Conference"
   description={`${venue.name}（${venue.address}）の会場マップ。`}
+  noindex={!FEATURES.venueMap}
 >
   <main class="vp">
     <div class="wrap vp__head">
