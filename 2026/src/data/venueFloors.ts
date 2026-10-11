@@ -74,12 +74,13 @@ export const FLOORS: Floor[] = [
         poly: rect(15.8, 7.6, 32.2, 18.0),
       },
       { id: "ev2", name: "EV・階段", use: null, kind: "stairs", poly: rect(17.5, 18.0, 28.0, Y4) },
+      { id: "east", name: "東ホール", use: null, kind: "hall", poly: rect(32.2, Y2, 40.2, 17.0) },
       {
-        id: "east",
+        id: "entrance-hall",
         name: "中央広間（入口側）",
         use: "塩｜ものづくり展示",
         kind: "hall",
-        poly: rect(32.2, Y2, 40.2, 17.0),
+        poly: rect(40.2, Y2, 48.0, 17.0),
       },
       {
         id: "vestibule1",
@@ -220,8 +221,17 @@ const ENTRY: [number, number][] = [
 ];
 
 export const ROUTES: Record<string, RouteLeg[]> = {
-  // 塩｜ものづくり展示（入ってすぐ）
-  east: [{ floor: "1F", points: [...ENTRY, [36.5, 12.0]] }],
+  // 塩｜ものづくり展示（入ってすぐ右手前）
+  "entrance-hall": [
+    {
+      floor: "1F",
+      points: [
+        [44.5, 21.5],
+        [43.5, 18.6],
+        [44.0, 12.0],
+      ],
+    },
+  ],
   // 味噌｜ライトニングハンズオン（中央広間）
   shop: [{ floor: "1F", points: [...ENTRY, [34.5, 12.0], [25.0, 12.5]] }],
   // チャーシュー｜本に向き合う会（中央広間を抜けて西のカフェへ）

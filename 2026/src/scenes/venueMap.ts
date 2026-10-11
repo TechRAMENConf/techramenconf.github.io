@@ -560,7 +560,8 @@ export function createVenueMap(
     const x = a[0] + (b[0] - a[0]) * u;
     const y = a[1] + (b[1] - a[1]) * u;
     doll.position.set(x, 0, -y);
-    doll.rotation.y = Math.atan2(b[0] - a[0], -(b[1] - a[1])) - Math.PI / 2;
+    // 紙の切り抜きなので、真横から見て線にならないよう常にカメラの方を向ける（向きは loop で更新）
+    doll.rotation.y = controls.getAzimuthalAngle();
     // コマ撮りの歩き: 一歩ごとに少し跳ねて左右に傾く
     const fig = doll.getObjectByName("fig")!;
     fig.position.y = step % 2 ? 0.08 : 0;
@@ -787,6 +788,7 @@ export function createVenueMap(
     const az = controls.getAzimuthalAngle();
     if (!(Math.abs(az - lastAz) <= 1e-4)) {
       lastAz = az;
+      doll.rotation.y = az;
       hooks.onAzimuth?.(az);
     }
     post.render(renderer, scene, camera, t);
