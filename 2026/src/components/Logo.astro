@@ -1,14 +1,16 @@
 ---
-// TechRAMEN 2026 のロゴを、カラフルな切り絵（色紙を切って台紙に貼った）風に置く。
+// TechRAMEN 2026 のロゴを切り絵（黒い紙を切って白い台紙に貼った）風に置く。
 // 元データ: src/assets/techramen2026_logo.svg（文字ごとに別のパス）。
-// ビルド時に、黒の文字パスへ通し番号と色を割り当てる。
-// マウスを乗せる（タップする）と、文字が順に跳ねて色が流れる。
+// ふだんは黒。マウスを乗せる（タップする）と、色が左から右へウェーブしながら
+// 文字が順に跳ね、通り過ぎたあとは黒に戻る。
 import raw from "../assets/techramen2026_logo.svg?raw";
 
 interface Props {
   class?: string;
+  /** dark: 黒い切り絵（既定） / light: 白い切り絵 */
+  tone?: "dark" | "light";
 }
-const { class: className } = Astro.props;
+const { class: className, tone = "dark" } = Astro.props;
 
 // 切り絵の色紙（富良野とラーメンの色）
 const PALETTE = ["#b23a48", "#e0704f", "#d99a2b", "#6e9b3d", "#3d8fb5", "#7a5ba8", "#d4587a"];
@@ -44,6 +46,7 @@ const letterCount = n - 4;
   role="img"
   aria-label="TechRAMEN 2026 Conference"
   data-logo
+  data-tone={tone}
   data-letters={letterCount}
 >
   <defs>
@@ -57,40 +60,32 @@ const letterCount = n - 4;
 </svg>
 
 <script>
-  // マウスを乗せる（タップする）と、文字が波のように跳ね、色が一つずつ流れる
-  const PALETTE = ["#b23a48", "#e0704f", "#d99a2b", "#6e9b3d", "#3d8fb5", "#7a5ba8", "#d4587a"];
+  // マウスを乗せる（タップする）と、色のウェーブを 1 回流す
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   for (const logo of document.querySelectorAll<SVGSVGElement>("[data-logo]")) {
-    const letters = [...logo.querySelectorAll<SVGPathElement>(".lg-ch")];
-    let shift = 0;
+    const letters = Number(logo.dataset.letters) || 0;
+    // ウェーブが最後の文字を通り過ぎるまでの時間
+    const duration = letters * 45 + 900;
     let timer = 0;
-    const paint = () => {
-      letters.forEach((p, k) => p.style.setProperty("--c", PALETTE[(k + shift) % PALETTE.length]));
-    };
     const play = () => {
-      if (logo.classList.contains("is-playing")) return;
+      if (reduced || logo.classList.contains("is-playing")) return;
       logo.classList.add("is-playing");
-      // 色を数回流す（動きを減らす設定では 1 回だけ切り替える）
-      let steps = reduced ? 1 : 7;
-      const tick = () => {
-        shift = (shift + 1) % PALETTE.length;
-        paint();
-        if (--steps > 0) timer = window.setTimeout(tick, 140);
-        else timer = window.setTimeout(() => logo.classList.remove("is-playing"), reduced ? 0 : 700);
-      };
-      tick();
+      timer = window.setTimeout(() => logo.classList.remove("is-playing"), duration);
     };
     logo.addEventListener("pointerenter", play);
     logo.addEventListener("pointerdown", play);
-    // 読み込み直後に一度だけ挨拶（動きを減らす設定ではしない）
-    if (!reduced) window.setTimeout(play, 900);
+    // 読み込み直後に一度だけ挨拶
+    window.setTimeout(play, 900);
     window.addEventListener("pagehide", () => clearTimeout(timer), { once: true });
   }
 </script>
 
 <style>
+  /* ふだんの色（--lg-base）と台紙の縁（--lg-edge）。data-tone="light" で白い切り絵に */
   .logo {
+    --lg-base: var(--ink);
+    --lg-edge: #fffaf0;
     display: block;
     width: 100%;
     height: auto;
@@ -101,32 +96,35 @@ const letterCount = n - 4;
 
   /* 文字: 色紙を切って、白い台紙の縁を残して貼った形 */
   .logo :global(.lg-ch) {
-    fill: var(--c);
-    stroke: #fffaf0;
+    fill: var(--lg-base);
+    stroke: var(--lg-edge);
     stroke-width: 7px;
     stroke-linejoin: round;
     paint-order: stroke;
     transform-box: fill-box;
     transform-origin: 50% 90%;
     rotate: var(--r);
-    transition: fill 0.25s ease;
   }
   /* 丼のエンブレム: 外輪と内側の色紙、白い切り抜き */
   .logo :global(.lg-ring) {
-    fill: #5b2a4e;
-    stroke: #fffaf0;
+    fill: var(--lg-base);
+    stroke: var(--lg-edge);
     stroke-width: 6px;
     paint-order: stroke;
   }
   .logo :global(.lg-disc) {
-    fill: #b23a48;
+    fill: var(--lg-base);
+  }
+  .logo[data-tone="light"] {
+    --lg-base: #fffaf0;
+    --lg-edge: var(--ink);
   }
   .logo :global(.lg-white) {
-    fill: #fffaf0;
+    fill: var(--lg-edge);
   }
   .logo :global(.lg-chop) {
-    fill: #c7954a;
-    stroke: #fffaf0;
+    fill: var(--lg-base);
+    stroke: var(--lg-edge);
     stroke-width: 5px;
     paint-order: stroke;
     transform-box: fill-box;
@@ -136,12 +134,22 @@ const letterCount = n - 4;
   @media (prefers-reduced-motion: no-preference) {
     /* 文字が順に跳ねる（色紙が台紙から浮いて、また貼り付く） */
     .logo:global(.is-playing) :global(.lg-ch) {
-      animation: lg-hop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-      animation-delay: calc(var(--i) * 35ms);
+      animation:
+        lg-hop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+        lg-wave 0.9s ease-in-out both;
+      animation-delay: calc(0.25s + var(--i) * 45ms);
     }
-    /* 箸がひょいと持ち上がる */
+    /* エンブレムから色が始まる: 丼に色が付き、箸がひょいと持ち上がる */
+    .logo:global(.is-playing) :global(.lg-ring) {
+      animation: lg-wave-ring 0.9s ease-in-out both;
+    }
+    .logo:global(.is-playing) :global(.lg-disc) {
+      animation: lg-wave-disc 0.9s ease-in-out both;
+    }
     .logo:global(.is-playing) :global(.lg-chop) {
-      animation: lg-lift 0.7s ease-in-out both;
+      animation:
+        lg-lift 0.7s ease-in-out both,
+        lg-wave-chop 0.9s ease-in-out both;
       animation-delay: calc(var(--i) * 60ms);
     }
   }
@@ -157,6 +165,47 @@ const letterCount = n - 4;
     100% {
       translate: 0 0;
       rotate: var(--r);
+    }
+  }
+  /* 黒 → 色紙の色 → 黒 */
+  @keyframes lg-wave {
+    0%,
+    100% {
+      fill: var(--lg-base);
+    }
+    30%,
+    55% {
+      fill: var(--c);
+    }
+  }
+  @keyframes lg-wave-ring {
+    0%,
+    100% {
+      fill: var(--lg-base);
+    }
+    30%,
+    55% {
+      fill: #5b2a4e;
+    }
+  }
+  @keyframes lg-wave-disc {
+    0%,
+    100% {
+      fill: var(--lg-base);
+    }
+    30%,
+    55% {
+      fill: #b23a48;
+    }
+  }
+  @keyframes lg-wave-chop {
+    0%,
+    100% {
+      fill: var(--lg-base);
+    }
+    30%,
+    55% {
+      fill: #c7954a;
     }
   }
   @keyframes lg-lift {
