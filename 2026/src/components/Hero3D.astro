@@ -1,6 +1,7 @@
 ---
 // ヒーロー: 情報を即表示（3Dは Scene3D が固定背景で担当）
 import Icon from "./Icon.astro";
+import Logo from "./Logo.astro";
 import cfp from "../data/cfp.json";
 import { dotDate } from "../lib/jp";
 
@@ -25,11 +26,7 @@ const tag =
       )
     }
     <h1 class="hero__logo">
-      <span class="hero__logo-1">TechRAMEN</span>
-      <span class="hero__logo-2">
-        <span class="hero__logo-year hand">2026</span>
-        <span class="hero__logo-conf torn">Conference</span>
-      </span>
+      <Logo />
     </h1>
     <p class="hero__facts">
       <span class="hero__fact"><b>2026.11.20–21</b><small>pre &amp; main</small></span>
@@ -156,47 +153,11 @@ const tag =
     width: fit-content;
     max-width: 100%;
   }
-  .hero__logo-1 {
-    width: fit-content;
-  }
 
+  /* 切り絵のロゴ（SVG）。画面幅に合わせて大きく */
   .hero__logo {
-    margin: 0 0 1.5rem;
-    line-height: 0.84;
-    color: var(--ink);
-  }
-  .hero__logo-1 {
-    display: block;
-    font-weight: 700;
-    font-size: clamp(3rem, 16vw, 8.5rem);
-    letter-spacing: -0.03em;
-    margin-left: -0.04em;
-    text-shadow: 0 2px 0 rgba(251, 244, 230, 0.7);
-  }
-  .hero__logo-2 {
-    display: flex;
-    align-items: flex-end;
-    flex-wrap: wrap;
-    gap: 0.3rem 1.1rem;
-    margin-top: 0.08em;
-  }
-  .hero__logo-year {
-    font-size: clamp(3rem, 15vw, 7.5rem);
-    line-height: 0.74;
-    color: var(--wine);
-    transform: rotate(-5deg);
-  }
-  .hero__logo-conf {
-    font-family: var(--font-body);
-    font-weight: 700;
-    font-size: clamp(0.85rem, 3.2vw, 1.45rem);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--ink);
-    --torn-bg: var(--paper-card);
-    padding: 0.45em 0.8em;
-    margin-bottom: 0.7em;
-    transform: rotate(2.5deg);
+    width: min(100%, 46rem);
+    margin: 0 0 1.4rem -0.2rem;
   }
 
   .hero__facts {
