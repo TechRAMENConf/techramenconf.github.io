@@ -90,8 +90,10 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
           <span class="tape-strip" aria-hidden="true"></span>
           <p class="venue__tag hand">会場</p>
           <p class="venue__name">{venue.name}</p>
-          <p class="venue__addr">
-            〒{venue.postal}<br /><span class="nowrap">{venue.address}</span><br />{venue.walk}
+          <p class="venue__addr jp">
+            〒{venue.postal}<br /><span class="nowrap">{venue.address}</span><br /><Fragment
+              set:html={jp(venue.walk)}
+            />
           </p>
           <div class="venue__btns">
             {FEATURES.venueMap && <a class="btn venue__map" href={`${BASE}venue/`}>会場マップをみる</a>}

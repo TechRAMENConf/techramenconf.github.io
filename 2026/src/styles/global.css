@@ -339,6 +339,26 @@ h3 {
   overflow-wrap: anywhere;
 }
 
+/* ------- 日本語の改行（特にスマホ） -------
+   1. BudouX（ビルド時に文節へ <wbr> を入れる .jp）が全ブラウザでの基本
+   2. 句読点・小さい「ゃ」などを行頭に置かない（Safari を含め広く対応）
+   3. Chrome / Edge（Android 含む）は、BudouX を通していない文章も文節で改行する
+   4. 見出しは行の長さをそろえ、段落は最後の行に 1〜2 文字だけ残らないようにする */
+:lang(ja) body {
+  line-break: strict;
+}
+@supports (word-break: auto-phrase) {
+  :lang(ja) :is(p, li, dd, dt, h1, h2, h3, figcaption, small, td, th) {
+    word-break: auto-phrase;
+  }
+}
+:is(h1, h2, h3, .section-title, .eyebrow) {
+  text-wrap: balance;
+}
+:is(p, li, dd, figcaption) {
+  text-wrap: pretty;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

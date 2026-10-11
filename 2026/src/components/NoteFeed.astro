@@ -2,6 +2,7 @@
 // 公式 note の新着。ビルド時に RSS を取得する（静的サイトなので、更新されるのはデプロイ時）。
 // 取得に失敗してもビルドは止めず、マガジンへのリンクだけを表示する。
 import Parser from "rss-parser";
+import { jp } from "../lib/jp";
 
 const MAGAZINE = "https://note.com/techramenconf/m/m0938ea0596c0";
 const LIMIT = 5;
@@ -41,7 +42,7 @@ try {
             <li class="news__slip">
               <a class="torn" href={it.link} target="_blank" rel="noopener">
                 {it.date && <span class="news__date hand">{it.date}</span>}
-                <span class="news__title">{it.title}</span>
+                <span class="news__title jp" set:html={jp(it.title)} />
               </a>
             </li>
           ))}
