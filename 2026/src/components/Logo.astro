@@ -48,6 +48,8 @@ let body = raw
     return `class="lg-ch" style="--i:${k};--c:${color};--c2:${next};--r:${r * 0.9}deg"`;
   });
 const letterCount = n - 4;
+// 台紙（白い縁）用の複製。clipPath の定義は本体側にあるので、ここでは外す（同じ id を作らない）
+const backing = body.replace(/<defs>[\s\S]*?<\/defs>/, "");
 ---
 
 <svg
@@ -60,13 +62,15 @@ const letterCount = n - 4;
   data-letters={letterCount}
 >
   <defs>
-    <!-- 手で切ったようなわずかな揺らぎ（文字の輪郭だけ） -->
+    <!-- 手で切ったようなわずかな揺らぎ（白い台紙の縁にだけかける。文字の本体はくっきり） -->
     <filter id="lg-cut" x="-5%" y="-5%" width="110%" height="110%">
       <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="5" result="n"></feTurbulence>
       <feDisplacementMap in="SourceGraphic" in2="n" scale="2.2"></feDisplacementMap>
     </filter>
   </defs>
-  <g class="logo__art" filter="url(#lg-cut)" set:html={body} />
+  <!-- 下: 白い台紙（縁を太らせて、はさみで切った揺らぎ）／上: 色紙の本体（くっきり） -->
+  <g class="logo__backing" filter="url(#lg-cut)" aria-hidden="true" set:html={backing} />
+  <g class="logo__art" set:html={body} />
 </svg>
 
 <script>
@@ -160,12 +164,33 @@ const letterCount = n - 4;
   .logo :global(.lg-white) {
     fill: var(--lg-edge);
   }
+  /* 本体は縁を持たない（縁は下の台紙が受け持つ） */
+  .logo .logo__art :global(.lg-ch),
+  .logo .logo__art :global(.lg-ring) {
+    stroke: none;
+  }
+  /* 台紙: すべて縁の色で塗り、太い縁でひと回り大きく */
+  .logo .logo__backing :global(path) {
+    fill: var(--lg-edge);
+    stroke: var(--lg-edge);
+    stroke-width: 12px;
+    stroke-linejoin: round;
+  }
   .logo :global(.lg-emblem) {
     transform-box: fill-box;
     transform-origin: 50% 60%;
   }
 
   @media (prefers-reduced-motion: no-preference) {
+    /* 台紙も本体と一緒に跳ねる（色は変えない） */
+    .logo:global(.is-playing) .logo__backing :global(.lg-ch) {
+      animation: lg-hop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      animation-delay: calc(0.25s + var(--i) * 45ms);
+    }
+    .logo:global(.is-playing) .logo__backing :global(.lg-ring),
+    .logo:global(.is-playing) .logo__backing :global(.lg-disc) {
+      animation: none;
+    }
     /* 文字が順に跳ね（色紙が台紙から浮いて、また貼り付く）、色が波のように流れる */
     .logo:global(.is-playing) :global(.lg-ch) {
       animation:
