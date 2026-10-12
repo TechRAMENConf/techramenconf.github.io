@@ -36,7 +36,7 @@ const eventLd = {
   "@type": "Event",
   name: "TechRAMEN 2026 Conference",
   description:
-    "北海道・富良野で開催する、手作りのテックカンファレンス。テーマは「ちゃんとはじめましてしましょう」。",
+    "北海道・富良野で開催する手作りのテックカンファレンス。テーマは「ちゃんとはじめましてしましょう」。",
   startDate: "2026-11-20",
   endDate: "2026-11-21",
   eventStatus: "https://schema.org/EventScheduled",
@@ -77,10 +77,7 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
   <!-- ============ 日程・会場 + カレンダー ============ -->
   <section id="dates" class="section" data-beat="dates">
     <div class="wrap sheet reveal">
-      <p class="eyebrow">日程と会場、行き方</p>
-      <h2 class="section-title">
-        <span class="underline-wobble jp" set:html={jp("寒い富良野で、あったかい二日間。")} />
-      </h2>
+      <h2 class="section-title">日程と会場</h2>
 
       <Ticket ics={ics} gcalPre={gcalPre} gcalMain={gcalMain} />
 
@@ -90,8 +87,10 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
           <span class="tape-strip" aria-hidden="true"></span>
           <p class="venue__tag hand">会場</p>
           <p class="venue__name">{venue.name}</p>
-          <p class="venue__addr">
-            〒{venue.postal}<br /><span class="nowrap">{venue.address}</span><br />{venue.walk}
+          <p class="venue__addr jp">
+            〒{venue.postal}<br /><span class="nowrap">{venue.address}</span><br /><Fragment
+              set:html={jp(venue.walk)}
+            />
           </p>
           <div class="venue__btns">
             {FEATURES.venueMap && <a class="btn venue__map" href={`${BASE}venue/`}>会場マップをみる</a>}
@@ -101,19 +100,19 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
           </div>
         </div>
 
-        <h3 class="access__title hand jp" set:html={"富良野は、ちょっと遠い。" + "<wbr>" + "早めの計画を。"} />
+        <h3 class="access__title hand">行き方</h3>
         <ul class="access-list">
           <li>
             <span class="access__icon" aria-hidden="true"><Icon name="plane" /></span>
-            <p set:html={jpHtml("<b>飛行機</b>旭川空港から車で約60分。新千歳空港からは約2.5〜3時間。")} />
+            <p set:html={jpHtml("<b>飛行機</b>旭川空港から車で約60分<br />新千歳空港から約2.5〜3時間")} />
           </li>
           <li>
             <span class="access__icon" aria-hidden="true"><Icon name="train" /></span>
-            <p set:html={jpHtml("<b>鉄道</b>JR「富良野駅」下車、会場まで徒歩約4分。旭川・札幌から特急＋普通。")} />
+            <p set:html={jpHtml("<b>鉄道</b>JR「富良野駅」から会場まで徒歩約4分<br />旭川・札幌から特急＋普通")} />
           </li>
           <li>
             <span class="access__icon" aria-hidden="true"><Icon name="house" /></span>
-            <p set:html={jpHtml("<b>おやど</b>期間中は埋まりやすいので、早めの予約がおすすめです。")} />
+            <p set:html={jpHtml("<b>おやど</b>富良野駅のまわりにホテルやゲストハウスがあります<br />会場の3階にもホステル（HOSTEL TOMAR）があります")} />
           </li>
         </ul>
       </div>
@@ -128,16 +127,16 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
   <!-- ============ 富良野 観光・モデル旅程（別ページへ誘導） ============ -->
   <section id="travel" class="section" data-beat="travel">
     <div class="wrap sheet reveal">
-      <p class="eyebrow" style="view-transition-name: travel-eyebrow">来たついでに、</p>
+      <p class="eyebrow" style="view-transition-name: travel-eyebrow">来たついでに</p>
       <h2
         class="section-title jp"
         style="view-transition-name: travel-title"
-        set:html={"富良野を、<br class=\"sp\" />もう一日。"}
+        set:html={"富良野を<br class=\"sp\" />もう一日"}
       />
       <p
         class="lead jp"
         set:html={jp(
-          "11月の富良野でほんとうに行けるおすすめスポットと、カンファレンスに合わせたモデル旅程・地図をまとめました。",
+          "11月の富良野で行けるおすすめスポットとモデル旅程・地図をまとめました。",
         )}
       />
       <a class="btn" href={`${BASE}travel/`}>観光・モデル旅程をみる</a>
