@@ -348,7 +348,8 @@ h3 {
   line-break: strict;
 }
 @supports (word-break: auto-phrase) {
-  :lang(ja) :is(p, li, dd, dt, h1, h2, h3, figcaption, small, td, th) {
+  /* BudouX 済み（.jp とその中）は、こちらで決めた区切りを優先するので除く */
+  :lang(ja) :is(p, li, dd, dt, h1, h2, h3, figcaption, small, td, th):not(.jp, .jp *) {
     word-break: auto-phrase;
   }
 }

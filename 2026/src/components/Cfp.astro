@@ -13,7 +13,7 @@ const status: Status = cfp.status in STAMP ? cfp.status : "soon";
 
 <section id="cfp" class="section">
   <div class="wrap sheet reveal">
-    <p class="eyebrow">話してみませんか、</p>
+    <p class="eyebrow">話してみませんか</p>
     <h2 class="section-title">登壇者募集<span class="cfp__en hand">CfP</span></h2>
 
     <div class="card tilt-l cfp__form">
@@ -25,7 +25,7 @@ const status: Status = cfp.status in STAMP ? cfp.status : "soon";
         status === "closed" ? (
           <p
             class="cfp__text jp"
-            set:html={jp("プロポーザルの募集は締め切りました。たくさんのご応募、ありがとうございました！")}
+            set:html={jp("プロポーザルの募集は締め切りました。たくさんのご応募ありがとうございました！")}
           />
         ) : (
           <>
@@ -49,7 +49,7 @@ const status: Status = cfp.status in STAMP ? cfp.status : "soon";
       }
       {
         status === "soon" && (
-          <p class="cfp__hint jp" set:html={jp("募集開始は、このページと公式 note でお知らせします。")} />
+          <p class="cfp__hint jp" set:html={jp("募集開始はこのページと公式 note でお知らせします。")} />
         )
       }
     </div>

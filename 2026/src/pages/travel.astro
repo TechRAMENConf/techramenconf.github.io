@@ -14,27 +14,27 @@ const gmap = (s: { name: string; lat: number; lng: number }) =>
 
 <BaseLayout
   title="観光・モデル旅程 — TechRAMEN 2026 Conference"
-  description="11月の富良野でほんとうに行けるおすすめスポットと、カンファレンスに合わせたモデル旅程。"
+  description="11月の富良野で行けるおすすめスポットと、カンファレンスに合わせたモデル旅程。"
 >
   <main class="tp">
     <div class="wrap">
       <a class="back hand" href={`${BASE}#travel`}>← TechRAMEN 2026 へ戻る</a>
-      <p class="eyebrow" style="view-transition-name: travel-eyebrow">来たついでに、</p>
+      <p class="eyebrow" style="view-transition-name: travel-eyebrow">来たついでに</p>
       <h1
         class="section-title jp"
         style="view-transition-name: travel-title"
-        set:html={jp("富良野を、もう一日。")}
+        set:html={jp("富良野をもう一日")}
       />
       <p
         class="lead jp"
         set:html={jp(
-          "11月の富良野は、ラベンダーもスキー最盛期も外れた静かな季節。だからこそ人が少なく、ワイン・チーズ・ラーメン・温泉・初雪の景色をゆっくり味わえます。",
+          "11月の富良野はラベンダーもスキー最盛期も外れた静かな季節。だからこそ人が少なく、ワイン・チーズ・ラーメン・温泉・初雪の景色をゆっくり味わえます。",
         )}
       />
       <p
         class="note jp"
         set:html={jp(
-          "※ 冬季休業や時短の施設があります。各スポットの最新の営業情報をご確認ください。雪・路面凍結に備え、レンタカーは冬タイヤを。地図のピンはおおよその位置で、金色のピンが会場（コンシェルジュ フラノ）です。",
+          "※ 冬季休業や時短の施設があります。各スポットの最新の営業情報をご確認ください。雪・路面凍結に備えてレンタカーは冬タイヤを。地図のピンはおおよその位置です。金色のピンが会場（コンシェルジュ フラノ）です。",
         )}
       />
     </div>
