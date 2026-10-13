@@ -69,7 +69,7 @@ export const FLOORS: Floor[] = [
         id: "shop",
         name: "中央広間",
         use: "味噌｜ライトニングハンズオン",
-        detail: "5 名 × 6 卓（講師含む）",
+        detail: "講師 1 名＋受講 4 名 × 6 卓",
         kind: "hall",
         poly: rect(15.8, 7.6, 32.2, 18.0),
       },
