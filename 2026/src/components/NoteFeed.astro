@@ -4,7 +4,7 @@
 import Parser from "rss-parser";
 import { jp } from "../lib/jp";
 
-const MAGAZINE = "https://note.com/techramenconf/m/m0938ea0596c0";
+const MAGAZINE = "https://note.com/techramenconf/m/mcf1b031e1753";
 const LIMIT = 5;
 // 日付は日本時間で表示（UTC のまま切り出すと深夜〜朝の投稿が前日になる）
 const jstDate = new Intl.DateTimeFormat("ja-JP", {
@@ -50,13 +50,15 @@ try {
       )
     }
 
+    {items.length === 0 && <p class="news__empty">2026 の記事はこれから公開します</p>}
+
     <a
       class:list={["btn btn--ghost news__more", items.length === 0 && "news__more--solo"]}
       href={MAGAZINE}
       target="_blank"
       rel="noopener"
     >
-      公式 note でもっと読む
+      {items.length > 0 ? "公式 note でもっと読む" : "公式 note を見る"}
     </a>
   </div>
 </section>
@@ -137,8 +139,12 @@ try {
   .news__more {
     margin-top: 0.4rem;
   }
+  .news__empty {
+    margin: 1.6rem 0 0;
+    color: var(--ink-soft);
+  }
   .news__more--solo {
-    margin-top: 2rem;
+    margin-top: 1.2rem;
   }
   @media (prefers-reduced-motion: reduce) {
     .news__slip {
