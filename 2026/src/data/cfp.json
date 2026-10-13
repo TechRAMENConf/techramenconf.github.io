@@ -1,6 +1,12 @@
 {
-  "status": "soon",
-  "url": "",
-  "deadline": "",
-  "summary": "TechRAMEN 2026 Conference で話してくれる方を募集します。テーマ・形式・締切は募集開始時にここでお知らせします。"
+  "status": "open",
+  "url": "https://fortee.jp/techramen-26-conf/proposal/callfor",
+  "deadline": "2026-10-18 11:59",
+  "summary": "TechRAMEN 2026 Conference で話してくれる方を募集しています",
+  "formats": [
+    { "name": "［麺打ち］ライトニングハンズオン", "length": "40分" },
+    { "name": "［餃子セット］トーク", "length": "40分" },
+    { "name": "［一杯］トーク", "length": "20分" },
+    { "name": "［立ち食い］LT", "length": "5分" }
+  ]
 }

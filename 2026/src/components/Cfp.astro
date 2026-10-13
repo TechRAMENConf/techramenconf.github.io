@@ -5,7 +5,13 @@ import cfpData from "../data/cfp.json";
 import { jp, dotDate } from "../lib/jp";
 
 type Status = "soon" | "open" | "closed";
-const cfp = cfpData as { status: Status; url: string; deadline: string; summary: string };
+const cfp = cfpData as {
+  status: Status;
+  url: string;
+  deadline: string;
+  summary: string;
+  formats?: { name: string; length: string }[];
+};
 
 const STAMP: Record<Status, string> = { soon: "準備中", open: "募集中", closed: "締切" };
 const status: Status = cfp.status in STAMP ? cfp.status : "soon";
@@ -36,6 +42,16 @@ const status: Status = cfp.status in STAMP ? cfp.status : "soon";
               </p>
             )}
             <p class="cfp__text jp" set:html={jp(cfp.summary)} />
+            {status === "open" && cfp.formats && cfp.formats.length > 0 && (
+              <ul class="cfp__formats">
+                {cfp.formats.map((f) => (
+                  <li>
+                    <span>{f.name}</span>
+                    <b>{f.length}</b>
+                  </li>
+                ))}
+              </ul>
+            )}
           </>
         )
       }
@@ -83,6 +99,26 @@ const status: Status = cfp.status in STAMP ? cfp.status : "soon";
   .cfp__text {
     margin: 0 0 1.2rem;
     max-width: 30rem;
+  }
+  /* 募集枠: 品書きのように点線でつなぐ */
+  .cfp__formats {
+    display: grid;
+    gap: 0.35rem;
+    max-width: 26rem;
+    margin: 0 0 1.4rem;
+    padding: 0;
+    list-style: none;
+  }
+  .cfp__formats li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.8rem;
+    border-bottom: 1.5px dashed rgba(46, 40, 38, 0.3);
+  }
+  .cfp__formats b {
+    flex: none;
+    color: var(--grape);
   }
   .cfp__hint {
     margin: 0;
