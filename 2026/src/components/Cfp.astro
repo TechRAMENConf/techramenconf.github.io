@@ -2,13 +2,14 @@
 // CfP（登壇者募集）。中身は src/data/cfp.json を書き換えて切り替える。
 //   status: "soon"（準備中）| "open"（募集中）| "closed"（締切）
 import cfpData from "../data/cfp.json";
-import { jp, dotDate } from "../lib/jp";
+import { jp } from "../lib/jp";
 
 type Status = "soon" | "open" | "closed";
 const cfp = cfpData as {
   status: Status;
   url: string;
-  deadline: string;
+  deadlines?: { label: string; date: string }[];
+  deadlineNote?: string;
   summary: string;
   formats?: { name: string; length: string }[];
 };
@@ -35,11 +36,18 @@ const status: Status = cfp.status in STAMP ? cfp.status : "soon";
           />
         ) : (
           <>
-            {status === "open" && cfp.deadline && (
-              <p class="cfp__deadline">
-                <span class="hand">締切</span>
-                <b>{dotDate(cfp.deadline)}</b>
-              </p>
+            {status === "open" && cfp.deadlines && cfp.deadlines.length > 0 && (
+              <dl class="cfp__deadlines">
+                {cfp.deadlines.map((d) => (
+                  <div class="cfp__deadline">
+                    <dt class="hand">{d.label}</dt>
+                    <dd>{d.date}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+            {status === "open" && cfp.deadlineNote && (
+              <p class="cfp__dnote jp" set:html={jp(`※ ${cfp.deadlineNote}`)} />
             )}
             <p class="cfp__text jp" set:html={jp(cfp.summary)} />
             {status === "open" && cfp.formats && cfp.formats.length > 0 && (
@@ -84,17 +92,31 @@ const status: Status = cfp.status in STAMP ? cfp.status : "soon";
     /* 判子が上の角に重なるので、上に余白を空ける */
     padding-top: 2.2rem;
   }
+  .cfp__deadlines {
+    display: grid;
+    gap: 0.1rem;
+    margin: 0 0 0.4rem;
+  }
   .cfp__deadline {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
-    gap: 0.6em;
-    margin: 0 0 0.6rem;
+    gap: 0 0.6em;
     font-size: 1.3rem;
     color: var(--grape);
   }
-  .cfp__deadline .hand {
+  .cfp__deadline dt {
     color: var(--wine);
     font-size: 1.1em;
+  }
+  .cfp__deadline dd {
+    margin: 0;
+    font-weight: 700;
+  }
+  .cfp__dnote {
+    margin: 0 0 0.9rem;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
   }
   .cfp__text {
     margin: 0 0 1.2rem;

@@ -32,11 +32,11 @@ const { ics, gcalPre, gcalMain } = Astro.props;
     <dl class="ticket__rows">
       <div class="ticket__row">
         <dt class="hand">pre</dt>
-        <dd><b>11月20日（金）</b>前夜祭</dd>
+        <dd><b>11月20日（金）</b>前夜祭<span class="ticket__time">17:30 開始（受付 17:00）</span></dd>
       </div>
       <div class="ticket__row ticket__row--main">
         <dt class="hand">main</dt>
-        <dd><b>11月21日（土）</b>本祭</dd>
+        <dd><b>11月21日（土）</b>本祭<span class="ticket__time">9:45 開始（受付 9:15）</span></dd>
       </div>
       <div class="ticket__row">
         <dt class="hand">place</dt>
@@ -48,7 +48,7 @@ const { ics, gcalPre, gcalMain } = Astro.props;
     </dl>
 
     <p class="ticket__fine jp">
-      <Fragment set:html={jp("※ 開始時刻は決まり次第お知らせします。参加チケットの発売は")} /><a
+      <Fragment set:html={jp("※ 時刻は予定です。参加チケットの発売は")} /><a
         href="#roadmap">公開予定</a
       ><Fragment set:html={jp("をご覧ください。")} />
     </p>
@@ -234,6 +234,12 @@ const { ics, gcalPre, gcalMain } = Astro.props;
   }
   .ticket__row--main b {
     font-size: 1.2em;
+  }
+  .ticket__time {
+    display: inline-block;
+    margin-left: 0.6em;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
   }
   .ticket__walk {
     display: inline-block;

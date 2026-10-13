@@ -3,12 +3,11 @@
 import Icon from "./Icon.astro";
 import Logo from "./Logo.astro";
 import cfp from "../data/cfp.json";
-import { dotDate } from "../lib/jp";
 
 // 「いま」いちばん伝えたいこと（CfP）を荷札で出す。締切後は出さない
 const tag =
   cfp.status === "open"
-    ? { head: "登壇者募集中", sub: cfp.deadline ? `〜${dotDate(cfp.deadline).slice(5)} まで` : "応募受付中" }
+    ? { head: "登壇者募集中", sub: cfp.deadlines?.[0] ? `${cfp.deadlines[0].label} ${cfp.deadlines[0].date}` : "応募受付中" }
     : cfp.status === "soon"
       ? { head: "登壇者募集", sub: "まもなく開始" }
       : null;

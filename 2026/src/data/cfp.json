@@ -1,7 +1,11 @@
 {
   "status": "open",
   "url": "https://fortee.jp/techramen-26-conf/proposal/callfor",
-  "deadline": "2026-10-18 11:59",
+  "deadlines": [
+    { "label": "一次締切", "date": "10/18（日）12:00" },
+    { "label": "二次締切", "date": "10/25（日）12:00" }
+  ],
+  "deadlineNote": "一次募集で枠が埋まった場合、二次募集はありません",
   "summary": "TechRAMEN 2026 Conference で話してくれる方を募集しています",
   "formats": [
     { "name": "［麺打ち］ライトニングハンズオン", "length": "40分" },
