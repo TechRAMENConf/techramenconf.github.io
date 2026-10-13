@@ -1,6 +1,16 @@
 {
-  "status": "soon",
-  "url": "",
-  "deadline": "",
-  "summary": "TechRAMEN 2026 Conference で話してくれる方を募集します。テーマ・形式・締切は募集開始時にここでお知らせします。"
+  "status": "open",
+  "url": "https://fortee.jp/techramen-26-conf/speaker/proposal/cfp",
+  "deadlines": [
+    { "label": "一次締切", "date": "10/18（日）12:00" },
+    { "label": "二次締切", "date": "10/25（日）12:00" }
+  ],
+  "deadlineNote": "一次募集で枠が埋まった場合、二次募集はありません",
+  "summary": "TechRAMEN 2026 Conference で話してくれる方を募集しています",
+  "formats": [
+    { "name": "［麺打ち］ライトニングハンズオン", "length": "40分" },
+    { "name": "［餃子セット］トーク", "length": "40分" },
+    { "name": "［一杯］トーク", "length": "20分" },
+    { "name": "［立ち食い］LT", "length": "5分" }
+  ]
 }
