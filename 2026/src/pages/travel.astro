@@ -278,6 +278,32 @@ const gmap = (s: { name: string; lat: number; lng: number }) =>
     border: 2px solid var(--ink);
     padding: 0.6rem 0.8rem;
   }
+  /* 近いピンをまとめた丸（紙のシール風） */
+  :global(.mlcluster) {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 2.5px solid #fbf4e6;
+    border-radius: 50%;
+    background: #7b2c3a;
+    color: #fbf4e6;
+    font: 700 1.05rem/1 var(--font-body);
+    box-shadow: 0 3px 6px rgba(46, 40, 38, 0.4);
+    cursor: pointer;
+  }
+  :global(.mlcluster--venue) {
+    background: #cf9b3e;
+    color: #2e2826;
+  }
+  :global(.mlcluster:focus-visible) {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
+  }
+  :global(.maplibregl-marker[hidden]) {
+    display: none;
+  }
   :global(.mlpop b) {
     color: var(--grape);
   }
@@ -323,33 +349,90 @@ const gmap = (s: { name: string; lat: number; lng: number }) =>
     map.addControl(new maplibregl.FullscreenControl(), "top-right");
 
     const bounds = new maplibregl.LngLatBounds();
+    // ピン（スポット＋会場）。近すぎるものは下の cluster() でひとつにまとめる
+    const pins: { ll: [number, number]; marker: maplibregl.Marker }[] = [];
+    const addPin = (ll: [number, number], label: string, marker: maplibregl.Marker) => {
+      marker.setLngLat(ll).addTo(map);
+      marker.getElement().setAttribute("aria-label", label);
+      pins.push({ ll, marker });
+      bounds.extend(ll);
+    };
+
     for (const s of spots) {
-      const ll: [number, number] = [s.lng, s.lat];
       const gmap = `https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`;
       const popup = new maplibregl.Popup({ offset: 18 }).setHTML(
         `<div class="mlpop"><b>${s.name}</b><br>${s.category} / ${s.area}<br>` +
           `<a href="${gmap}" target="_blank" rel="noopener">地図アプリで開く</a></div>`,
       );
-      new maplibregl.Marker({ color: "#7b2c3a" }).setLngLat(ll).setPopup(popup).addTo(map);
-      bounds.extend(ll);
+      addPin([s.lng, s.lat], s.name, new maplibregl.Marker({ color: "#7b2c3a" }).setPopup(popup));
     }
 
     // 会場（スポットと色を変えて目立たせる）
-    const venueLL: [number, number] = [venue.lng, venue.lat];
     const venueMap = `https://www.google.com/maps/search/?api=1&query=${venue.lat},${venue.lng}`;
-    const venueMarker = new maplibregl.Marker({ color: "#cf9b3e", scale: 1.2 })
-      .setLngLat(venueLL)
-      .setPopup(
-        new maplibregl.Popup({ offset: 22 }).setHTML(
-          `<div class="mlpop"><b>会場：${venue.name}</b><br>${venue.walk}<br>` +
-            `<a href="${venueMap}" target="_blank" rel="noopener">地図アプリで開く</a></div>`,
-        ),
-      )
-      .addTo(map);
+    const venueMarker = new maplibregl.Marker({ color: "#cf9b3e", scale: 1.2 }).setPopup(
+      new maplibregl.Popup({ offset: 22 }).setHTML(
+        `<div class="mlpop"><b>会場：${venue.name}</b><br>${venue.walk}<br>` +
+          `<a href="${venueMap}" target="_blank" rel="noopener">地図アプリで開く</a></div>`,
+      ),
+    );
+    addPin([venue.lng, venue.lat], `会場：${venue.name}`, venueMarker);
     venueMarker.getElement().style.zIndex = "1"; // 近くのスポットのピンより手前に
-    bounds.extend(venueLL);
+
+    // 引いた地図ではピンが重なって押せないので、近いものは「○件」の丸にまとめる（押すと寄る）
+    const NEAR = 44; // px。これより近いピンは同じまとまりにする
+    let clusterMarkers: maplibregl.Marker[] = [];
+    const cluster = () => {
+      for (const m of clusterMarkers) m.remove();
+      clusterMarkers = [];
+      const pts = pins.map((p) => map.project(p.ll));
+      const group = pins.map(() => -1);
+      const groups: number[][] = [];
+      pins.forEach((_, i) => {
+        if (group[i] >= 0) return;
+        const members = [i];
+        group[i] = groups.length;
+        // 連鎖的に近いものを取り込む
+        for (let k = 0; k < members.length; k++) {
+          pins.forEach((_, j) => {
+            if (group[j] < 0 && pts[members[k]].dist(pts[j]) < NEAR) {
+              group[j] = groups.length;
+              members.push(j);
+            }
+          });
+        }
+        groups.push(members);
+      });
+      for (const members of groups) {
+        const many = members.length > 1;
+        for (const i of members) {
+          const el = pins[i].marker.getElement();
+          el.hidden = many;
+          if (many) pins[i].marker.getPopup()?.remove();
+        }
+        if (!many) continue;
+        const b = new maplibregl.LngLatBounds();
+        for (const i of members) b.extend(pins[i].ll);
+        const el = document.createElement("button");
+        el.type = "button";
+        // 会場を含むまとまりは、会場のピンと同じ金色にする
+        const hasVenue = members.includes(pins.length - 1);
+        el.className = hasVenue ? "mlcluster mlcluster--venue" : "mlcluster";
+        el.textContent = `${members.length}`;
+        el.setAttribute(
+          "aria-label",
+          `${hasVenue ? "会場と周辺のスポット" : "スポット"} ${members.length}件（押すと拡大）`,
+        );
+        el.addEventListener("click", (e) => {
+          e.stopPropagation();
+          map.fitBounds(b, { padding: 80, maxZoom: 16 });
+        });
+        clusterMarkers.push(new maplibregl.Marker({ element: el }).setLngLat(b.getCenter()).addTo(map));
+      }
+    };
+    map.on("zoomend", cluster);
     map.on("load", () => {
       map.fitBounds(bounds, { padding: 60, maxZoom: 11, duration: 0 });
+      cluster();
     });
   }
 

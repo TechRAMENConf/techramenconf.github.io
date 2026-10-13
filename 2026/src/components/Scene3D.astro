@@ -151,9 +151,14 @@
       });
     };
 
+    // 最初の描画が済むまで待つ（three.js の読み込み・組み立てを文字の表示と競合させない）
+    const afterFirstPaint = () =>
+      new Promise<void>((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+
     // 非ブロッキングで three.js を遅延ロード
     (async () => {
       try {
+        await afterFirstPaint();
         const { createVineyard } = await import("../scenes/vineyard");
         // 組み立て（テクスチャ生成など）は、ブラウザが空いているときに回す
         await new Promise<void>((r) =>
