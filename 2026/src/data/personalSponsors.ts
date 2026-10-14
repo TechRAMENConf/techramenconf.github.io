@@ -1,5 +1,8 @@
 /**
- * ラーメン応援団（個人スポンサー）の設定。2025 と同じく Google Apps Script（GAS）から一覧を取る。
+ * スポンサーの設定。
+ * - 企業（ラーメン法人応援団）: 当面は data/corporate_sponsors.json に手で書く
+ *   （2025 と同じ形 { userName, avatarUrl(ロゴ), screenName, url }。口数ぶん同じ社を並べる）
+ * - 個人（ラーメン応援団）: 2025 と同じく Google Apps Script（GAS）から一覧を取る。
  * GAS_URL には必ず https://script.google.com/macros/s/<デプロイID>/exec を書く。
  * （転送先の script.googleusercontent.com/macros/echo?... は一時 URL で、失効すると取得できなくなる）
  */

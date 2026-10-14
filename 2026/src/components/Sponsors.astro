@@ -1,0 +1,541 @@
+---
+// スポンサー（企業＝ラーメン法人応援団、個人＝ラーメン応援団）。
+// 欄の中の空に、紙の切り絵の気球として流す。企業は口数で気球が大きく・豪華になる。
+// 気球の下に一覧も置く（読み上げ・動きを減らす設定・全員を一度に見る用）。
+//
+// - 企業: data/corporate_sponsors.json（当面は手で書く。口数ぶん同じ社を並べる＝2025 と同じ形）
+// - 個人: 2025 と同じくビルド時に GAS から取得。取れないときは保存分 data/personal_sponsors.json
+// どちらも 0 件なら欄ごと出さない。
+//
+// ロゴ・アバターは fortee の画像。WebGL には使えない（CORS が無い）ので、気球は DOM＋SVG で作る。
+import { PERSONAL_SPONSORS } from "../data/personalSponsors";
+import savedPersonal from "../data/personal_sponsors.json";
+import corporateRaw from "../data/corporate_sponsors.json";
+
+interface Personal {
+  userName: string;
+  avatarUrl?: string;
+  twitterUrl?: string;
+}
+interface CorporateRow {
+  userName: string;
+  avatarUrl?: string;
+  url?: string;
+}
+
+const validPersonal = (list: unknown): Personal[] =>
+  Array.isArray(list)
+    ? (list as Personal[]).filter((s) => typeof s?.userName === "string" && s.userName.trim() !== "")
+    : [];
+
+let personal: Personal[] = [];
+if (PERSONAL_SPONSORS.gasUrl) {
+  try {
+    const res = await fetch(PERSONAL_SPONSORS.gasUrl, { signal: AbortSignal.timeout(10000) });
+    if (res.ok) personal = validPersonal(await res.json());
+  } catch (err) {
+    console.warn("[Sponsors] GAS から応援団を取得できませんでした。保存分を使います", err);
+  }
+}
+if (personal.length === 0) personal = validPersonal(savedPersonal);
+
+// 企業: 同じ社の行数＝口数
+const corporate = Object.values(
+  (corporateRaw as CorporateRow[])
+    .filter((c) => c?.userName?.trim())
+    .reduce<Record<string, CorporateRow & { kuchi: number }>>((acc, c) => {
+      acc[c.userName] ??= { ...c, kuchi: 0 };
+      acc[c.userName].kuchi++;
+      return acc;
+    }, {}),
+).sort((a, b) => b.kuchi - a.kuchi);
+
+// 口数 → 気球の格（1 口 / 2-3 / 4-6 / 7 口以上）。個人は 0
+const tierOf = (kuchi: number) => (kuchi >= 7 ? 4 : kuchi >= 4 ? 3 : kuchi >= 2 ? 2 : 1);
+
+// fortee の画像 URL（個人は相対パス、企業は絶対 URL）。未設定は null
+const img = (u?: string) =>
+  !u || u.includes("avatar-blank") ? null : /^https?:/.test(u) ? u : new URL(u.replace(/^\//, ""), "https://fortee.jp/").href;
+
+// 名前から決まる疑似乱数（ビルドのたびに配置が変わらないように）
+const hash = (s: string) => {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+  return (h >>> 0) / 4294967295;
+};
+
+// サイトの色（ロゴと同じ）。2 色で気球の縦じまにする
+const PALETTE = ["#a8364a", "#8a74c0", "#d4a046", "#c07a3e", "#7a9a44"];
+const LIGHT = ["#e8b7bf", "#cfc3e6", "#f1dca8", "#e9c39d", "#cbdba9"];
+
+interface Balloon {
+  name: string;
+  href?: string;
+  src: string | null;
+  tier: number; // 0 = 個人, 1..4 = 企業
+}
+const balloons: Balloon[] = [
+  ...corporate.map((c) => ({ name: c.userName, href: c.url, src: img(c.avatarUrl), tier: tierOf(c.kuchi) })),
+  ...personal.map((p) => ({ name: p.userName, href: p.twitterUrl, src: img(p.avatarUrl), tier: 0 })),
+];
+
+// 気球の幅（px）と、空を横切る秒数（大きいほどゆっくり）
+const WIDTH = [46, 64, 80, 100, 124];
+const n = balloons.length;
+const LANES = 6;
+const sky = balloons.map((b, i) => {
+  const r = hash(b.name);
+  const r2 = hash(b.name + "#");
+  const c = Math.floor(r * PALETTE.length);
+  const dur = Math.round(70 + b.tier * 10 + r2 * 30);
+  return {
+    ...b,
+    style: [
+      `--w:${WIDTH[b.tier]}px`,
+      // 縦の位置: 段に分けて散らす（大きい気球は空の中ほど）
+      `--y:${Math.round(b.tier >= 3 ? 12 + r2 * 22 : 2 + (Math.floor(r2 * LANES) + r) * (66 / LANES))}%`,
+      // 静止時（動きを減らす設定）の横位置
+      `--x:${Math.round(((i + 0.5) / n) * 90)}%`,
+      `--dur:${dur}s`,
+      // 全員が均等にばらけるよう、開始位置をずらす（黄金比で並び順と段の相関を切る）
+      `--delay:${-Math.round(((i * 0.618034 + r * 0.25) % 1) * dur)}s`,
+      `--bob:${(4 + r * 3).toFixed(1)}s`,
+      `--c1:${PALETTE[c]}`,
+      `--c2:${LIGHT[(c + 2) % LIGHT.length]}`,
+    ].join(";"),
+  };
+});
+
+const hasAny = n > 0;
+// 画像が読めないとき（リンク切れなど）は、隣の名前に切り替える
+const FALLBACK = "this.hidden=true;this.nextElementSibling.hidden=false";
+---
+
+{
+  hasAny && (
+    <section id="sponsors" class="section">
+      <div class="wrap sheet reveal">
+        <p class="eyebrow">応援してくれる人たち</p>
+        <h2 class="section-title">スポンサー</h2>
+
+        {/* 空（装飾）。一覧は下にあるので、読み上げ・キーボード操作からは外す */}
+        <div class="sky" aria-hidden="true" data-sky>
+          <span class="sky__cloud sky__cloud--a" />
+          <span class="sky__cloud sky__cloud--b" />
+          {sky.map((b, i) => {
+            const Tag = b.href ? "a" : "span";
+            return (
+              <Tag
+                class:list={["bln", `bln--t${b.tier}`]}
+                style={b.style}
+                title={b.name}
+                tabindex="-1"
+                {...(b.href ? { href: b.href, target: "_blank", rel: "noopener" } : {})}
+              >
+                <span class="bln__bob">
+                  <svg class="bln__env" viewBox="0 0 100 124" aria-hidden="true">
+                    <defs>
+                      <clipPath id={`bc-${i}`}>
+                        <path d="M50 3C80 3 97 26 94 54C91 79 67 94 59 104H41C33 94 9 79 6 54C3 26 20 3 50 3Z" />
+                      </clipPath>
+                    </defs>
+                    {/* 白い台紙（少し大きく、手で切った縁） */}
+                    <path
+                      class="bln__backing"
+                      d="M50 0C83 0 100 25 97 55C94 81 69 97 61 107H39C31 97 6 81 3 55C0 25 17 0 50 0Z"
+                    />
+                    <g clip-path={`url(#bc-${i})`}>
+                      <rect x="0" y="0" width="100" height="110" fill="var(--c1)" />
+                      <ellipse cx="50" cy="52" rx="30" ry="62" fill="var(--c2)" />
+                      <ellipse cx="50" cy="52" rx="13" ry="62" fill="var(--c1)" />
+                    </g>
+                    {/* 吊り紐 */}
+                    <path class="bln__rope" d="M42 104L45 122M58 104L55 122" />
+                    {b.tier === 4 && <rect class="bln__crown" x="8" y="48" width="84" height="7" rx="3" />}
+                    {b.tier >= 3 && <path class="bln__flag" d="M50 3V-12M50 -12L66 -7L50 -2" />}
+                  </svg>
+                  <span class:list={["bln__card", b.tier === 0 ? "bln__card--face" : "bln__card--logo"]}>
+                    {b.src && <img src={b.src} alt="" loading="lazy" decoding="async" onerror={FALLBACK} />}
+                    <span class="bln__initial" hidden={!!b.src}>
+                      {b.tier === 0 ? b.name.trim().slice(0, 1) : b.name}
+                    </span>
+                  </span>
+                </span>
+              </Tag>
+            );
+          })}
+        </div>
+
+        {
+          corporate.length > 0 && (
+            <div class="sp-group">
+              <h3 class="sp-group__h hand">
+                ラーメン法人応援団<small>{corporate.length} 社</small>
+              </h3>
+              <ul class="corp">
+                {corporate.map((c) => {
+                  const Tag = c.url ? "a" : "div";
+                  const src = img(c.avatarUrl);
+                  return (
+                    <li class={`corp--t${tierOf(c.kuchi)}`}>
+                      <Tag
+                        class="corp__card"
+                        {...(c.url ? { href: c.url, target: "_blank", rel: "noopener" } : {})}
+                      >
+                        {src && <img src={src} alt={c.userName} loading="lazy" decoding="async" onerror={FALLBACK} />}
+                        <span class="corp__name" hidden={!!src}>
+                          {c.userName}
+                        </span>
+                      </Tag>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )
+        }
+
+        {
+          personal.length > 0 && (
+            <div class="sp-group">
+              <h3 class="sp-group__h hand">
+                ラーメン応援団<small>{personal.length} 人</small>
+              </h3>
+              <ul class="seals">
+                {personal.map((s) => {
+                  const src = img(s.avatarUrl);
+                  const Tag = s.twitterUrl ? "a" : "span";
+                  return (
+                    <li>
+                      <Tag
+                        class="seal"
+                        {...(s.twitterUrl ? { href: s.twitterUrl, target: "_blank", rel: "noopener" } : {})}
+                      >
+                        {src && (
+                          <img src={src} alt="" width="48" height="48" loading="lazy" decoding="async" onerror={FALLBACK} />
+                        )}
+                        <span class="seal__none" aria-hidden="true" hidden={!!src}>
+                          {s.userName.trim().slice(0, 1)}
+                        </span>
+                        <span class="seal__name">{s.userName}</span>
+                      </Tag>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )
+        }
+
+        {
+          PERSONAL_SPONSORS.joinUrl && (
+            <a class="btn sp-join" href={PERSONAL_SPONSORS.joinUrl} target="_blank" rel="noopener">
+              応援団員になる
+            </a>
+          )
+        }
+      </div>
+    </section>
+  )
+}
+
+<script>
+  // 空が見えているあいだだけ気球を動かす
+  const sky = document.querySelector<HTMLElement>("[data-sky]");
+  if (sky) {
+    new IntersectionObserver(([e]) => sky.classList.toggle("is-on", e.isIntersecting)).observe(sky);
+  }
+</script>
+
+<style>
+  /* ---------- 空 ---------- */
+  .sky {
+    position: relative;
+    height: clamp(300px, 46vw, 440px);
+    margin: 2rem calc(-1 * clamp(1.9rem, 5.5vw, 3.2rem)) 0;
+    overflow: hidden;
+    container-type: inline-size;
+    background: linear-gradient(180deg, #cfe0e8 0%, #e3e6da 70%, #efe6d4 100%);
+    box-shadow: inset 0 10px 14px -12px rgba(46, 40, 38, 0.35);
+  }
+  /* 紙の雲 */
+  .sky__cloud {
+    position: absolute;
+    height: 26px;
+    border-radius: 20px;
+    background: var(--paper-card);
+    opacity: 0.85;
+    filter: url(#rough);
+  }
+  .sky__cloud::before {
+    content: "";
+    position: absolute;
+    left: 22%;
+    bottom: 40%;
+    width: 46%;
+    height: 150%;
+    border-radius: 50%;
+    background: inherit;
+  }
+  .sky__cloud--a {
+    left: 8%;
+    top: 62%;
+    width: 120px;
+  }
+  .sky__cloud--b {
+    right: 10%;
+    top: 22%;
+    width: 90px;
+  }
+
+  /* ---------- 気球 ---------- */
+  .bln {
+    position: absolute;
+    left: 0;
+    top: var(--y);
+    width: var(--w);
+    color: inherit;
+    text-decoration: none;
+    translate: var(--x) 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .bln {
+      translate: -110% 0;
+      animation: drift var(--dur) linear var(--delay) infinite;
+    }
+    .bln__bob {
+      animation: bob var(--bob) ease-in-out infinite alternate;
+    }
+    .sky:not(.is-on) :is(.bln, .bln__bob),
+    a.bln:hover,
+    a.bln:hover .bln__bob {
+      animation-play-state: paused;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bln {
+      left: var(--x);
+      translate: none;
+    }
+  }
+  /* 狭い画面では空の外の道のりを長くし、同時に見える気球を減らす */
+  .sky {
+    --pre: 0px;
+  }
+  @container (max-width: 560px) {
+    .bln {
+      --pre: 110cqw;
+      scale: 0.85;
+    }
+  }
+  @keyframes drift {
+    from {
+      translate: calc(-110% - var(--pre)) 0;
+    }
+    to {
+      translate: calc(100cqw + 10%) 0;
+    }
+  }
+  @keyframes bob {
+    from {
+      transform: translateY(-5px) rotate(-2deg);
+    }
+    to {
+      transform: translateY(5px) rotate(2deg);
+    }
+  }
+  .bln__bob {
+    display: grid;
+    justify-items: center;
+    transform-origin: 50% 20%;
+  }
+  .bln__env {
+    display: block;
+    width: 100%;
+    overflow: visible;
+    filter: drop-shadow(0 6px 6px rgba(46, 40, 38, 0.22));
+  }
+  .bln__backing {
+    fill: var(--paper-card);
+    filter: url(#rough);
+  }
+  .bln__rope {
+    fill: none;
+    stroke: #4a3f38;
+    stroke-width: 1.6;
+  }
+  .bln__crown {
+    fill: var(--gold);
+    stroke: #9a6f25;
+    stroke-width: 1;
+  }
+  .bln__flag {
+    fill: #cf4534;
+    stroke: #6f5436;
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+  /* かご＝アバター（個人）／ロゴの札（企業） */
+  .bln__card {
+    display: grid;
+    place-items: center;
+    margin-top: -2px;
+    overflow: hidden;
+    background: var(--paper-card);
+    box-shadow: 0 3px 5px -2px rgba(46, 40, 38, 0.45);
+  }
+  .bln__card--face {
+    width: 70%;
+    aspect-ratio: 1;
+    border: 2px solid var(--paper-card);
+    border-radius: 50%;
+  }
+  .bln__card--logo {
+    width: 92%;
+    aspect-ratio: 16 / 9;
+    padding: 6%;
+    border-radius: 4px;
+    rotate: -2deg;
+  }
+  .bln__card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .bln__card--logo img {
+    object-fit: contain;
+  }
+  .bln__initial {
+    font-family: "Yomogi", var(--font-hand);
+    font-size: 1.1rem;
+    line-height: 1.2;
+    text-align: center;
+    color: var(--wine);
+  }
+  .bln__card--logo .bln__initial {
+    font-family: var(--font-body);
+    font-size: 0.6rem;
+    font-weight: 700;
+  }
+  [hidden] {
+    display: none !important;
+  }
+  a.bln {
+    cursor: pointer;
+  }
+  a.bln:hover .bln__env {
+    filter: drop-shadow(0 10px 8px rgba(46, 40, 38, 0.3));
+  }
+
+  /* ---------- 一覧 ---------- */
+  .sp-group {
+    margin-top: 2rem;
+  }
+  .sp-group__h {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin: 0 0 1rem;
+    font-size: 1.5rem;
+    color: var(--wine);
+  }
+  .sp-group__h small {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
+  .corp {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .corp li {
+    flex: 0 0 auto;
+    width: 9rem;
+  }
+  .corp .corp--t3 {
+    width: 12rem;
+  }
+  .corp .corp--t4 {
+    width: 15rem;
+  }
+  .corp__card {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 16 / 9;
+    padding: 0.6rem;
+    border-radius: 6px;
+    background: var(--paper-card);
+    box-shadow: 0 6px 10px -6px rgba(46, 40, 38, 0.5);
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .corp__card img {
+    position: absolute;
+    inset: 0.6rem;
+    width: calc(100% - 1.2rem);
+    height: calc(100% - 1.2rem);
+    object-fit: contain;
+  }
+  .corp__name {
+    font-weight: 700;
+    text-align: center;
+  }
+  .seals {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(4.4rem, 1fr));
+    gap: 0.9rem 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .seal {
+    display: grid;
+    justify-items: center;
+    gap: 0.25rem;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .seal img,
+  .seal__none {
+    width: 48px;
+    height: 48px;
+    border: 3px solid var(--paper-card);
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--paper-deep);
+    box-shadow: 0 4px 8px -4px rgba(46, 40, 38, 0.55);
+  }
+  .seal__none {
+    display: grid;
+    place-items: center;
+    font-family: "Yomogi", var(--font-hand);
+    font-size: 1.3rem;
+    color: var(--wine);
+  }
+  .seal__name {
+    max-width: 100%;
+    font-family: "Yomogi", var(--font-hand);
+    font-size: 0.78rem;
+    line-height: 1.3;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+  :is(.seal, .corp__card):focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 3px;
+    border-radius: 8px;
+  }
+  a.seal:hover .seal__name,
+  a.corp__card:hover {
+    text-decoration: underline;
+    text-decoration-color: var(--gold);
+  }
+  .sp-join {
+    margin-top: 2rem;
+  }
+</style>

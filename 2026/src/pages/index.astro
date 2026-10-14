@@ -10,7 +10,7 @@ import Timetable from "../components/Timetable.astro";
 import Cfp from "../components/Cfp.astro";
 import Guest from "../components/Guest.astro";
 import NoteFeed from "../components/NoteFeed.astro";
-import PersonalSponsors from "../components/PersonalSponsors.astro";
+import Sponsors from "../components/Sponsors.astro";
 import Staff from "../components/Staff.astro";
 import venue from "../data/venue.json";
 import { FEATURES } from "../data/features";
@@ -194,10 +194,10 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
   <NoteFeed />
 
   <!-- ============ スタッフ（fortee で公開されると表示） ============ -->
-  {FEATURES.staff && <Staff />}
+  <!-- ============ スポンサー（企業・個人。1 件以上あると表示） ============ -->
+  <Sponsors />
 
-  <!-- ============ ラーメン応援団（個人スポンサー。1 人以上いると表示） ============ -->
-  <PersonalSponsors />
+  {FEATURES.staff && <Staff />}
 
 
   </main>
