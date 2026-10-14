@@ -5,6 +5,6 @@
 export const FEATURES = {
   /** 会場の 3D マップ（/2026/venue/）。部屋割り・図面の公開可否を検討中 */
   venueMap: false,
-  /** スタッフ一覧（fortee から取得）。一旦隠している */
-  staff: false,
+  /** スタッフ一覧（fortee から取得。取れないときは data/staff.json） */
+  staff: true,
 };
