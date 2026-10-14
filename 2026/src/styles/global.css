@@ -57,6 +57,12 @@ body {
   background: transparent;
 }
 
+/* 置く前（.reveal）の傾いたシートが画面の横幅からはみ出し、スマホで横にずれるのを防ぐ。
+   clip はスクロール領域を作らないので、縦方向や sticky には影響しない */
+main {
+  overflow-x: clip;
+}
+
 img {
   max-width: 100%;
   display: block;
