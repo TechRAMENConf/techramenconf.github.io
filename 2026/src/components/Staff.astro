@@ -1,7 +1,10 @@
 ---
 // スタッフ一覧（2025 と同じく fortee のスタッフ API からビルド時に取得）。
-// 取得できない（イベントが非公開・未設定など）か 0 人のときは、セクションごと出さない。
-// fortee で公開されると、次のデプロイから自動で表示される。
+// fortee は GitHub Actions からのアクセスを 403 で断るので、取れないときは
+// 保存しておいた src/data/staff.json を使う（更新は npm run staff:update → コミット）。
+// どちらも 0 人のときは、セクションごと出さない。
+import saved from "../data/staff.json";
+
 const FORTEE_EVENT = "techramen-26-conf";
 
 interface Staff {
@@ -11,6 +14,8 @@ interface Staff {
   type: string;
 }
 
+const named = (list: Staff[]) => list.filter((s) => s.name && s.name.trim() !== "");
+
 let staff: Staff[] = [];
 try {
   const res = await fetch(`https://fortee.jp/${FORTEE_EVENT}/api/staff/v1`, {
@@ -18,11 +23,12 @@ try {
   });
   if (res.ok) {
     const data = await res.json();
-    staff = ((data.staff ?? []) as Staff[]).filter((s) => s.name && s.name.trim() !== "");
+    staff = named((data.staff ?? []) as Staff[]);
   }
 } catch (err) {
-  console.warn("[Staff] fortee のスタッフを取得できませんでした（セクションは出しません）", err);
+  console.warn("[Staff] fortee のスタッフを取得できませんでした。保存分を使います", err);
 }
+if (staff.length === 0) staff = named(saved.staff as Staff[]);
 
 // 区分ごとにまとめる。既知の区分はこの順、それ以外は fortee の並びのまま後ろに
 const KNOWN = ["コアスタッフ", "サポートスタッフ", "当日スタッフ"];

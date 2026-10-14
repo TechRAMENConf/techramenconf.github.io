@@ -1,0 +1,100 @@
+{
+  "staff": [
+    {
+      "name": "hiro",
+      "link_url": "https://twitter.com/hi_chan2180",
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/a65d49e0-dd83-4020-a1a8-ac35acef4229.jpg",
+      "type": "コアスタッフ"
+    },
+    {
+      "name": "はる",
+      "link_url": "https://github.com/lemonade-37",
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/37b5cbbb-aa20-40e3-a4e5-b85d74cb37cb.jpg",
+      "type": "コアスタッフ"
+    },
+    {
+      "name": "myou",
+      "link_url": "https://twitter.com/myou_it",
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/39f694a7-05df-4b55-b915-023e8b2f4e39.jpg",
+      "type": "コアスタッフ"
+    },
+    {
+      "name": "northprint",
+      "link_url": "https://github.com/northprint",
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/96667616-5522-4331-ad09-f44124624f5a.png",
+      "type": "コアスタッフ"
+    },
+    {
+      "name": "todo",
+      "link_url": "https://twitter.com/todo_1991_",
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/04ab14a4-8d37-4d6e-b663-2bac9bea225d.jpg",
+      "type": "コアスタッフ"
+    },
+    {
+      "name": "tomio2480",
+      "link_url": "https://twitter.com/tomio2480",
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/425cb537-056f-428f-b74b-8f72b2b06265.png",
+      "type": "コアスタッフ"
+    },
+    {
+      "name": "よし",
+      "link_url": "https://twitter.com/ykatombn",
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/d892f06b-eb9c-40bf-9851-0b8573768125.jpg",
+      "type": "コアスタッフ"
+    },
+    {
+      "name": "yu fujioka",
+      "link_url": "https://github.com/https://github.com/fujiokayu",
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/a5fa0692-ef3c-40a9-b651-b82a137de75c.png",
+      "type": "コアスタッフ"
+    },
+    {
+      "name": "はくすけ",
+      "link_url": "https://twitter.com/hacusk",
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/454ac978-eac2-4652-b344-9c9bc9c8c67c.jpg",
+      "type": "サポートスタッフ"
+    },
+    {
+      "name": "きじま",
+      "link_url": "https://twitter.com/jnkykn",
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/a7d3da9c-011a-470e-aec8-43202eb672b9.jpg",
+      "type": "サポートスタッフ"
+    },
+    {
+      "name": "n13u",
+      "link_url": "https://twitter.com/_n13u_",
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/f9f107c6-7a2b-4df3-b570-525b8d3b665d.jpg",
+      "type": "サポートスタッフ"
+    },
+    {
+      "name": "otoyuzu",
+      "link_url": "https://twitter.com/otoyuzu705",
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/21f0c6b1-239a-449d-b5f5-31e990629bb1.jpg",
+      "type": "サポートスタッフ"
+    },
+    {
+      "name": "satak",
+      "link_url": "https://twitter.com/st_tm_k",
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/27e9d649-7f0d-4d59-940d-3136e723f93d.jpg",
+      "type": "サポートスタッフ"
+    },
+    {
+      "name": "かげろん",
+      "link_url": "https://twitter.com/shade4827",
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/ac0c75a2-1fd8-441c-bced-9a45bfa69f86.jpg",
+      "type": "サポートスタッフ"
+    },
+    {
+      "name": "うさみけんた",
+      "link_url": "https://github.com/zonuexe",
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/54edf069-b76c-4972-83df-e50503dd8527.png",
+      "type": "サポートスタッフ"
+    },
+    {
+      "name": "ไคโตะ",
+      "link_url": "https://twitter.com/umiwatarin",
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/1ae72449-d2bf-48bb-9b27-24440f13d798.jpg",
+      "type": "サポートスタッフ"
+    }
+  ]
+}
