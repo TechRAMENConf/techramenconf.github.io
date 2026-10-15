@@ -1,6 +1,7 @@
 ---
 // スポンサー（企業＝ラーメン法人応援団、個人＝ラーメン応援団）。
-// 欄の中の空に、紙の切り絵の気球として流す。企業は口数で気球が大きく・豪華になる。
+// 欄の中の空に、紙の切り絵の気球として流す。企業は 1 口につき気球 1 機。
+// 気球を押すと「つかまえる」小さなゲーム（気球あつめ）。つかまえた記録はその端末にだけ残す。
 // 気球の下に一覧も置く（読み上げ・動きを減らす設定・全員を一度に見る用）。
 //
 // - 企業: data/corporate_sponsors.json（当面は手で書く。口数ぶん同じ社を並べる＝2025 と同じ形）
@@ -50,64 +51,121 @@ const corporate = Object.values(
     }, {}),
 ).sort((a, b) => b.kuchi - a.kuchi);
 
-// 口数 → 気球の格（1 口 / 2-3 / 4-6 / 7 口以上）。個人は 0
-const tierOf = (kuchi: number) => (kuchi >= 7 ? 4 : kuchi >= 4 ? 3 : kuchi >= 2 ? 2 : 1);
-
 // fortee の画像 URL（個人は相対パス、企業は絶対 URL）。未設定は null
 const img = (u?: string) =>
   !u || u.includes("avatar-blank") ? null : /^https?:/.test(u) ? u : new URL(u.replace(/^\//, ""), "https://fortee.jp/").href;
 
-// 名前から決まる疑似乱数（ビルドのたびに配置が変わらないように）
+// 画像が無いときの 1 文字。匿名の応援団は「？」、会社は「株式会社」などを除いた頭文字
+const initial = (name: string) =>
+  name.includes("匿名") ? "？" : name.replace(/株式会社|合同会社|有限会社|一般社団法人/g, "").trim().slice(0, 1);
+
+// 名前から決まる疑似乱数（ビルドのたびに色・順番が変わらないように）
 const hash = (s: string) => {
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
   return (h >>> 0) / 4294967295;
 };
 
+// ゲームの記録用 ID: 名前＋同名の通し番号（匿名の応援団は同じ名前で何人もいる）
+const seen = new Map<string, number>();
+const idOf = (kind: string, name: string) => {
+  const k = `${kind}:${name}`;
+  const nth = seen.get(k) ?? 0;
+  seen.set(k, nth + 1);
+  return nth ? `${k}#${nth}` : k;
+};
+
 // サイトの色（ロゴと同じ）。2 色で気球の縦じまにする
 const PALETTE = ["#a8364a", "#8a74c0", "#d4a046", "#c07a3e", "#7a9a44"];
 const LIGHT = ["#e8b7bf", "#cfc3e6", "#f1dca8", "#e9c39d", "#cbdba9"];
 
-interface Balloon {
+// 応援団: 1 行＝1 口（法人と同じく、まとめずに口数ぶん並べる・飛ばす）。
+// 口数は同じ名前の行数（「匿名」は別々の人なので 1 口ずつ）。気球の柄と速さに使う
+const kuchiOf = new Map<string, number>();
+for (const p of personal) kuchiOf.set(p.userName, (kuchiOf.get(p.userName) ?? 0) + 1);
+const personList = personal.map((p) => ({
+  ...p,
+  id: idOf("p", p.userName),
+  src: img(p.avatarUrl),
+  kuchi: p.userName.includes("匿名") ? 1 : kuchiOf.get(p.userName)!,
+  // 「隠し味（匿名応援団）」のような名前は、かっこの前で改行して、かっこ内を小さく
+  main: p.userName.split("（")[0],
+  sub: p.userName.includes("（") ? p.userName.slice(p.userName.indexOf("（")) : "",
+}));
+// 企業は 1 口ごとに ID を持つ（気球 1 機・一覧のシール 1 枚に対応）
+const corpList = corporate.map((c) => ({
+  ...c,
+  ids: Array.from({ length: c.kuchi }, () => idOf("c", c.userName)),
+  src: img(c.avatarUrl),
+}));
+
+// 気球の幅（px）
+const W = 52;
+// 口数が多いほど速く飛ぶ（つかまえにくい＝ゲームとして手ごわい。一覧は下にあるので見せる時間より遊びを優先）
+// 空を横切る時間の倍率。応援団: 1 口 / 2 / 3 / 4 口以上
+const SPEED = [1, 0.8, 0.65, 0.5];
+// 法人: 1 口 / 2-3 / 4-9 / 10 口以上
+const corpPace = (kuchi: number) => (kuchi >= 10 ? 0.55 : kuchi >= 4 ? 0.7 : kuchi >= 2 ? 0.85 : 1);
+
+interface Member {
+  id: string;
   name: string;
   href?: string;
   src: string | null;
-  tier: number; // 0 = 個人, 1..4 = 企業
+  corp: boolean;
+  kuchi: number;
+  deco: number; // 柄の豪華さ 1..4（応援団の口数）
+  style: string;
 }
-const balloons: Balloon[] = [
-  ...corporate.map((c) => ({ name: c.userName, href: c.url, src: img(c.avatarUrl), tier: tierOf(c.kuchi) })),
-  ...personal.map((p) => ({ name: p.userName, href: p.twitterUrl, src: img(p.avatarUrl), tier: 0 })),
-];
+interface Unit {
+  members: Member[];
+  style: string;
+  order: number;
+}
 
-// 気球の幅（px）と、空を横切る秒数（大きいほどゆっくり）
-const WIDTH = [46, 64, 80, 100, 124];
-const n = balloons.length;
-const LANES = 6;
-const sky = balloons.map((b, i) => {
-  const r = hash(b.name);
-  const r2 = hash(b.name + "#");
-  const c = Math.floor(r * PALETTE.length);
-  const dur = Math.round(70 + b.tier * 10 + r2 * 30);
-  return {
-    ...b,
-    style: [
-      `--w:${WIDTH[b.tier]}px`,
-      // 縦の位置: 段に分けて散らす（大きい気球は空の中ほど）
-      `--y:${Math.round(b.tier >= 3 ? 12 + r2 * 22 : 2 + (Math.floor(r2 * LANES) + r) * (66 / LANES))}%`,
-      // 静止時（動きを減らす設定）の横位置
-      `--x:${Math.round(((i + 0.5) / n) * 90)}%`,
-      `--dur:${dur}s`,
-      // 全員が均等にばらけるよう、開始位置をずらす（黄金比で並び順と段の相関を切る）
-      `--delay:${-Math.round(((i * 0.618034 + r * 0.25) % 1) * dur)}s`,
-      `--bob:${(4 + r * 3).toFixed(1)}s`,
-      `--c1:${PALETTE[c]}`,
-      `--c2:${LIGHT[(c + 2) % LIGHT.length]}`,
-    ].join(";"),
-  };
+const colors = (seed: string) => {
+  const c = Math.floor(hash(seed) * PALETTE.length);
+  return `--c1:${PALETTE[c]};--c2:${LIGHT[(c + 2) % LIGHT.length]}`;
+};
+
+// 1 機ぶんの「隊」（空を流れる外枠＋気球）を作る
+const unitOf = (m: Omit<Member, "style">, tone: string, pace = 1): Unit => ({
+  order: hash(m.id + "#"),
+  style: `--uw:${W}px;--uh:${Math.round(W * 1.9)}px;--dur:${Math.round((34 + hash(m.id) * 14) * pace)}s`,
+  members: [{ ...m, style: `--w:${W}px;--mx:0px;--my:0px;--bob:${(4 + hash(m.id + "b") * 3).toFixed(1)}s;${tone}` }],
 });
 
-const hasAny = n > 0;
-// 画像が読めないとき（リンク切れなど）は、隣の名前に切り替える
+const units: Unit[] = [
+  ...personList.map((p) =>
+    unitOf(
+      { id: p.id, name: p.userName, href: p.twitterUrl, src: p.src, corp: false, kuchi: p.kuchi, deco: Math.min(p.kuchi, 4) },
+      colors(p.id),
+      SPEED[Math.min(p.kuchi, 4) - 1],
+    ),
+  ),
+  // 法人は 1 口 1 機。同じ社は同じ色
+  ...corpList.flatMap((c) =>
+    c.ids.map((id) =>
+      unitOf(
+        { id, name: c.userName, href: c.url, src: c.src, corp: true, kuchi: c.kuchi, deco: 1 },
+        colors(c.userName),
+        corpPace(c.kuchi),
+      ),
+    ),
+  ),
+  // 出てくる順（企業も個人も混ぜる）
+].sort((a, b) => a.order - b.order);
+
+// 帯のジグザグ（柄 2 以上）
+const ZIG = (() => {
+  const top = Array.from({ length: 11 }, (_, k) => `${k * 10},${k % 2 ? 46 : 50}`);
+  const bottom = Array.from({ length: 11 }, (_, k) => `${100 - k * 10},${k % 2 ? 64 : 60}`);
+  return [...top, ...bottom].join(" ");
+})();
+
+const total = units.reduce((s, u) => s + u.members.length, 0);
+const hasAny = total > 0;
+// 画像が読めないとき（リンク切れなど）は、隣の 1 文字に切り替える
 const FALLBACK = "this.hidden=true;this.nextElementSibling.hidden=false";
 ---
 
@@ -116,75 +174,127 @@ const FALLBACK = "this.hidden=true;this.nextElementSibling.hidden=false";
     <section id="sponsors" class="section">
       <div class="wrap sheet reveal">
         <p class="eyebrow">応援してくれる人たち</p>
-        <h2 class="section-title">スポンサー</h2>
+        <h2 class="section-title">応援団</h2>
 
-        {/* 空（装飾）。一覧は下にあるので、読み上げ・キーボード操作からは外す */}
-        <div class="sky" aria-hidden="true" data-sky>
-          <span class="sky__cloud sky__cloud--a" />
-          <span class="sky__cloud sky__cloud--b" />
-          {sky.map((b, i) => {
-            const Tag = b.href ? "a" : "span";
-            return (
-              <Tag
-                class:list={["bln", `bln--t${b.tier}`]}
-                style={b.style}
-                title={b.name}
-                tabindex="-1"
-                {...(b.href ? { href: b.href, target: "_blank", rel: "noopener" } : {})}
-              >
-                <span class="bln__bob">
-                  <svg class="bln__env" viewBox="0 0 100 124" aria-hidden="true">
-                    <defs>
-                      <clipPath id={`bc-${i}`}>
-                        <path d="M50 3C80 3 97 26 94 54C91 79 67 94 59 104H41C33 94 9 79 6 54C3 26 20 3 50 3Z" />
-                      </clipPath>
-                    </defs>
-                    {/* 白い台紙（少し大きく、手で切った縁） */}
-                    <path
-                      class="bln__backing"
-                      d="M50 0C83 0 100 25 97 55C94 81 69 97 61 107H39C31 97 6 81 3 55C0 25 17 0 50 0Z"
-                    />
-                    <g clip-path={`url(#bc-${i})`}>
-                      <rect x="0" y="0" width="100" height="110" fill="var(--c1)" />
-                      <ellipse cx="50" cy="52" rx="30" ry="62" fill="var(--c2)" />
-                      <ellipse cx="50" cy="52" rx="13" ry="62" fill="var(--c1)" />
-                    </g>
-                    {/* 吊り紐 */}
-                    <path class="bln__rope" d="M42 104L45 122M58 104L55 122" />
-                    {b.tier === 4 && <rect class="bln__crown" x="8" y="48" width="84" height="7" rx="3" />}
-                    {b.tier >= 3 && <path class="bln__flag" d="M50 3V-12M50 -12L66 -7L50 -2" />}
-                  </svg>
-                  <span class:list={["bln__card", b.tier === 0 ? "bln__card--face" : "bln__card--logo"]}>
-                    {b.src && <img src={b.src} alt="" loading="lazy" decoding="async" onerror={FALLBACK} />}
-                    <span class="bln__initial" hidden={!!b.src}>
-                      {b.tier === 0 ? b.name.trim().slice(0, 1) : b.name}
+        <div class="game" data-game data-total={total}>
+          <p class="game__hud">
+            <span class="game__lead hand">気球をつかまえて、応援団を集めよう</span>
+            <span class="game__count">
+              つかまえた <b data-count>0</b> / {total}
+            </span>
+            <button type="button" class="game__reset" data-reset hidden>
+              もう一度
+            </button>
+          </p>
+
+          {/* 空（装飾＋ゲーム）。一覧は下にあるので、読み上げ・キーボード操作からは外す */}
+          <div class="sky" aria-hidden="true" data-sky>
+            <span class="sky__cloud sky__cloud--a" />
+            <span class="sky__cloud sky__cloud--b" />
+            {units.map((u, ui) => (
+              <span class="unit" style={u.style}>
+                {u.members.map((b, mi) => {
+                  const k = `${ui}-${mi}`;
+                  return (
+                    <span
+                      class:list={["bln", b.corp && "bln--corp", `bln--d${b.deco}`]}
+                      style={b.style}
+                      data-id={b.id}
+                      data-name={b.name}
+                      data-href={b.href || undefined}
+                      data-corp={b.corp ? "" : undefined}
+                      data-kuchi={b.corp ? undefined : b.kuchi}
+                    >
+                      <span class="bln__bob">
+                        <svg class="bln__env" viewBox="0 0 100 124" aria-hidden="true">
+                          <defs>
+                            <clipPath id={`bc-${k}`}>
+                              <path d="M50 3C80 3 97 26 94 54C91 79 67 94 59 104H41C33 94 9 79 6 54C3 26 20 3 50 3Z" />
+                            </clipPath>
+                          </defs>
+                          {/* 白い台紙（少し大きく、手で切った縁）。4 口以上は金の縁 */}
+                          <path
+                            class="bln__backing"
+                            d="M50 0C83 0 100 25 97 55C94 81 69 97 61 107H39C31 97 6 81 3 55C0 25 17 0 50 0Z"
+                          />
+                          {b.deco >= 4 && <path class="bln__flag" d="M50 2V-14M50 -14L66 -9L50 -4" />}
+                          <g clip-path={`url(#bc-${k})`}>
+                            <rect x="0" y="0" width="100" height="110" fill="var(--c1)" />
+                            <ellipse cx="50" cy="52" rx="30" ry="62" fill="var(--c2)" />
+                            <ellipse cx="50" cy="52" rx="13" ry="62" fill="var(--c1)" />
+                            {/* 2 口: 紙のジグザグの帯 */}
+                            {b.deco >= 2 && <polygon class="bln__band" points={ZIG} />}
+                            {/* 3 口: 帯に金の菱形、てっぺんに金の飾り */}
+                            {b.deco >= 3 && (
+                              <>
+                                <ellipse class="bln__gold" cx="50" cy="4" rx="22" ry="9" />
+                                {[14, 32, 50, 68, 86].map((x) => (
+                                  <path class="bln__gold" d={`M${x} 49L${x + 5} 55L${x} 61L${x - 5} 55Z`} />
+                                ))}
+                              </>
+                            )}
+                          </g>
+                          {/* 吊り紐。4 口以上は金の吹き流しも */}
+                          <path class="bln__rope" d="M42 104L45 122M58 104L55 122" />
+                          {b.deco >= 4 && <path class="bln__streamer" d="M22 84q-6 10 0 20t0 20M78 84q6 10 0 20t0 20" />}
+                        </svg>
+                        {/* かご＝アバター／ロゴの丸シール */}
+                        <span class:list={["bln__card", b.corp && "bln__card--logo"]}>
+                          {b.src && <img src={b.src} alt="" loading="lazy" decoding="async" onerror={FALLBACK} />}
+                          <span class="bln__initial" hidden={!!b.src}>
+                            {initial(b.name)}
+                          </span>
+                        </span>
+                      </span>
                     </span>
-                  </span>
-                </span>
-              </Tag>
-            );
-          })}
+                  );
+                })}
+              </span>
+            ))}
+          </div>
+
+          {/* つかまえたときの名札 */}
+          <p class="catch" data-catch hidden>
+            <span class="catch__msg">
+              <b data-catch-name /><span data-catch-verb> をつかまえた！</span>
+            </span>
+            <span class="catch__note" data-catch-note hidden />
+            <a class="catch__link" data-catch-link target="_blank" rel="noopener" hidden />
+          </p>
+          <p class="done hand" data-done hidden>
+            全員つかまえた！ 応援ありがとうございます
+          </p>
         </div>
 
         {
-          corporate.length > 0 && (
+          corpList.length > 0 && (
             <div class="sp-group">
               <h3 class="sp-group__h hand">
-                ラーメン法人応援団<small>{corporate.length} 社</small>
+                ラーメン法人応援団<small>{corpList.length} 社</small>
               </h3>
               <ul class="corp">
-                {corporate.map((c) => {
+                {corpList.map((c) => {
                   const Tag = c.url ? "a" : "div";
-                  const src = img(c.avatarUrl);
                   return (
-                    <li class={`corp--t${tierOf(c.kuchi)}`}>
+                    <li class="corp__row">
                       <Tag
-                        class="corp__card"
+                        class="corp__link"
                         {...(c.url ? { href: c.url, target: "_blank", rel: "noopener" } : {})}
                       >
-                        {src && <img src={src} alt={c.userName} loading="lazy" decoding="async" onerror={FALLBACK} />}
-                        <span class="corp__name" hidden={!!src}>
-                          {c.userName}
+                        <span class="corp__head">
+                          <span class="corp__name">{c.userName}</span>
+                          <span class="corp__kuchi">{c.kuchi} 口</span>
+                        </span>
+                        {/* 1 口＝ロゴのシール 1 枚 */}
+                        <span class="corp__seals" aria-hidden="true">
+                          {c.ids.map((id) => (
+                            <span class="corp__seal" data-catch-id={id}>
+                              {c.src && <img src={c.src} alt="" loading="lazy" decoding="async" onerror={FALLBACK} />}
+                              <span class="corp__initial" hidden={!!c.src}>
+                                {initial(c.userName)}
+                              </span>
+                            </span>
+                          ))}
                         </span>
                       </Tag>
                     </li>
@@ -196,28 +306,30 @@ const FALLBACK = "this.hidden=true;this.nextElementSibling.hidden=false";
         }
 
         {
-          personal.length > 0 && (
+          personList.length > 0 && (
             <div class="sp-group">
               <h3 class="sp-group__h hand">
-                ラーメン応援団<small>{personal.length} 人</small>
+                ラーメン応援団<small>{personList.length} 口</small>
               </h3>
               <ul class="seals">
-                {personal.map((s) => {
-                  const src = img(s.avatarUrl);
+                {personList.map((s) => {
                   const Tag = s.twitterUrl ? "a" : "span";
                   return (
-                    <li>
+                    <li data-catch-id={s.id}>
                       <Tag
                         class="seal"
                         {...(s.twitterUrl ? { href: s.twitterUrl, target: "_blank", rel: "noopener" } : {})}
                       >
-                        {src && (
-                          <img src={src} alt="" width="48" height="48" loading="lazy" decoding="async" onerror={FALLBACK} />
+                        {s.src && (
+                          <img src={s.src} alt="" width="48" height="48" loading="lazy" decoding="async" onerror={FALLBACK} />
                         )}
-                        <span class="seal__none" aria-hidden="true" hidden={!!src}>
-                          {s.userName.trim().slice(0, 1)}
+                        <span class="seal__none" aria-hidden="true" hidden={!!s.src}>
+                          {initial(s.userName)}
                         </span>
-                        <span class="seal__name">{s.userName}</span>
+                        <span class="seal__name">
+                          {s.main}
+                          {s.sub && <span class="seal__sub">{s.sub}</span>}
+                        </span>
                       </Tag>
                     </li>
                   );
@@ -240,23 +352,211 @@ const FALLBACK = "this.hidden=true;this.nextElementSibling.hidden=false";
 }
 
 <script>
-  // 空が見えているあいだだけ気球を動かす
-  const sky = document.querySelector<HTMLElement>("[data-sky]");
-  if (sky) {
+  // 気球あつめ。
+  // 空には「席」の数だけ気球が出る。空を抜けるか、つかまえると席が空き、まだつかまえていない人から次が出る。
+  // （全員つかまえるまで、つかまえ済みの気球は出てこない）
+  // つかまえた記録は localStorage（その端末だけ。使えなくてもゲームは遊べる）。
+  const KEY = "tr2026:sponsor-caught";
+  const game = document.querySelector<HTMLElement>("[data-game]");
+  const sky = game?.querySelector<HTMLElement>("[data-sky]");
+
+  if (game && sky) {
+    const units = [...sky.querySelectorAll<HTMLElement>(".unit")];
+    const all = [...sky.querySelectorAll<HTMLElement>(".bln")];
+    const members = (u: HTMLElement) => [...u.querySelectorAll<HTMLElement>(".bln")];
+    const total = all.length;
+    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const seats = Math.min(units.length, sky.clientWidth < 560 ? 7 : 14);
+
+    // 記録: { ID: つかまえた回数 }
+    const load = (): Map<string, number> => {
+      try {
+        const v = JSON.parse(localStorage.getItem(KEY) || "{}");
+        // 以前の形式（ID の配列）は 1 回ずつとして読む
+        return new Map(Array.isArray(v) ? v.map((id: string) => [id, 1]) : Object.entries(v));
+      } catch {
+        return new Map();
+      }
+    };
+    const save = () => {
+      try {
+        localStorage.setItem(KEY, JSON.stringify(Object.fromEntries(caught)));
+      } catch {
+        /* 保存できなくても遊べる */
+      }
+    };
+    const caught = load();
+    const isCaught = (b: HTMLElement) => caught.has(b.dataset.id!);
+
+    const countEl = game.querySelector<HTMLElement>("[data-count]")!;
+    const resetEl = game.querySelector<HTMLButtonElement>("[data-reset]")!;
+    const doneEl = game.querySelector<HTMLElement>("[data-done]")!;
+    const catchEl = game.querySelector<HTMLElement>("[data-catch]")!;
+    const catchName = game.querySelector<HTMLElement>("[data-catch-name]")!;
+    const catchVerb = game.querySelector<HTMLElement>("[data-catch-verb]")!;
+    const catchNote = game.querySelector<HTMLElement>("[data-catch-note]")!;
+    const catchLink = game.querySelector<HTMLAnchorElement>("[data-catch-link]")!;
+
+    // 一覧・空の縁の色とカウンター
+    const render = () => {
+      const n = all.filter(isCaught).length;
+      countEl.textContent = String(n);
+      resetEl.hidden = n === 0;
+      doneEl.hidden = n < total;
+      document.querySelectorAll<HTMLElement>("[data-catch-id]").forEach((el) => {
+        el.classList.toggle("is-caught", caught.has(el.dataset.catchId!));
+      });
+      // 空を飛んでいる気球の縁も（リセットしたとき戻す）
+      for (const b of all) b.classList.toggle("is-caught", isCaught(b));
+    };
+
+    // 席: 縦の位置（段）と、止まっているときの横の位置
+    const seatOf = new Map<HTMLElement, number>();
+    let cursor = 0;
+    const next = (): HTMLElement | undefined => {
+      // まだつかまえていない人のいる隊を優先。全員つかまえたら、どの隊も飛ぶ
+      for (const wantNew of [true, false]) {
+        for (let k = 0; k < units.length; k++) {
+          const u = units[(cursor + k) % units.length];
+          if (seatOf.has(u) || (wantNew && members(u).every(isCaught))) continue;
+          cursor = (cursor + k + 1) % units.length;
+          return u;
+        }
+      }
+    };
+    const launch = (seat: number, head: number) => {
+      const u = next();
+      if (!u) return;
+      seatOf.set(u, seat);
+      const lane = (seat * 0.618034) % 1;
+      const y = 3 + lane * 60;
+      u.style.setProperty("--y", `${y.toFixed(1)}%`);
+      u.style.setProperty("--x", `${(((seat + 0.5) / seats) * 88).toFixed(1)}%`);
+      u.style.setProperty("--delay", `${head}s`);
+      for (const b of members(u)) {
+        b.classList.remove("is-pop", "is-gone");
+        b.classList.toggle("is-caught", isCaught(b));
+      }
+      u.classList.remove("is-up");
+      void u.offsetWidth; // アニメーションを最初からやり直す
+      u.classList.add("is-up");
+    };
+    const land = (u: HTMLElement) => {
+      const seat = seatOf.get(u);
+      if (seat === undefined) return;
+      seatOf.delete(u);
+      u.classList.remove("is-up");
+      launch(seat, still ? 0 : Math.random() * 3);
+    };
+    // つかまえた気球が消えたあと、隊が空っぽなら席を空ける
+    const gone = (b: HTMLElement) => {
+      b.classList.add("is-gone");
+      const u = b.closest<HTMLElement>(".unit")!;
+      if (members(u).every((m) => m.classList.contains("is-gone"))) land(u);
+    };
+
+    // 最初は席ごとに、空のいろいろな位置から始める
+    for (let s = 0; s < seats; s++) {
+      launch(s, still ? 0 : -((s + Math.random() * 0.5) / seats) * 40);
+    }
+
+    sky.addEventListener("animationend", (e) => {
+      const t = e.target as HTMLElement;
+      if (e.animationName === "drift" && t.classList.contains("unit")) land(t);
+      if (e.animationName === "pop") gone(t.closest<HTMLElement>(".bln")!);
+    });
+
+    // 動いている的なので、押した瞬間（pointerdown）で判定する。
+    // click だと押してから離すまでに気球が動いてずれ、取りこぼすことがある
+    sky.addEventListener("pointerdown", (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>(".unit.is-up .bln:not(.is-pop, .is-gone)");
+      if (!b) return;
+      e.preventDefault();
+      const times = (caught.get(b.dataset.id!) ?? 0) + 1;
+      caught.set(b.dataset.id!, times);
+      save();
+      render();
+      b.classList.add("is-pop");
+      // 動きを減らす設定ではしぼむ動きが無いので、すぐ消す
+      if (still) gone(b);
+
+      catchName.textContent = b.dataset.name!;
+      catchVerb.textContent = times > 1 ? ` をまたつかまえた！（${times} 回目）` : " をつかまえた！";
+      const kuchi = Number(b.dataset.kuchi || 0);
+      catchNote.hidden = kuchi < 2;
+      catchNote.textContent = `${kuchi} 口で応援`;
+      const href = b.dataset.href;
+      catchLink.hidden = !href;
+      if (href) {
+        catchLink.href = href;
+        catchLink.textContent = "corp" in b.dataset ? "サイトを見る" : "X を見る";
+      }
+      catchEl.hidden = false;
+      catchEl.classList.remove("is-new");
+      void catchEl.offsetWidth;
+      catchEl.classList.add("is-new");
+    });
+
+    resetEl.addEventListener("click", () => {
+      caught.clear();
+      save();
+      render();
+      catchEl.hidden = true;
+    });
+
+    // 空が見えているあいだだけ気球を動かす
     new IntersectionObserver(([e]) => sky.classList.toggle("is-on", e.isIntersecting)).observe(sky);
+    render();
   }
 </script>
 
 <style>
+  /* ---------- ゲームの見出し ---------- */
+  .game {
+    margin-top: 1.6rem;
+  }
+  .game__hud {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem 1rem;
+    margin: 0 0 0.8rem;
+  }
+  .game__lead {
+    font-size: 1.25rem;
+    color: var(--grape);
+  }
+  .game__count {
+    margin-left: auto;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+  .game__count b {
+    font-size: 1.3rem;
+    color: var(--wine);
+  }
+  .game__reset {
+    padding: 0.2rem 0.7rem;
+    border: 1.5px solid var(--ink-soft);
+    border-radius: 999px;
+    background: var(--paper-card);
+    font: inherit;
+    font-size: 0.8rem;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
   /* ---------- 空 ---------- */
   .sky {
     position: relative;
     height: clamp(300px, 46vw, 440px);
-    margin: 2rem calc(-1 * clamp(1.9rem, 5.5vw, 3.2rem)) 0;
+    margin: 0 calc(-1 * clamp(1.9rem, 5.5vw, 3.2rem));
     overflow: hidden;
     container-type: inline-size;
     background: linear-gradient(180deg, #cfe0e8 0%, #e3e6da 70%, #efe6d4 100%);
     box-shadow: inset 0 10px 14px -12px rgba(46, 40, 38, 0.35);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
   }
   /* 紙の雲 */
   .sky__cloud {
@@ -289,48 +589,77 @@ const FALLBACK = "this.hidden=true;this.nextElementSibling.hidden=false";
   }
 
   /* ---------- 気球 ---------- */
-  .bln {
+  /* 外枠（空を流れる）。中の気球は上下にゆれる */
+  .unit {
+    display: none;
     position: absolute;
     left: 0;
     top: var(--y);
+    width: var(--uw);
+    height: var(--uh);
+  }
+  .unit.is-up {
+    display: block;
+  }
+  .bln {
+    position: absolute;
+    left: var(--mx);
+    top: var(--my);
     width: var(--w);
-    color: inherit;
-    text-decoration: none;
-    translate: var(--x) 0;
+    cursor: pointer;
+  }
+  /* 当たり判定: 気球とかごの間のすき間も含め、少し広めに */
+  .bln::before {
+    content: "";
+    position: absolute;
+    inset: -8px -8px -4px;
+  }
+  .bln.is-gone {
+    visibility: hidden;
+  }
+  /* つかまえ済みの気球（全員つかまえた後に飛ぶ）は、気球の輪郭とかごの縁が赤くなる */
+  .bln.is-caught .bln__backing {
+    stroke: #c8402f;
+    stroke-width: 5;
+  }
+  .bln.is-caught .bln__card {
+    border-color: #c8402f;
   }
   @media (prefers-reduced-motion: no-preference) {
-    .bln {
+    .unit {
       translate: -110% 0;
-      animation: drift var(--dur) linear var(--delay) infinite;
+    }
+    .unit.is-up {
+      animation: drift var(--dur) linear var(--delay) 1 both;
     }
     .bln__bob {
       animation: bob var(--bob) ease-in-out infinite alternate;
     }
-    .sky:not(.is-on) :is(.bln, .bln__bob),
-    a.bln:hover,
-    a.bln:hover .bln__bob {
+    .sky:not(.is-on) :is(.unit, .bln__bob),
+    .unit:hover,
+    .bln:not(.is-pop):hover .bln__bob {
       animation-play-state: paused;
+    }
+    .bln.is-pop .bln__bob {
+      animation: pop 0.45s ease-in forwards;
+      animation-play-state: running;
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .bln {
+    .unit {
       left: var(--x);
-      translate: none;
     }
   }
-  /* 狭い画面では空の外の道のりを長くし、同時に見える気球を減らす */
-  .sky {
-    --pre: 0px;
-  }
+  /* 狭い画面では気球を少し小さく */
   @container (max-width: 560px) {
-    .bln {
-      --pre: 110cqw;
+    .unit {
       scale: 0.85;
+      transform-origin: 0 0;
     }
   }
   @keyframes drift {
     from {
-      translate: calc(-110% - var(--pre)) 0;
+      translate: -110% 0;
     }
     to {
       translate: calc(100cqw + 10%) 0;
@@ -342,6 +671,17 @@ const FALLBACK = "this.hidden=true;this.nextElementSibling.hidden=false";
     }
     to {
       transform: translateY(5px) rotate(2deg);
+    }
+  }
+  /* つかまえた: ふくらんでから、しぼんで消える */
+  @keyframes pop {
+    30% {
+      transform: scale(1.15);
+      opacity: 1;
+    }
+    to {
+      transform: scale(0.2) translateY(30px);
+      opacity: 0;
     }
   }
   .bln__bob {
@@ -359,15 +699,16 @@ const FALLBACK = "this.hidden=true;this.nextElementSibling.hidden=false";
     fill: var(--paper-card);
     filter: url(#rough);
   }
-  .bln__rope {
-    fill: none;
-    stroke: #4a3f38;
-    stroke-width: 1.6;
+  /* 口数で豪華になる柄 */
+  .bln__band {
+    fill: var(--paper-card);
   }
-  .bln__crown {
+  .bln__gold {
     fill: var(--gold);
-    stroke: #9a6f25;
-    stroke-width: 1;
+  }
+  .bln--d4 .bln__backing {
+    stroke: var(--gold);
+    stroke-width: 4;
   }
   .bln__flag {
     fill: #cf4534;
@@ -375,56 +716,106 @@ const FALLBACK = "this.hidden=true;this.nextElementSibling.hidden=false";
     stroke-width: 2;
     stroke-linejoin: round;
   }
-  /* かご＝アバター（個人）／ロゴの札（企業） */
+  .bln__streamer {
+    fill: none;
+    stroke: #cf4534;
+    stroke-width: 6;
+    stroke-linecap: round;
+  }
+  .bln__rope {
+    fill: none;
+    stroke: #4a3f38;
+    stroke-width: 1.6;
+  }
+  /* かご＝アバター／ロゴの丸シール（吊り紐の下端に付ける） */
   .bln__card {
     display: grid;
     place-items: center;
-    margin-top: -2px;
-    overflow: hidden;
-    background: var(--paper-card);
-    box-shadow: 0 3px 5px -2px rgba(46, 40, 38, 0.45);
-  }
-  .bln__card--face {
-    width: 70%;
+    width: 64%;
     aspect-ratio: 1;
+    margin-top: -3%;
+    overflow: hidden;
     border: 2px solid var(--paper-card);
     border-radius: 50%;
-  }
-  .bln__card--logo {
-    width: 92%;
-    aspect-ratio: 16 / 9;
-    padding: 6%;
-    border-radius: 4px;
-    rotate: -2deg;
+    background: var(--paper-card);
+    box-shadow: 0 3px 5px -2px rgba(46, 40, 38, 0.45);
   }
   .bln__card img {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
+  /* ロゴは切れないよう余白を取って全体を見せる */
   .bln__card--logo img {
+    width: 82%;
+    height: 82%;
     object-fit: contain;
   }
   .bln__initial {
     font-family: "Yomogi", var(--font-hand);
     font-size: 1.1rem;
-    line-height: 1.2;
-    text-align: center;
+    line-height: 1;
     color: var(--wine);
   }
-  .bln__card--logo .bln__initial {
+  .bln--corp .bln__initial {
     font-family: var(--font-body);
-    font-size: 0.6rem;
     font-weight: 700;
+    font-size: 1.3rem;
   }
   [hidden] {
     display: none !important;
   }
-  a.bln {
-    cursor: pointer;
-  }
-  a.bln:hover .bln__env {
+  .bln:not(.is-pop):hover .bln__env {
     filter: drop-shadow(0 10px 8px rgba(46, 40, 38, 0.3));
+  }
+
+  /* ---------- つかまえたときの名札 ---------- */
+  .catch {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 1rem;
+    width: fit-content;
+    max-width: 100%;
+    margin: -1.4rem auto 0;
+    padding: 0.6rem 1.1rem;
+    position: relative;
+    border-radius: 4px;
+    background: var(--paper-card);
+    box-shadow: 0 8px 14px -8px rgba(46, 40, 38, 0.55);
+    rotate: -1deg;
+  }
+  .catch.is-new {
+    animation: tag 0.35s ease-out;
+  }
+  @keyframes tag {
+    from {
+      translate: 0 8px;
+      opacity: 0;
+    }
+  }
+  .catch__note {
+    padding: 0 0.5rem;
+    border-radius: 999px;
+    background: var(--gold);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fff;
+  }
+  .catch__msg b {
+    color: var(--wine);
+  }
+  .catch__link {
+    font-size: 0.9rem;
+    color: var(--grape);
+    text-decoration-color: var(--gold);
+    text-decoration-thickness: 2px;
+  }
+  .done {
+    margin: 1rem 0 0;
+    font-size: 1.4rem;
+    text-align: center;
+    color: var(--wine);
   }
 
   /* ---------- 一覧 ---------- */
@@ -444,47 +835,87 @@ const FALLBACK = "this.hidden=true;this.nextElementSibling.hidden=false";
     font-size: 0.8rem;
     color: var(--ink-soft);
   }
+  /* 法人: 社ごとに 1 行。口数ぶんロゴのシールを貼る */
   .corp {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.8rem;
+    display: grid;
+    gap: 1.2rem;
     margin: 0;
     padding: 0;
     list-style: none;
   }
-  .corp li {
-    flex: 0 0 auto;
-    width: 9rem;
-  }
-  .corp .corp--t3 {
-    width: 12rem;
-  }
-  .corp .corp--t4 {
-    width: 15rem;
-  }
-  .corp__card {
+  .corp__row {
     position: relative;
+  }
+  .corp__link {
     display: grid;
-    place-items: center;
-    aspect-ratio: 16 / 9;
-    padding: 0.6rem;
-    border-radius: 6px;
-    background: var(--paper-card);
-    box-shadow: 0 6px 10px -6px rgba(46, 40, 38, 0.5);
+    gap: 0.5rem;
     color: var(--ink);
     text-decoration: none;
   }
-  .corp__card img {
-    position: absolute;
-    inset: 0.6rem;
-    width: calc(100% - 1.2rem);
-    height: calc(100% - 1.2rem);
-    object-fit: contain;
+  .corp__head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
   }
   .corp__name {
     font-weight: 700;
-    text-align: center;
   }
+  .corp__kuchi {
+    padding: 0 0.5rem;
+    border-radius: 999px;
+    background: var(--gold);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fff;
+  }
+  .corp__seals {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .corp__seal {
+    display: grid;
+    place-items: center;
+    position: relative;
+    width: 52px;
+    height: 52px;
+    border: 3px solid var(--paper-card);
+    border-radius: 50%;
+    background: var(--paper-card);
+    box-shadow: 0 4px 8px -4px rgba(46, 40, 38, 0.55);
+  }
+  .corp__seal:nth-child(3n + 1) {
+    rotate: -6deg;
+  }
+  .corp__seal:nth-child(3n + 2) {
+    rotate: 4deg;
+  }
+  .corp__seal img {
+    width: 84%;
+    height: 84%;
+    object-fit: contain;
+  }
+  .corp__initial {
+    font-weight: 700;
+    color: var(--wine);
+  }
+  @media (max-width: 480px) {
+    .corp__seal {
+      width: 42px;
+      height: 42px;
+      border-width: 2px;
+    }
+  }
+  a.corp__link:hover .corp__name {
+    text-decoration: underline;
+    text-decoration-color: var(--gold);
+    text-decoration-thickness: 3px;
+  }
+  a.corp__link:hover .corp__seal {
+    translate: 0 -2px;
+  }
+
+  /* 個人: 丸いシール＋名前 */
   .seals {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(4.4rem, 1fr));
@@ -492,6 +923,15 @@ const FALLBACK = "this.hidden=true;this.nextElementSibling.hidden=false";
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+  /* 広い画面では 1 マスを広げ、長い名前も 1 行に収める */
+  @media (min-width: 640px) {
+    .seals {
+      grid-template-columns: repeat(auto-fill, minmax(5.4rem, 1fr));
+    }
+  }
+  .seals li {
+    position: relative;
   }
   .seal {
     display: grid;
@@ -520,21 +960,34 @@ const FALLBACK = "this.hidden=true;this.nextElementSibling.hidden=false";
   .seal__name {
     max-width: 100%;
     font-family: "Yomogi", var(--font-hand);
-    font-size: 0.78rem;
+    font-size: 0.66rem;
     line-height: 1.3;
+    letter-spacing: -0.01em;
     text-align: center;
     overflow-wrap: anywhere;
   }
-  :is(.seal, .corp__card):focus-visible {
+  :is(.seal, .corp__link):focus-visible {
     outline: 3px solid var(--gold);
     outline-offset: 3px;
     border-radius: 8px;
   }
-  a.seal:hover .seal__name,
-  a.corp__card:hover {
+  .seal__sub {
+    display: block;
+    font-size: 0.56rem;
+    white-space: nowrap;
+    letter-spacing: -0.02em;
+  }
+  a.seal:hover .seal__name {
     text-decoration: underline;
     text-decoration-color: var(--gold);
   }
+
+  /* つかまえた人・社は、シールの縁が赤くなる（空の気球と同じ） */
+  .is-caught :is(.seal img, .seal__none),
+  .corp__seal.is-caught {
+    border-color: #c8402f;
+  }
+
   .sp-join {
     margin-top: 2rem;
   }
