@@ -72,7 +72,6 @@ const punch = (btn: HTMLElement, animate: boolean) => {
   btn.classList.add("is-punched");
   const hole = document.createElement("span");
   hole.className = animate ? "punch is-new" : "punch";
-  hole.setAttribute("aria-hidden", "true");
   btn.append(hole);
 };
 const ticketBtns = [...document.querySelectorAll<HTMLAnchorElement>(".ticket__btn[data-cal]")];

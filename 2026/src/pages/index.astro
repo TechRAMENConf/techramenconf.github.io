@@ -85,7 +85,7 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
       <!-- 会場と行き方（しおりの「会場」はここ） -->
       <div id="access" class="access" data-beat="access">
         <div class="card venue">
-          <span class="tape-strip" aria-hidden="true"></span>
+          <span class="tape-strip"></span>
           <p class="venue__tag hand">会場</p>
           <p class="venue__name">{venue.name}</p>
           <p class="venue__addr jp">
@@ -104,15 +104,15 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
         <h3 class="access__title hand">行き方</h3>
         <ul class="access-list">
           <li>
-            <span class="access__icon" aria-hidden="true"><Icon name="plane" /></span>
+            <span class="access__icon"><Icon name="plane" /></span>
             <p set:html={jpHtml("<b>飛行機</b>旭川空港から車で約60分<br />新千歳空港から約2.5〜3時間")} />
           </li>
           <li>
-            <span class="access__icon" aria-hidden="true"><Icon name="train" /></span>
+            <span class="access__icon"><Icon name="train" /></span>
             <p set:html={jpHtml("<b>鉄道</b>JR「富良野駅」から会場まで徒歩5分<br />旭川・札幌から特急＋普通")} />
           </li>
           <li>
-            <span class="access__icon" aria-hidden="true"><Icon name="house" /></span>
+            <span class="access__icon"><Icon name="house" /></span>
             <p set:html={jpHtml("<b>おやど</b>富良野駅のまわりにホテルやゲストハウスがあります<br />会場の3階にもホステル（HOSTEL TOMAR）があります")} />
           </li>
         </ul>
