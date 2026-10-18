@@ -18,10 +18,11 @@ import { PERSONAL_SPONSORS } from "../data/personalSponsors";
 import savedPersonal from "../data/personal_sponsors.json";
 import corporateRaw from "../data/corporate_sponsors.json";
 import { buildSponsors, sigOf, validPersonal, type CorporateRow } from "../scripts/sponsors";
+import anonSrc from "../assets/anonymous-emblem.svg?url";
 
 const personal = validPersonal(savedPersonal);
 const corporate = corporateRaw as CorporateRow[];
-const view = buildSponsors(personal, corporate);
+const view = buildSponsors(personal, corporate, anonSrc);
 const live = PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
 ---
 
@@ -38,6 +39,7 @@ const live = PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
           data-total={view.total}
           data-api={live ? PERSONAL_SPONSORS.apiUrl : undefined}
           data-sig={sigOf(personal)}
+          data-anon={anonSrc}
         >
           <p class="game__hud">
             <span class="game__lead hand">気球をつかまえて、応援団を集めよう</span>
@@ -304,7 +306,7 @@ const live = PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
       } catch {
         /* 法人なしで描く */
       }
-      const v = buildSponsors(fresh, corp);
+      const v = buildSponsors(fresh, corp, game.dataset.anon);
       game.dataset.sig = sigOf(fresh);
       game.dataset.total = String(v.total);
       game.querySelector("[data-total-text]")!.textContent = String(v.total);
