@@ -10,10 +10,10 @@ export const PERSONAL_SPONSORS = {
   apiUrl: "https://fortee.jp/techramen-26-conf/api/attendees/api-list/e81a5c0b-9e4b-4577-895f-2babbe3c2ce1",
   /**
    * 見た人のブラウザで apiUrl を読むか（リアルタイム）。
-   * fortee にデータが無いあいだは API が 404（CORS の許可も無い）を返し、読むたびにコンソールにエラーが出るので false。
-   * データが入って npm run sponsors:update が通るようになったら true にする
+   * fortee にデータが無いと API が 404（CORS の許可も無い）を返し、読むたびにコンソールにエラーが出る。
+   * そのときは false にする
    */
-  live: false,
+  live: true,
   /** 「応援団員になる」の申込先。空ならボタンを出さない */
   joinUrl: "",
 };

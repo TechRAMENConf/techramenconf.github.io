@@ -20,27 +20,21 @@ export const validPersonal = (list: unknown): Personal[] =>
     : [];
 
 // fortee の応援団 API の応答を、2025 と同じ形 { userName, avatarUrl, twitterUrl } の 1 口 1 行に直す。
-// まだデータが無く応答の形を確かめられていないので、ありそうな項目名を広めに受ける（確かめたら絞る）
+// 応答: { attendees: [{ avatar_url, "x-account"?: { name: "@handle", link } }] }。1 件＝1 口（2 口なら 2 件）。
+// 名前の項目は無いので X のアカウント名を名前にする。X が無い人は名前が分からないので 2025 と同じ「隠し味（匿名応援団）」
+// （「匿名」を含む名前は口数を 1 件ずつ数える）
+export const ANONYMOUS = "隠し味（匿名応援団）";
 type Row = Record<string, unknown>;
 const str = (v: unknown) => (typeof v === "string" && v.trim() !== "" ? v.trim() : undefined);
 export const fromFortee = (data: unknown): Personal[] => {
-  const d = data as Row | unknown[];
-  const list: unknown = Array.isArray(d) ? d : (d?.attendees ?? d?.data ?? d?.list);
+  const list = (data as Row | null)?.attendees;
   if (!Array.isArray(list)) return [];
-  return validPersonal(
-    (list as Row[]).flatMap((a) => {
-      const screen = str(a.twitterScreenName) ?? str(a.twitter_screen_name);
-      const row: Personal = {
-        userName: str(a.userName) ?? str(a.user_name) ?? str(a.name) ?? str(a.nickname) ?? "",
-        avatarUrl: str(a.avatarUrl) ?? str(a.avatar_url),
-        twitterUrl:
-          str(a.twitterUrl) ?? str(a.twitter_url) ?? str(a.link_url) ?? (screen ? `https://x.com/${screen}` : undefined),
-      };
-      // 1 人 1 行＋枚数の形なら、枚数ぶん並べる（1 行＝1 口）
-      const n = Math.min(Math.max(Math.floor(Number(a.quantity ?? a.count ?? 1)) || 1, 1), 20);
-      return Array.from({ length: n }, () => row);
-    }),
-  );
+  return list.flatMap((a: Row | null) => {
+    if (!a || typeof a !== "object") return [];
+    const x = (a["x-account"] ?? {}) as Row;
+    const handle = str(x.name)?.replace(/^@/, "");
+    return [{ userName: handle ?? ANONYMOUS, avatarUrl: str(a.avatar_url), twitterUrl: handle ? str(x.link) : undefined }];
+  });
 };
 
 const esc = (s: string) =>
@@ -137,8 +131,11 @@ ${d >= 4 ? `<path class="bln__streamer" d="M22 84q-6 10 0 20t0 20M78 84q6 10 0 2
 </svg><span class="bln__card${m.corp ? " bln__card--logo" : ""}">${imgTag(m.src)}<span class="bln__initial"${hiddenIf(!!m.src)}>${esc(initial(m.name))}</span></span></span></span></span>`;
 };
 
-/** 応援団と法人の一覧から、空・一覧の HTML と数を作る */
-export const buildSponsors = (personalRows: Personal[], corporateRows: CorporateRow[]) => {
+/**
+ * 応援団と法人の一覧から、空・一覧の HTML と数を作る。
+ * anonSrc: 応援団のアバターが無いとき（匿名・未設定）のアイコン（ロゴの丼）。無ければ頭文字か「？」
+ */
+export const buildSponsors = (personalRows: Personal[], corporateRows: CorporateRow[], anonSrc?: string) => {
   const personal = validPersonal(personalRows);
 
   // ゲームの記録用 ID: 名前＋同名の通し番号（匿名の応援団は同じ名前で何人もいる）
@@ -158,7 +155,8 @@ export const buildSponsors = (personalRows: Personal[], corporateRows: Corporate
     name: p.userName,
     href: safeUrl(p.twitterUrl),
     id: idOf("p", p.userName),
-    src: img(p.avatarUrl),
+    // 匿名の人と、アバターが未設定の人はロゴの丼（2025 と同じ）
+    src: (p.userName.includes("匿名") ? null : img(p.avatarUrl)) ?? anonSrc ?? null,
     kuchi: p.userName.includes("匿名") ? 1 : kuchiOf.get(p.userName)!,
   }));
 
