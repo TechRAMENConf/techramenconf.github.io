@@ -55,7 +55,7 @@ const live = PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
           {/* つかまえたときの名札 */}
           <p class="catch" data-catch hidden>
             <span class="catch__msg">
-              <b data-catch-name /><span data-catch-verb> をつかまえた！</span>
+              <span data-catch-pre /><b data-catch-name /><span data-catch-verb> をつかまえた！</span>
             </span>
             <span class="catch__note" data-catch-note hidden />
             <a class="catch__link" data-catch-link target="_blank" rel="noopener" hidden />
@@ -130,11 +130,32 @@ const live = PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
     const resetEl = game.querySelector<HTMLButtonElement>("[data-reset]")!;
     const doneEl = game.querySelector<HTMLElement>("[data-done]")!;
     const catchEl = game.querySelector<HTMLElement>("[data-catch]")!;
+    const catchPre = game.querySelector<HTMLElement>("[data-catch-pre]")!;
     const catchName = game.querySelector<HTMLElement>("[data-catch-name]")!;
     const catchVerb = game.querySelector<HTMLElement>("[data-catch-verb]")!;
     const catchNote = game.querySelector<HTMLElement>("[data-catch-note]")!;
     const catchLink = game.querySelector<HTMLAnchorElement>("[data-catch-link]")!;
     const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // つかまえたときの一言。富良野のあちこちから応援が届く（[名前の前, 名前の後]）
+    const LINES: [string, string][] = [
+      ["富良野線に乗って ", " が応援に来た！"],
+      ["十勝岳から ", " の応援が聞こえる！"],
+      ["", " が鳥沼公園で応援している！"],
+      ["ラベンダー畑の向こうで ", " が手を振っている！"],
+      ["麓郷の森から ", " の応援が届いた！"],
+      ["", " がワイン工場で乾杯して応援している！"],
+      ["", " が富良野駅に着いた！ 応援に来てくれた！"],
+      ["ラーメンをすすりながら ", " が応援している！"],
+    ];
+    let lastLine = -1;
+    // 同じ一言が続かないように選ぶ
+    const pickLine = () => {
+      let i = Math.floor(Math.random() * (lastLine < 0 ? LINES.length : LINES.length - 1));
+      if (lastLine >= 0 && i >= lastLine) i++;
+      lastLine = i;
+      return LINES[i];
+    };
 
     // いま空にある気球（描き直すと入れ替わる）
     let all: HTMLElement[] = [];
@@ -230,8 +251,10 @@ const live = PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
         // 動きを減らす設定ではしぼむ動きが無いので、すぐ消す
         if (still) gone(b);
 
+        const [pre, post] = pickLine();
+        catchPre.textContent = pre;
         catchName.textContent = b.dataset.name!;
-        catchVerb.textContent = times > 1 ? ` をまたつかまえた！（${times} 回目）` : " をつかまえた！";
+        catchVerb.textContent = post + (times > 1 ? `（${times} 回目）` : "");
         const kuchi = Number(b.dataset.kuchi || 0);
         catchNote.hidden = kuchi < 2;
         catchNote.textContent = `${kuchi} 口で応援`;
