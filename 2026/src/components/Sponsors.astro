@@ -22,7 +22,7 @@ import { buildSponsors, sigOf, validPersonal, type CorporateRow } from "../scrip
 const personal = validPersonal(savedPersonal);
 const corporate = corporateRaw as CorporateRow[];
 const view = buildSponsors(personal, corporate);
-const live = !!PERSONAL_SPONSORS.apiUrl;
+const live = PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
 ---
 
 {
@@ -36,7 +36,7 @@ const live = !!PERSONAL_SPONSORS.apiUrl;
           class="game"
           data-game
           data-total={view.total}
-          data-api={PERSONAL_SPONSORS.apiUrl || undefined}
+          data-api={live ? PERSONAL_SPONSORS.apiUrl : undefined}
           data-sig={sigOf(personal)}
         >
           <p class="game__hud">

@@ -6,8 +6,14 @@
  *   ビルド時は保存分 data/personal_sponsors.json を使う（npm run sponsors:update で更新してコミット）
  */
 export const PERSONAL_SPONSORS = {
-  /** 応援団の一覧（fortee）。空ならブラウザでは読まず、保存分だけを出す */
+  /** 応援団の一覧（fortee）。npm run sponsors:update もここから読む */
   apiUrl: "https://fortee.jp/techramen-26-conf/api/attendees/api-list/e81a5c0b-9e4b-4577-895f-2babbe3c2ce1",
+  /**
+   * 見た人のブラウザで apiUrl を読むか（リアルタイム）。
+   * fortee にデータが無いあいだは API が 404（CORS の許可も無い）を返し、読むたびにコンソールにエラーが出るので false。
+   * データが入って npm run sponsors:update が通るようになったら true にする
+   */
+  live: false,
   /** 「応援団員になる」の申込先。空ならボタンを出さない */
   joinUrl: "",
 };
