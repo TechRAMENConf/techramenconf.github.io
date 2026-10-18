@@ -11,6 +11,8 @@ interface Row {
   dest: string;
   state: State;
   note: string;
+  /** お知らせの 2 行目（改行して続ける） */
+  note2?: string;
   href?: string;
   /** fortee など外のサイト（新しいタブで開く） */
   external?: boolean;
@@ -37,7 +39,7 @@ const rows: Row[] = [
     href: guest ? "#guest" : undefined,
   },
   tickets.status === "open"
-    ? { dest: "チケット発売", state: "open", note: `fortee で販売中（${tickets.summary}）`, href: tickets.url, external: true }
+    ? { dest: "チケット発売", state: "open", note: `fortee で販売中（${tickets.summary}）`, note2: tickets.regionNote, href: tickets.url, external: true }
     : { dest: "チケット発売", state: "soon", note: "参加チケットの価格と販売開始をお知らせします" },
   { dest: "タイムテーブル", state: "soon", note: "セッションと登壇者を公開します" },
 ];
@@ -73,7 +75,10 @@ const rows: Row[] = [
                 r.dest
               )}
             </th>
-            <td class="board__note jp" set:html={jp(r.note)} />
+            <td class="board__note jp">
+              <Fragment set:html={jp(r.note)} />
+              {r.note2 && <><br /><Fragment set:html={jp(r.note2)} /></>}
+            </td>
           </tr>
         ))
       }
