@@ -38,8 +38,8 @@ const LEGEND = [
 
     <div class="vm-wrap">
       <!-- 地図（操作ボタンは地図の中に重ねる） -->
-      <div class="vm" aria-label="会場の 3D マップ">
-        <canvas class="vm__canvas" aria-hidden="true"></canvas>
+      <div class="vm">
+        <canvas class="vm__canvas"></canvas>
         <div class="vm__labels"></div>
 
         <div class="vm-floors" role="tablist" aria-label="フロア">
@@ -132,13 +132,13 @@ const LEGEND = [
           {
             LEGEND.map((l) => (
               <li>
-                <span class="vm-legend__chip" style={`--chip:${l.color}`} aria-hidden="true" />
+                <span class="vm-legend__chip" style={`--chip:${l.color}`} />
                 {l.label}
               </li>
             ))
           }
           <li>
-            <span class="vm-legend__steps" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="vm-legend__steps"><i></i><i></i><i></i></span>
             入口から EV・階段への道順
           </li>
         </ul>

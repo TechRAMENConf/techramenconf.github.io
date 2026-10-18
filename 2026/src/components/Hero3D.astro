@@ -13,12 +13,12 @@ const tag =
       : null;
 ---
 
-<section class="hero" aria-label="TechRAMEN 2026 Conference" data-beat="hero">
+<section class="hero" data-beat="hero">
   <div class="hero__content wrap">
     {
       tag && (
         <a class:list={["hero__tag torn swing", cfp.status === "open" && "hero__tag--open"]} href="#cfp">
-          <span class="hero__tag-string" aria-hidden="true" />
+          <span class="hero__tag-string" />
           <span class="hero__tag-head">{tag.head}</span>
           <span class="hero__tag-sub hand">{tag.sub} →</span>
         </a>

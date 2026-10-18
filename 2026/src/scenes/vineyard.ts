@@ -76,21 +76,28 @@ function makeHillLayer(
 ): THREE.Mesh {
   const shape = new THREE.Shape();
   const segments = 150;
+  // 横に広い画面でも端が見えないよう、左右に EXTEND 本ずつ継ぎ足す。
+  // 元の幅の範囲は従来どおり（同じ形・同じ乱数の順番）。継ぎ足しは別の乱数で作る
+  const EXTEND = 120;
+  const extRand = mulberry32(Math.round(seed * 1000));
+  const step = width / segments;
+  const half = width / 2 + EXTEND * step;
   const top: THREE.Vector2[] = [];
-  shape.moveTo(-width / 2, -height);
-  shape.lineTo(-width / 2, 0);
+  shape.moveTo(-half, -height);
+  shape.lineTo(-half, 0);
   // 大きなうねり＋手でちぎった細かいギザギザ（不揃いに）
-  for (let i = 0; i <= segments; i++) {
+  for (let i = -EXTEND; i <= segments + EXTEND; i++) {
     const t = i / segments;
     const x = -width / 2 + t * width;
     const wobble =
       Math.sin(t * Math.PI * 2.2 + seed) * topAmplitude * 0.6 +
       Math.sin(t * Math.PI * 5.7 + seed * 1.7) * topAmplitude * 0.4;
-    const torn = (rand() - 0.5) * 0.07 + Math.sin(t * 97 + seed * 5) * 0.012;
+    const r = i >= 0 && i <= segments ? rand() : extRand();
+    const torn = (r - 0.5) * 0.07 + Math.sin(t * 97 + seed * 5) * 0.012;
     shape.lineTo(x, wobble + torn);
     top.push(new THREE.Vector2(x, wobble + torn));
   }
-  shape.lineTo(width / 2, -height);
+  shape.lineTo(half, -height);
   shape.closePath();
 
   const geo = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 1 });

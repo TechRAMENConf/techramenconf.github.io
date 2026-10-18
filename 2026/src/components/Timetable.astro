@@ -56,7 +56,7 @@ const rows: Row[] = [
         rows.map((r) => (
           <tr class:list={["board__row", `board__row--${r.state}`]}>
             <td class="board__state">
-              <span class="board__lamp" aria-hidden="true" />
+              <span class="board__lamp" />
               {LAMP[r.state]}
             </td>
             <th scope="row" class="board__dest">

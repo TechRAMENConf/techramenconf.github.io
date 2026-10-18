@@ -69,7 +69,7 @@ const backing = body.replace(/<defs>[\s\S]*?<\/defs>/, "");
     </filter>
   </defs>
   <!-- 下: 白い台紙（縁を太らせて、はさみで切った揺らぎ）／上: 色紙の本体（くっきり） -->
-  <g class="logo__backing" filter="url(#lg-cut)" aria-hidden="true" set:html={backing} />
+  <g class="logo__backing" filter="url(#lg-cut)" set:html={backing} />
   <g class="logo__art" set:html={body} />
 </svg>
 

@@ -8,6 +8,7 @@
     "build": "astro check && astro build",
     "preview": "astro preview",
     "staff:update": "node scripts/update-staff.mjs",
+    "sponsors:update": "node scripts/update-personal-sponsors.mjs",
     "astro": "astro"
   },
   "dependencies": {
