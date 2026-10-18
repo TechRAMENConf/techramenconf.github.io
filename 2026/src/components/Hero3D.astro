@@ -3,21 +3,28 @@
 import Icon from "./Icon.astro";
 import Logo from "./Logo.astro";
 import cfp from "../data/cfp.json";
+import tickets from "../data/tickets.json";
 
-// 「いま」いちばん伝えたいこと（CfP）を荷札で出す。締切後は出さない
+// 「いま」いちばん伝えたいことを荷札で出す。CfP の募集中・準備中が先、締切後はチケット販売中
 const tag =
   cfp.status === "open"
-    ? { head: "登壇者募集中", sub: cfp.deadlines?.[0] ? `${cfp.deadlines[0].label} ${cfp.deadlines[0].date}` : "応募受付中" }
+    ? { head: "登壇者募集中", sub: cfp.deadlines?.[0] ? `${cfp.deadlines[0].label} ${cfp.deadlines[0].date}` : "応募受付中", href: "#cfp", hot: true }
     : cfp.status === "soon"
-      ? { head: "登壇者募集", sub: "まもなく開始" }
-      : null;
+      ? { head: "登壇者募集", sub: "まもなく開始", href: "#cfp", hot: false }
+      : tickets.status === "open"
+        ? { head: "チケット販売中", sub: "fortee で購入できます", href: tickets.url, hot: true, external: true }
+        : null;
 ---
 
 <section class="hero" data-beat="hero">
   <div class="hero__content wrap">
     {
       tag && (
-        <a class:list={["hero__tag torn swing", cfp.status === "open" && "hero__tag--open"]} href="#cfp">
+        <a
+          class:list={["hero__tag torn swing", tag.hot && "hero__tag--open"]}
+          href={tag.href}
+          {...(tag.external ? { target: "_blank", rel: "noopener" } : {})}
+        >
           <span class="hero__tag-string" />
           <span class="hero__tag-head">{tag.head}</span>
           <span class="hero__tag-sub hand">{tag.sub} →</span>

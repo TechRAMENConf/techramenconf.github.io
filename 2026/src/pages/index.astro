@@ -13,6 +13,7 @@ import NoteFeed from "../components/NoteFeed.astro";
 import Sponsors from "../components/Sponsors.astro";
 import Staff from "../components/Staff.astro";
 import venue from "../data/venue.json";
+import tickets from "../data/tickets.json";
 import { FEATURES } from "../data/features";
 import { jp, jpHtml } from "../lib/jp";
 
@@ -58,6 +59,18 @@ const eventLd = {
     geo: { "@type": "GeoCoordinates", latitude: venue.lat, longitude: venue.lng },
   },
   organizer: { "@type": "Organization", name: "TechRAMEN Conference", url: "https://techramenconf.net/" },
+  // 参加チケット（前夜祭＋本祭）。懇親会・応援は参加券ではないので入れない
+  ...(tickets.status === "open" && {
+    offers: tickets.admission.map((t) => ({
+      "@type": "Offer",
+      name: t.name,
+      price: t.price,
+      priceCurrency: "JPY",
+      availability: "https://schema.org/InStock",
+      url: tickets.url,
+      validThrough: t.until,
+    })),
+  }),
 };
 
 const gcalPre = gcal("TechRAMEN 2026 (pre event)", "20261120", "20261121");

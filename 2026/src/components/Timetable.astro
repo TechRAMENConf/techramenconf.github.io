@@ -1,8 +1,9 @@
 ---
 // 公開ロードマップを「駅の発車予定表」で見せる。
-// CfP とゲストの状態は data/cfp.json・data/guest.json に連動する。
+// CfP・ゲスト・チケットの状態は data/cfp.json・data/guest.json・data/tickets.json に連動する。
 import cfp from "../data/cfp.json";
 import guest from "../data/guest.json";
+import tickets from "../data/tickets.json";
 import { jp } from "../lib/jp";
 
 type State = "soon" | "open" | "done";
@@ -11,6 +12,8 @@ interface Row {
   state: State;
   note: string;
   href?: string;
+  /** fortee など外のサイト（新しいタブで開く） */
+  external?: boolean;
 }
 
 const LAMP: Record<State, string> = { soon: "準備中", open: "受付中", done: "公開済" };
@@ -33,7 +36,9 @@ const rows: Row[] = [
     note: guest ? "発表しました" : "今年のゲストを発表します",
     href: guest ? "#guest" : undefined,
   },
-  { dest: "チケット発売", state: "soon", note: "参加チケットの価格と販売開始をお知らせします" },
+  tickets.status === "open"
+    ? { dest: "チケット発売", state: "open", note: `fortee で販売中（${tickets.summary}）`, href: tickets.url, external: true }
+    : { dest: "チケット発売", state: "soon", note: "参加チケットの価格と販売開始をお知らせします" },
   { dest: "タイムテーブル", state: "soon", note: "セッションと登壇者を公開します" },
 ];
 ---
@@ -60,7 +65,13 @@ const rows: Row[] = [
               {LAMP[r.state]}
             </td>
             <th scope="row" class="board__dest">
-              {r.href ? <a href={r.href}>{r.dest}</a> : r.dest}
+              {r.href ? (
+                <a href={r.href} {...(r.external ? { target: "_blank", rel: "noopener" } : {})}>
+                  {r.dest}
+                </a>
+              ) : (
+                r.dest
+              )}
             </th>
             <td class="board__note jp" set:html={jp(r.note)} />
           </tr>
