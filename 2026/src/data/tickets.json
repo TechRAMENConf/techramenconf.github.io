@@ -1,7 +1,8 @@
 {
   "status": "open",
   "url": "https://fortee.jp/techramen-26-conf/ticket-shop/index",
-  "summary": "一般 3,500円・学生 500円 ほか",
+  "summary": "一般 3,500円・地域限定 2,000円・学生 500円",
+  "regionNote": "地域限定は上川・空知・留萌・宗谷・オホーツクにお住まいの方が対象です",
   "admission": [
     { "name": "一般参加チケット", "price": 3500, "until": "2026-11-21T18:00:00+09:00" },
     { "name": "地域限定特別参加チケット", "price": 2000, "until": "2026-11-21T18:00:00+09:00" },
