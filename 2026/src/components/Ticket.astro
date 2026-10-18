@@ -5,6 +5,7 @@ import venue from "../data/venue.json";
 import Icon from "./Icon.astro";
 import { FEATURES } from "../data/features";
 import { jp } from "../lib/jp";
+import tickets from "../data/tickets.json";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
 
@@ -48,9 +49,23 @@ const { ics, gcalPre, gcalMain } = Astro.props;
     </dl>
 
     <p class="ticket__fine jp">
-      <Fragment set:html={jp("※ 時刻は予定です。参加チケットの発売は")} /><a
-        href="#roadmap">公開予定</a
-      ><Fragment set:html={jp("をご覧ください。")} />
+      {
+        tickets.status === "open" ? (
+          <>
+            <Fragment set:html={jp("※ 時刻は予定です。参加チケットは")} /><a
+              href={tickets.url}
+              target="_blank"
+              rel="noopener">fortee で販売中</a
+            ><Fragment set:html={jp("です。")} />
+          </>
+        ) : (
+          <>
+            <Fragment set:html={jp("※ 時刻は予定です。参加チケットの発売は")} /><a
+              href="#roadmap">公開予定</a
+            ><Fragment set:html={jp("をご覧ください。")} />
+          </>
+        )
+      }
     </p>
   </div>
 
