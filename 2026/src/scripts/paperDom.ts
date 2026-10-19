@@ -51,6 +51,40 @@ function assign() {
   });
 }
 
+// Firefox は SVG フィルタを CPU で計算するため、大きなシートの破れ（feDisplacementMap）が
+// スクロールのたびに重く、描画が追いつかずにカードが出てこなくなる。
+// Firefox だけ、縁を細かく揺らした多角形（clip-path）で破る（clip-path は GPU で処理される）
+const isFirefox = /firefox/i.test(navigator.userAgent);
+
+/** 縁にそって内側へ 1〜9px ほど揺らした多角形。位置は % ＋ px なので大きさが変わっても使える */
+function tornPolygon(w: number, h: number, seed: number) {
+  let s = seed;
+  const rnd = () => ((s = (s * 16807) % 2147483647), s / 2147483647);
+  const p1 = rnd() * 6.28;
+  const p2 = rnd() * 6.28;
+  // ゆるい波＋細かいささくれ
+  const depth = (t: number) =>
+    (5 + 2.2 * Math.sin(t * 0.09 + p1) + 1.4 * Math.sin(t * 0.23 + p2) + (rnd() - 0.5) * 3.2).toFixed(1);
+  const pct = (i: number, n: number) => ((i / n) * 100).toFixed(2);
+  const nx = Math.max(12, Math.ceil(w / 14));
+  const ny = Math.max(12, Math.ceil(h / 14));
+  const pts: string[] = [];
+  for (let i = 0; i < nx; i++) pts.push(`${pct(i, nx)}% ${depth(i * 14)}px`);
+  for (let i = 0; i < ny; i++) pts.push(`calc(100% - ${depth(i * 14 + 500)}px) ${pct(i, ny)}%`);
+  for (let i = nx; i > 0; i--) pts.push(`${pct(i, nx)}% calc(100% - ${depth(i * 14 + 1000)}px)`);
+  for (let i = ny; i > 0; i--) pts.push(`${depth(i * 14 + 1500)}px ${pct(i, ny)}%`);
+  return `polygon(${pts.join(",")})`;
+}
+
+function clipSheets() {
+  document.querySelectorAll<HTMLElement>(".sheet").forEach((el, i) => {
+    // ::before は四方に 10px はみ出している
+    const r = el.getBoundingClientRect();
+    el.style.setProperty("--sheet-clip", tornPolygon(r.width + 20, r.height + 20, 101 + i * 29));
+  });
+  document.documentElement.classList.add("ff-paper");
+}
+
 /** 和紙の地紙（256px の繰り返し）: 細い繊維＋粒。白黒の濃淡だけを描き、乗算で重ねる */
 function grain() {
   const S = 256;
@@ -108,6 +142,7 @@ function grain() {
 
 try {
   if (addFilters()) assign();
+  if (isFirefox) clipSheets();
   grain();
 } catch {
   /* 既定の見た目のまま */
