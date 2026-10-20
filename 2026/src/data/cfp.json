@@ -1,13 +1,14 @@
 {
-  "status": "closed",
+  "status": "open",
   "url": "https://fortee.jp/techramen-26-conf/speaker/proposal/cfp",
   "deadlines": [
-    { "label": "一次締切", "date": "10/18（日）12:00" },
     { "label": "二次締切", "date": "10/25（日）12:00" }
   ],
+  "openMessage": "二次募集を受け付けています（10/25 12:00 まで）",
   "closedMessage": "一次募集は締め切りました。たくさんのご応募ありがとうございました！ 方針決定次第、二次募集の可能性があります",
-  "deadlineNote": "一次募集で枠が埋まった場合、二次募集はありません",
-  "summary": "TechRAMEN 2026 Conference で話してくれる方を募集しています",
+  "deadlineNote": "一次募集で出したプロポーザルも、締切まで修正できます",
+  "summary": "TechRAMEN 2026 Conference で話してくれる方を、二次募集しています",
+  "info": { "label": "二次募集のお知らせ（note）", "url": "https://note.com/tomio2480/n/nd3da6bfa49c8" },
   "formats": [
     { "name": "［麺打ち］ライトニングハンズオン", "length": "40分" },
     { "name": "［餃子セット］トーク", "length": "40分" },

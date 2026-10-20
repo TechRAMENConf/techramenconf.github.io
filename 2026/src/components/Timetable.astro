@@ -26,7 +26,7 @@ const rows: Row[] = [
     state: cfp.status === "open" ? "open" : cfp.status === "closed" ? "done" : "soon",
     note:
       cfp.status === "open"
-        ? "ただいま応募を受け付けています"
+        ? (cfp.openMessage ?? "ただいま応募を受け付けています")
         : cfp.status === "closed"
           ? "一次募集は締め切りました。方針決定次第、二次募集の可能性があります"
           : "応募方法と締切をお知らせします",
