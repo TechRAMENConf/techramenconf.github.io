@@ -67,18 +67,18 @@ const live = PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
           </p>
         </div>
 
-        <div class="sp-group" hidden={view.corpCount === 0}>
-          <h3 class="sp-group__h hand">
-            ラーメン法人応援団<small>{view.corpCount} 社</small>
-          </h3>
-          <ul class="corp" set:html={view.corpHtml} />
-        </div>
-
         <div class="sp-group" data-person-group hidden={view.personCount === 0}>
           <h3 class="sp-group__h hand">
             ラーメン応援団<small data-person-count>{view.personCount} 口</small>
           </h3>
           <ul class="seals" data-person-list set:html={view.personHtml} />
+        </div>
+
+        <div class="sp-group" hidden={view.corpCount === 0}>
+          <h3 class="sp-group__h hand">
+            ラーメン法人応援団<small>{view.corpCount} 社</small>
+          </h3>
+          <ul class="corp" set:html={view.corpHtml} />
         </div>
 
         {
@@ -186,9 +186,11 @@ const live = PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
       // 席: 縦の位置（段）と、止まっているときの横の位置
       const seatOf = new Map<HTMLElement, number>();
       let cursor = 0;
-      const next = (): HTMLElement | undefined => {
-        // まだつかまえていない人のいる隊を優先。全員つかまえたら、どの隊も飛ぶ
-        for (const wantNew of [true, false]) {
+      // 偶数の席は、まだつかまえていない人のいる隊を優先（全員つかまえたら、どの隊でも）。
+      // 奇数の席は、つかまえたかどうかに関係なく順番に飛ばす
+      // （優先だけだと、つかまえ終えた人の気球が空から消え、応援団が見えなくなるため）
+      const next = (preferNew: boolean): HTMLElement | undefined => {
+        for (const wantNew of preferNew ? [true, false] : [false]) {
           for (let k = 0; k < units.length; k++) {
             const u = units[(cursor + k) % units.length];
             if (seatOf.has(u) || (wantNew && members(u).every(isCaught))) continue;
@@ -198,7 +200,7 @@ const live = PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
         }
       };
       const launch = (seat: number, head: number) => {
-        const u = next();
+        const u = next(seat % 2 === 0);
         if (!u) return;
         seatOf.set(u, seat);
         const lane = (seat * 0.618034) % 1;
