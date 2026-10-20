@@ -552,10 +552,8 @@ const live = PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
       height: 100%;
       object-fit: cover;
     }
-    /* ロゴは切れないよう余白を取って全体を見せる */
+    /* ロゴも個人と同じく縁いっぱいに（丸いロゴを前提。横長のロゴは正方形のアイコン版をもらう） */
     .bln__card--logo img {
-      width: 82%;
-      height: 82%;
       object-fit: contain;
     }
     .bln__initial {
@@ -685,15 +683,10 @@ const live = PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
       background: var(--paper-card);
       box-shadow: 0 4px 8px -4px rgba(46, 40, 38, 0.55);
     }
-    .corp__seal:nth-child(3n + 1) {
-      rotate: -6deg;
-    }
-    .corp__seal:nth-child(3n + 2) {
-      rotate: 4deg;
-    }
     .corp__seal img {
-      width: 84%;
-      height: 84%;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
       object-fit: contain;
     }
     .corp__initial {

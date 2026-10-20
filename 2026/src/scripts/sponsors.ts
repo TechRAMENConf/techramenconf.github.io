@@ -48,7 +48,11 @@ const img = (u?: string) =>
     ? null
     : /^https?:/i.test(u)
       ? (safeUrl(u) ?? null)
-      : new URL(u.replace(/^\//, ""), "https://fortee.jp/").href;
+      : /^\/?files\//.test(u)
+        ? new URL(u.replace(/^\//, ""), "https://fortee.jp/").href // fortee の中のパス（2025 の形）
+        : u.startsWith("/") && !u.startsWith("//")
+          ? u // このサイトの画像（法人のロゴ）
+          : null;
 
 // 画像が無いときの 1 文字。匿名の応援団は「？」、会社は「株式会社」などを除いた頭文字
 const initial = (name: string) =>
