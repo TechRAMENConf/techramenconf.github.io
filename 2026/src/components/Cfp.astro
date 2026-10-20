@@ -13,6 +13,8 @@ const cfp = cfpData as {
   /** 締切（closed）のときの一言。無ければ「締め切りました」だけ */
   closedMessage?: string;
   summary: string;
+  /** 募集中に添える案内（note の記事など） */
+  info?: { label: string; url: string };
   formats?: { name: string; length: string }[];
 };
 
@@ -71,6 +73,13 @@ const status: Status = cfp.status in STAMP ? cfp.status : "soon";
           <a class="btn" href={cfp.url} target="_blank" rel="noopener">
             fortee で応募する
           </a>
+        )
+      }
+      {
+        status === "open" && cfp.info && (
+          <p class="cfp__hint jp">
+            <a href={cfp.info.url} target="_blank" rel="noopener">{cfp.info.label}</a>
+          </p>
         )
       }
       {
