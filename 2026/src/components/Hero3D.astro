@@ -40,7 +40,13 @@ const tag =
       <span class="hero__fact"><b>富良野</b><small>北海道</small></span>
     </p>
     <div class="hero__cta">
-      <a class="btn" href="#dates">日程と会場</a>
+      {
+        tickets.status === "open" ? (
+          <a class="btn" href={tickets.url} target="_blank" rel="noopener">チケットを買う</a>
+        ) : (
+          <a class="btn" href="#dates">日程と会場</a>
+        )
+      }
       {
         cfp.status === "open" ? (
           <a class="btn btn--ghost" href="#cfp">登壇者を募集中</a>
