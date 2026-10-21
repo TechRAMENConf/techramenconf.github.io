@@ -26,6 +26,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          # 実行環境にキャッシュされた古い 22.x ではなく、毎回最新のパッチ版を使う（セキュリティ修正を取りこぼさない）
+          check-latest: true
           
       - name: Install dependencies for root
         run: npm ci
