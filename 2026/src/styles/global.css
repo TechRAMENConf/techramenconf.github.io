@@ -123,14 +123,14 @@ h3 {
   /* 縁を手でちぎったようにギザギザに */
   filter: var(--sheet-filter, url(#torn));
 }
-/* Firefox: 破れはフィルタの代わりに多角形で切り抜く（paperDom.ts）。
+/* Firefox・Safari: 破れはフィルタの代わりに多角形で切り抜く（paperDom.ts）。
    外側の影は切り抜かれるので、切り抜かない ::after に移す（drop-shadow より軽い） */
-.ff-paper .sheet::before {
+.clip-paper .sheet::before {
   filter: none;
   clip-path: var(--sheet-clip, none);
   box-shadow: inset 0 0 70px rgba(120, 88, 48, 0.09);
 }
-.ff-paper .sheet::after {
+.clip-paper .sheet::after {
   content: "";
   position: absolute;
   inset: -4px;
@@ -227,6 +227,11 @@ h3 {
   border-radius: inherit;
   filter: url(#rough);
   pointer-events: none;
+}
+/* Safari: 縁の歪みは外してまっすぐな線に（SVG フィルタがスクロールで重い。paperDom.ts） */
+.wk-paper .card::before,
+.wk-paper .card::after {
+  filter: none;
 }
 
 /* 軽い手作りの歪み */

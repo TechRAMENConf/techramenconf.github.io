@@ -51,10 +51,13 @@ function assign() {
   });
 }
 
-// Firefox は SVG フィルタを CPU で計算するため、大きなシートの破れ（feDisplacementMap）が
+// Firefox と Safari（WebKit）は SVG フィルタを CPU で計算するため、大きなシートの破れ（feDisplacementMap）が
 // スクロールのたびに重く、描画が追いつかずにカードが出てこなくなる。
-// Firefox だけ、縁を細かく揺らした多角形（clip-path）で破る（clip-path は GPU で処理される）
-const isFirefox = /firefox/i.test(navigator.userAgent);
+// この 2 つだけ、縁を細かく揺らした多角形（clip-path）で破る（clip-path は GPU で処理される）
+const ua = navigator.userAgent;
+const isFirefox = /firefox/i.test(ua);
+// Mac の Safari と、iPhone・iPad のブラウザ（どれも WebKit）。Chrome・Edge（Blink）は UA に AppleWebKit を含むので除く
+const isWebKit = /AppleWebKit/.test(ua) && !/Chrome\/|Chromium|Edg\//.test(ua);
 
 /** 縁にそって内側へ 1〜9px ほど揺らした多角形。位置は % ＋ px なので大きさが変わっても使える */
 function tornPolygon(w: number, h: number, seed: number) {
@@ -82,7 +85,7 @@ function clipSheets() {
     const r = el.getBoundingClientRect();
     el.style.setProperty("--sheet-clip", tornPolygon(r.width + 20, r.height + 20, 101 + i * 29));
   });
-  document.documentElement.classList.add("ff-paper");
+  document.documentElement.classList.add("clip-paper");
 }
 
 /** 和紙の地紙（256px の繰り返し）: 細い繊維＋粒。白黒の濃淡だけを描き、乗算で重ねる */
@@ -142,7 +145,9 @@ function grain() {
 
 try {
   if (addFilters()) assign();
-  if (isFirefox) clipSheets();
+  if (isFirefox || isWebKit) clipSheets();
+  // WebKit はカードの縁の歪み（小さな SVG フィルタ）も、数が多いとスクロールで重くなるので外す
+  if (isWebKit) document.documentElement.classList.add("wk-paper");
   grain();
 } catch {
   /* 既定の見た目のまま */
