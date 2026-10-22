@@ -10,7 +10,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { paperMaterial, PaperPost, PAPER_CORE, setPaperLite, type PaperKind } from "./paper";
-import type { Floor, Room, RoomKind, RouteLeg } from "../data/venueFloors";
+import { ACCESS, type Floor, type Room, type RoomKind, type RouteLeg } from "../data/venueFloors";
 
 export type ViewMode = "all" | "top";
 
@@ -76,6 +76,7 @@ interface BuiltFloor {
 }
 
 const DOOR = 1.5; // 道順の所に開ける出入口の幅
+const OUTLINE_W = 0.35; // 使える範囲の縁取りの幅
 
 /** 点 p が線分 a→b の上にあるか（誤差 eps） */
 function onSegment(px: number, py: number, [ax, ay, bx, by]: [number, number, number, number], eps = 0.05) {
@@ -239,6 +240,10 @@ export function createVenueMap(
   glassMat.transparent = true;
   glassMat.opacity = 0.6;
   glassMat.depthWrite = false;
+  const doorAutoMat = paperMaterial(0x9ccbe0, { kind: "stock", seed: 18 });
+  const doorManualMat = paperMaterial(0xb98a5a, { kind: "kraft", seed: 19 });
+  const outlineMats = new Map<string, THREE.Material>();
+  const DOOR_MAT = { auto: doorAutoMat, manual: doorManualMat, locked: paperMaterial(0xc8423a, { kind: "stock", seed: 20 }) };
 
   // --- フロアを組み立てる ---
   const built: BuiltFloor[] = floors.map((floor, fi) => {
@@ -285,6 +290,26 @@ export function createVenueMap(
         }
       }
     }
+    /** 壁 a→b の上にあるドアの位置（a からの距離） */
+    const doorsOn = (ax: number, ay: number, bx: number, by: number) =>
+      (floor.doors ?? [])
+        .filter((dr) => dr.kind !== "locked" && onSegment(dr.x, dr.y, [ax, ay, bx, by], 0.1))
+        .map((dr) => Math.hypot(dr.x - ax, dr.y - ay));
+    /** 壁 a→b を、道順とドアの所だけ開けて立てる */
+    const addWallWithDoors = (ax: number, ay: number, bx: number, by: number, h: number, glass: boolean) => {
+      const len = Math.hypot(bx - ax, by - ay);
+      const cuts = [...doorCuts(ax, ay, bx, by, routeSegs), ...doorsOn(ax, ay, bx, by)].sort((p, q) => p - q);
+      let from = 0;
+      const pieces: [number, number][] = [];
+      for (const c of cuts) {
+        if (c - DOOR / 2 > from + 0.05) pieces.push([from, c - DOOR / 2]);
+        from = Math.max(from, c + DOOR / 2);
+      }
+      if (len - from > 0.05) pieces.push([from, len]);
+      const ux = (bx - ax) / len;
+      const uy = (by - ay) / len;
+      for (const [t0, t1] of pieces) addWall(ax + ux * t0, ay + uy * t0, ax + ux * t1, ay + uy * t1, h, glass);
+    };
     /** a→b に壁の板を 1 枚立てる（起き上がる導入のため、下端を軸にしたグループに入れる） */
     const addWall = (ax: number, ay: number, bx: number, by: number, h: number, glass: boolean) => {
       const pl = Math.hypot(bx - ax, by - ay);
@@ -300,6 +325,37 @@ export function createVenueMap(
       hinge.userData.order = Math.hypot((ax + bx) / 2, (ay + by) / 2);
       group.add(hinge);
       walls.push(hinge);
+    };
+
+    /** 多角形の内側に沿って幅 OUTLINE_W の帯を敷く（辺ごとの細長い紙。角は重なってよい） */
+    const addOutline = (poly: [number, number][], color: string) => {
+      let area = 0;
+      for (let k = 0; k < poly.length; k++) {
+        const [ax, ay] = poly[k];
+        const [bx, by] = poly[(k + 1) % poly.length];
+        area += ax * by - bx * ay;
+      }
+      const sign = area > 0 ? 1 : -1; // 反時計回りなら左が内側
+      const mat = outlineMats.get(color) ?? paperMaterial(new THREE.Color(color).getHex(), { kind: "stock", seed: 40 });
+      outlineMats.set(color, mat);
+      for (let k = 0; k < poly.length; k++) {
+        const [ax, ay] = poly[k];
+        const [bx, by] = poly[(k + 1) % poly.length];
+        const len = Math.hypot(bx - ax, by - ay);
+        const nx = (-(by - ay) / len) * sign * OUTLINE_W;
+        const ny = ((bx - ax) / len) * sign * OUTLINE_W;
+        const shape = new THREE.Shape([
+          new THREE.Vector2(ax, ay),
+          new THREE.Vector2(bx, by),
+          new THREE.Vector2(bx + nx, by + ny),
+          new THREE.Vector2(ax + nx, ay + ny),
+        ]);
+        const geo = new THREE.ShapeGeometry(shape);
+        geo.rotateX(-Math.PI / 2);
+        const strip = new THREE.Mesh(geo, mat);
+        strip.position.y = 0.03;
+        group.add(strip);
+      }
     };
 
     const rooms: BuiltRoom[] = floor.rooms.map((room, ri) => {
@@ -320,33 +376,29 @@ export function createVenueMap(
       group.add(floorMesh);
 
       // 壁: 外形の各辺に厚紙の板を立てる（関係者のみは低い塊にする）
-      const h = room.open ? WALL_H : room.kind === "staff" ? 0.6 : room.kind === "entrance" ? WALL_H * 0.6 : WALL_H;
+      // ドアを書いた階の出入口は、四方を壁で囲んだ部屋（風除室）として高い壁にする
+      const h = room.open
+        ? WALL_H
+        : room.kind === "staff"
+          ? 0.6
+          : room.kind === "entrance" && !floor.doors
+            ? WALL_H * 0.6
+            : WALL_H;
       // 廊下は複数の長方形をつないでいるので壁を立てない（つなぎ目をふさがないように）
       const isCorridor = room.id.startsWith("corridor");
       for (let i = 0; i < (isCorridor ? 0 : room.poly.length); i++) {
         const [ax, ay] = room.poly[i];
         const [bx, by] = room.poly[(i + 1) % room.poly.length];
-        const len = Math.hypot(bx - ax, by - ay);
-        // 出入口の外側の辺は開けておく（入れる感じに）
-        if (room.kind === "entrance" && !room.open && i === 0) continue;
+        // 出入口の外側の辺は開けておく（入れる感じに）。ドアを書いた階は、ドアの所だけ開ける
+        if (room.kind === "entrance" && !room.open && !floor.doors && i === 0) continue;
         // 仕切りのない区画は、建物の外まわりの辺だけ（ほかの部屋との境目は閉じた部屋の側が壁を立てる）
-        const glass = !!room.open && isGlass(ax, ay, bx, by);
+        const glass = isGlass(ax, ay, bx, by);
         if (room.open && !glass && !isOuter(ax, ay, bx, by)) continue;
-        // 道順が横切る所に出入口（幅 DOOR）を開け、残りを壁の板にする
-        const cuts = doorCuts(ax, ay, bx, by, routeSegs).sort((p, q) => p - q);
-        let from = 0;
-        const pieces: [number, number][] = [];
-        for (const c of cuts) {
-          if (c - DOOR / 2 > from + 0.05) pieces.push([from, c - DOOR / 2]);
-          from = Math.max(from, c + DOOR / 2);
-        }
-        if (len - from > 0.05) pieces.push([from, len]);
-        const ux = (bx - ax) / len;
-        const uy = (by - ay) / len;
-        for (const [t0, t1] of pieces) {
-          addWall(ax + ux * t0, ay + uy * t0, ax + ux * t1, ay + uy * t1, h, glass);
-        }
+        addWallWithDoors(ax, ay, bx, by, h, glass);
       }
+
+      // 使える範囲: 床の縁を範囲の色の帯で縁取る
+      if (room.access) addOutline(room.poly, ACCESS[room.access].color);
 
       // 階段: 段々の紙
       if (room.kind === "stairs") {
@@ -386,41 +438,35 @@ export function createVenueMap(
       };
     });
 
-    // 仕切りのない階は、外まわりのうち、どの部屋の辺も当たっていない区間（部屋の間）にも外壁を立てる
-    if (floor.rooms.some((r) => r.open)) {
-      const sides: [number, number, number, number][] = [
-        [x0, y0, x1, y0],
-        [x1, y0, x1, y1],
-        [x1, y1, x0, y1],
-        [x0, y1, x0, y0],
+    // 部屋の辺のほかに立てる壁
+    for (const [ax, ay, bx, by] of floor.partitions ?? []) addWallWithDoors(ax, ay, bx, by, WALL_H, false);
+
+    // ドアの印（床に置く細い紙。自動ドアは水色、手動ドアは木の色、鍵の掛かるドアは赤）
+    for (const dr of floor.doors ?? []) {
+      if (dr.kind === "opening") continue;
+      // ドアが乗っている壁の向き（部屋の辺か仕切りから探す）
+      const edges: [number, number, number, number][] = [
+        ...floor.rooms.flatMap((r) =>
+          r.poly.map((p, k) => [...p, ...r.poly[(k + 1) % r.poly.length]] as [number, number, number, number]),
+        ),
+        ...(floor.partitions ?? []),
       ];
-      for (const side of sides) {
-        const [sx, sy, ex, ey] = side;
-        const len = Math.hypot(ex - sx, ey - sy);
-        const along = (x: number, y: number) => ((x - sx) * (ex - sx) + (y - sy) * (ey - sy)) / len;
-        // この辺に乗っている部屋の辺の区間
-        const covered: [number, number][] = [];
-        for (const r of floor.rooms) {
-          for (let i = 0; i < r.poly.length; i++) {
-            const [ax, ay] = r.poly[i];
-            const [bx, by] = r.poly[(i + 1) % r.poly.length];
-            if (!onSegment(ax, ay, side) || !onSegment(bx, by, side)) continue;
-            const [t0, t1] = [along(ax, ay), along(bx, by)].sort((p, q) => p - q);
-            covered.push([t0, t1]);
-          }
-        }
-        covered.sort((p, q) => p[0] - q[0]);
-        let from = 0;
-        const gaps: [number, number][] = [];
-        for (const [t0, t1] of covered) {
-          if (t0 - from > 0.3) gaps.push([from, t0]);
-          from = Math.max(from, t1);
-        }
-        if (len - from > 0.3) gaps.push([from, len]);
-        const ux = (ex - sx) / len;
-        const uy = (ey - sy) / len;
-        for (const [t0, t1] of gaps) addWall(sx + ux * t0, sy + uy * t0, sx + ux * t1, sy + uy * t1, WALL_H, false);
-      }
+      const e = edges.find((g) => onSegment(dr.x, dr.y, g, 0.1));
+      const ang = e ? Math.atan2(e[3] - e[1], e[2] - e[0]) : 0;
+      const mark = new THREE.Mesh(new THREE.BoxGeometry(DOOR * 0.9, 0.05, 0.42), DOOR_MAT[dr.kind]);
+      mark.position.set(dr.x, 0.04, -dr.y);
+      mark.rotation.y = ang;
+      group.add(mark);
+    }
+
+    // カウンター（低い木の台）
+    for (const [ax, ay, bx, by] of floor.counters ?? []) {
+      const len = Math.hypot(bx - ax, by - ay);
+      const counter = new THREE.Mesh(new THREE.BoxGeometry(len, 0.55, 0.45), [columnMat, columnMat, doorManualMat, columnMat, columnMat, columnMat]);
+      counter.position.set((ax + bx) / 2, 0.275, -(ay + by) / 2);
+      counter.rotation.y = Math.atan2(by - ay, bx - ax);
+      group.add(counter);
+      walls.push(counter);
     }
 
     // フローリングの通路（床だけの帯。部屋の床の上に重ねる）

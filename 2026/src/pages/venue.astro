@@ -1,7 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import venue from "../data/venue.json";
-import { FLOORS } from "../data/venueFloors";
+import { ACCESS, FLOORS } from "../data/venueFloors";
 import { jp } from "../lib/jp";
 import { FEATURES } from "../data/features";
 
@@ -12,6 +12,17 @@ const listed = (f: (typeof FLOORS)[number]) =>
   f.rooms
     .filter((r) => r.kind !== "staff" && !r.id.startsWith("corridor"))
     .sort((a, b) => (a.use ? -1 : 0) - (b.use ? -1 : 0) || ORDER[a.kind] - ORDER[b.kind]);
+
+// 使える範囲（地図の床の縁取り）とドア
+const ACCESS_LEGEND = Object.values(ACCESS);
+const DOOR_LEGEND = [
+  { label: "自動ドア", color: "#9ccbe0" },
+  { label: "手動ドア", color: "#b98a5a" },
+  { label: "鍵の掛かるドア", color: "#c8423a" },
+];
+/** 一覧の補足: 部屋の説明と使える範囲 */
+const sub = (r: (typeof FLOORS)[number]["rooms"][number]) =>
+  [r.detail, r.access && ACCESS[r.access].label].filter(Boolean).join("・");
 
 const LEGEND = [
   { label: "部屋・ホール", color: "#f1e4c8" },
@@ -113,8 +124,13 @@ const LEGEND = [
                           <b>{r.use}</b>
                           <small>
                             {r.name}
-                            {r.detail && `・${r.detail}`}
+                            {sub(r) && `・${sub(r)}`}
                           </small>
+                        </>
+                      ) : sub(r) ? (
+                        <>
+                          {r.name}
+                          <small>{sub(r)}</small>
                         </>
                       ) : (
                         r.name
@@ -141,6 +157,28 @@ const LEGEND = [
             <span class="vm-legend__steps"><i></i><i></i><i></i></span>
             入口から EV・階段への道順
           </li>
+        </ul>
+        <h3 class="vm-legend__h">使える範囲（床のふちの色）</h3>
+        <ul class="vm-legend">
+          {
+            ACCESS_LEGEND.map((a) => (
+              <li>
+                <span class="vm-legend__chip vm-legend__chip--ring" style={`--chip:${a.color}`} />
+                {a.label}
+              </li>
+            ))
+          }
+        </ul>
+        <h3 class="vm-legend__h">ドア</h3>
+        <ul class="vm-legend">
+          {
+            DOOR_LEGEND.map((d) => (
+              <li>
+                <span class="vm-legend__chip vm-legend__chip--door" style={`--chip:${d.color}`} />
+                {d.label}
+              </li>
+            ))
+          }
         </ul>
         <p class="vm-panel__ops">
           <span class="vm-ops--touch">2 本指で回す・拡大</span>
@@ -492,6 +530,21 @@ const LEGEND = [
     border-radius: 2px 4px 3px 2px;
     background: var(--chip);
   }
+  .vm-legend__h {
+    margin: 0.2rem 0 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+  }
+  /* 範囲: 縁取りだけの札 */
+  .vm-legend__chip--ring {
+    border: 3px solid var(--chip);
+    background: #efe6d2;
+  }
+  .vm-legend__chip--door {
+    height: 0.35rem;
+    border: 0;
+  }
   .vm-legend__steps {
     display: inline-flex;
     gap: 3px;
@@ -635,7 +688,7 @@ const LEGEND = [
 </style>
 
 <script>
-  import { FLOORS, ROUTES } from "../data/venueFloors";
+  import { ACCESS, FLOORS, ROUTES } from "../data/venueFloors";
   import type { VenueMapController } from "../scenes/venueMap";
 
   const root = document.querySelector<HTMLElement>(".vm")!;
@@ -669,7 +722,8 @@ const LEGEND = [
     // 用途が決まった部屋だけ説明札を出す（名前だけなら、選んだボタンと地図の札で足りる）
     info.hidden = !room?.use;
     if (room?.use) {
-      info.innerHTML = `${room.use}<small>${room.name}${room.detail ? `・${room.detail}` : ""}</small>`;
+      const extra = [room.detail, room.access && ACCESS[room.access].label].filter(Boolean).join("・");
+      info.innerHTML = `${room.use}<small>${room.name}${extra ? `・${extra}` : ""}</small>`;
       if (ROUTES[room.id]) {
         const b = document.createElement("button");
         b.type = "button";
