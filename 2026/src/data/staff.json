@@ -1,9 +1,21 @@
 {
   "staff": [
     {
+      "name": "Hazime",
+      "link_url": null,
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/ef04bc9a-aa9e-4792-84a6-76e2a570ae0d.jpg",
+      "type": "コアスタッフ"
+    },
+    {
       "name": "hiro",
       "link_url": "https://twitter.com/hi_chan2180",
       "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/a65d49e0-dd83-4020-a1a8-ac35acef4229.jpg",
+      "type": "コアスタッフ"
+    },
+    {
+      "name": "kyo",
+      "link_url": "https://twitter.com/kyo_koike",
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/29190f7f-cfe7-424e-83da-0caaa4e171aa.png",
       "type": "コアスタッフ"
     },
     {
@@ -44,7 +56,7 @@
     },
     {
       "name": "yu fujioka",
-      "link_url": "https://github.com/https://github.com/fujiokayu",
+      "link_url": "https://github.com/fujiokayu",
       "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/a5fa0692-ef3c-40a9-b651-b82a137de75c.png",
       "type": "コアスタッフ"
     },
@@ -73,6 +85,12 @@
       "type": "サポートスタッフ"
     },
     {
+      "name": "rela1470",
+      "link_url": "https://twitter.com/rela1470",
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/18c096c2-f65f-48a3-a5cd-f42868d34549.jpg",
+      "type": "サポートスタッフ"
+    },
+    {
       "name": "satak",
       "link_url": "https://twitter.com/st_tm_k",
       "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/27e9d649-7f0d-4d59-940d-3136e723f93d.jpg",
@@ -95,6 +113,12 @@
       "link_url": "https://twitter.com/umiwatarin",
       "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/1ae72449-d2bf-48bb-9b27-24440f13d798.jpg",
       "type": "サポートスタッフ"
+    },
+    {
+      "name": "92thunder",
+      "link_url": "https://twitter.com/92thunder",
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/97718974-2e19-4dd0-b3ed-b415c3d8eba7.png",
+      "type": "当日スタッフ"
     }
   ]
 }
