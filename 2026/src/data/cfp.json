@@ -1,11 +1,12 @@
 {
-  "status": "open",
+  "status": "closed",
   "url": "https://fortee.jp/techramen-26-conf/speaker/proposal/cfp",
   "deadlines": [
     { "label": "二次締切", "date": "10/25（日）12:00" }
   ],
   "openMessage": "二次募集を受け付けています（10/25 12:00 まで）",
-  "closedMessage": "一次募集は締め切りました。たくさんのご応募ありがとうございました！ 方針決定次第、二次募集の可能性があります",
+  "closedMessage": "二次募集も締め切りました。たくさんのご応募ありがとうございました！",
+  "closedNote": "二次募集も締め切りました。ご応募ありがとうございました",
   "deadlineNote": "一次募集で出したプロポーザルも、締切まで修正できます",
   "summary": "TechRAMEN 2026 Conference で話してくれる方を、二次募集しています",
   "info": { "label": "二次募集のお知らせ（note）", "url": "https://note.com/tomio2480/n/nd3da6bfa49c8" },
