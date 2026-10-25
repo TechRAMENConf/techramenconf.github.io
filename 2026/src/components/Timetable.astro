@@ -16,6 +16,8 @@ interface Row {
   href?: string;
   /** fortee など外のサイト（新しいタブで開く） */
   external?: boolean;
+  /** 状態の文字を変えるとき（締め切った CfP は「公開済」ではなく「締切」） */
+  lamp?: string;
 }
 
 const LAMP: Record<State, string> = { soon: "準備中", open: "受付中", done: "公開済" };
@@ -28,9 +30,10 @@ const rows: Row[] = [
       cfp.status === "open"
         ? (cfp.openMessage ?? "ただいま応募を受け付けています")
         : cfp.status === "closed"
-          ? "一次募集は締め切りました。方針決定次第、二次募集の可能性があります"
+          ? (cfp.closedNote ?? "募集は締め切りました")
           : "応募方法と締切をお知らせします",
     href: cfp.status === "soon" ? undefined : "#cfp",
+    lamp: cfp.status === "closed" ? "締切" : undefined,
   },
   {
     dest: "ゲストスピーカー",
@@ -64,7 +67,7 @@ const rows: Row[] = [
           <tr class:list={["board__row", `board__row--${r.state}`]}>
             <td class="board__state">
               <span class="board__lamp" />
-              {LAMP[r.state]}
+              {r.lamp ?? LAMP[r.state]}
             </td>
             <th scope="row" class="board__dest">
               {r.href ? (
