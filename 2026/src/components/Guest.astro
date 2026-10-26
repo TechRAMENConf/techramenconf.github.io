@@ -18,6 +18,14 @@ const guest = guestData as Guest | null;
 const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
 const photo = guest?.image ? `${BASE}${guest.image.replace(/^\//, "")}` : null;
 const xHandle = guest?.x ? guest.x.replace(/\/$/, "").split("/").pop() : null;
+// 肩書き・プロフィールは "|" で改行してよい位置を足せる（BudouX の塊が 1 行より長いとき用。"|" は表示しない）
+const wrap = (text: string) => text.split("|").map(jp).join("<wbr>");
+// プロフィールは 1 文ずつ改行する（経歴が続けて読めるように）
+const wrapSentences = (text: string) =>
+  text
+    .split(/(?<=。)/)
+    .map(wrap)
+    .join("<br>");
 ---
 
 <section id="guest" class="section">
@@ -59,7 +67,7 @@ const xHandle = guest?.x ? guest.x.replace(/\/$/, "").split("/").pop() : null;
                     {guest.name}
                     {guest.kana && <span class="guest__kana">（{guest.kana}）</span>}
                   </p>
-                  {guest.title && <p class="guest__title">{guest.title}</p>}
+                  {guest.title && <p class="guest__title jp" set:html={wrap(guest.title)} />}
                   {guest.x && xHandle && (
                     <p class="guest__x">
                       <a href={guest.x} target="_blank" rel="noopener">
@@ -72,7 +80,7 @@ const xHandle = guest?.x ? guest.x.replace(/\/$/, "").split("/").pop() : null;
                       <span class="hand">講演</span>「{guest.talk}」
                     </p>
                   )}
-                  {guest.bio && <p class="guest__bio jp" set:html={jp(guest.bio)} />}
+                  {guest.bio && <p class="guest__bio jp" set:html={wrapSentences(guest.bio)} />}
                 </>
               ) : (
                 <>
@@ -100,10 +108,16 @@ const xHandle = guest?.x ? guest.x.replace(/\/$/, "").split("/").pop() : null;
     margin-top: 2.4rem;
     align-items: start;
   }
+  /* スマホ: 名札はシートの余白へ少しはみ出させ、1 行に入る字数を増やす */
+  @media (max-width: 719px) {
+    .guest__profile {
+      margin-inline: -0.9rem;
+    }
+  }
   @media (min-width: 720px) {
     .guest {
-      grid-template-columns: minmax(12rem, 17rem) 1fr;
-      gap: 2.6rem;
+      grid-template-columns: minmax(12rem, 16rem) 1fr;
+      gap: 2rem;
     }
     .guest__photo {
       width: 100%;
