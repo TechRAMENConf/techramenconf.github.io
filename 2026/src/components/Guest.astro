@@ -172,6 +172,7 @@ const xHandle = guest?.x ? guest.x.replace(/\/$/, "").split("/").pop() : null;
     color: var(--ink);
   }
   .guest__kana {
+    display: inline-block; /* 読みがなを途中で折り返さない */
     font-size: 0.65em;
     font-weight: 400;
     color: var(--ink-soft);
