@@ -136,10 +136,14 @@ function row(it: Item, withPlace = true): string {
   const time = `<span class="tt-row__time">${hhmm(it.start)}</span>`;
   const place = withPlace ? `<p class="tt-row__place">${esc(it.place)}</p>` : "";
   const until = `〜${endOf(it)}（${it.mins}分）`;
+  // 「行く」の判子（オープニング・ランチなどの枠にも付け、自分の予定に入れられるようにする）
+  const stamp = `<button type="button" class="tt-stamp" aria-pressed="false" aria-label="${esc(
+    it.title,
+  )} に行く"><span>行く</span></button>`;
   if (it.kind === "slot") {
     return `<li class="tt-row tt-row--slot" ${attrs}>${time}<div class="tt-row__body">${place}<p class="tt-row__title">${esc(
       it.title,
-    )}</p><p class="tt-row__meta">${until}</p></div></li>`;
+    )}</p><p class="tt-row__meta">${until}</p></div>${stamp}</li>`;
   }
   const speaker = it.speaker
     ? `<span class="tt-row__speaker">${
@@ -158,9 +162,7 @@ function row(it: Item, withPlace = true): string {
       : "";
   return `<li class="tt-row" ${attrs}>${time}<div class="tt-row__body">${place}<p class="tt-row__title">${esc(
     it.title,
-  )}</p><p class="tt-row__meta">${speaker}<span>${notes}</span></p>${more}</div><button type="button" class="tt-stamp" aria-pressed="false" aria-label="${esc(
-    it.title,
-  )} に行く"><span>行く</span></button></li>`;
+  )}</p><p class="tt-row__meta">${speaker}<span>${notes}</span></p>${more}</div>${stamp}</li>`;
 }
 
 const ms = (it: Item) => Date.parse(it.start);

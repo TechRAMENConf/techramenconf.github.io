@@ -40,6 +40,7 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
         気になる発表に「行く」の判子を押すと、この端末に覚えておきます。内容は変わることがあります。
         <span class="tt__updated" hidden></span>
       </p>
+      <button type="button" class="tt-reset" hidden></button>
     </div>
 
     <!-- 日付・絞り込み（スクロールしても上に残す） -->
@@ -163,6 +164,8 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
       row.classList.toggle("is-now", start <= t && t < start + Number(row.dataset.mins) * 60e3);
     }
     let shown = 0;
+    markClashes();
+    updateReset();
     // 中の行がすべて隠れた列・囲み・行のまとまりは、見出しごと隠す
     for (const box of document.querySelectorAll<HTMLElement>(".tt-lane, .tt-block, .tt-list")) {
       box.hidden = !box.querySelector(".tt-row:not([hidden])");
@@ -187,6 +190,69 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
     nowBtn.hidden = !panels.some((p) => p.dataset.day === today());
   }
 
+  /** 判子をぜんぶ消す。間違って押しても消えないよう、3 秒以内にもう一度押したときだけ消す */
+  const reset = document.querySelector<HTMLButtonElement>(".tt-reset")!;
+  let armed: number | undefined;
+  function updateReset() {
+    reset.hidden = stamps.size === 0;
+    if (armed === undefined) reset.textContent = `判子をぜんぶ消す（${stamps.size} 個）`;
+    reset.classList.toggle("is-armed", armed !== undefined);
+  }
+  reset.addEventListener("click", () => {
+    if (armed === undefined) {
+      armed = window.setTimeout(() => {
+        armed = undefined;
+        updateReset();
+      }, 3000);
+      reset.textContent = "もう一度押すと消えます";
+      updateReset();
+      return;
+    }
+    clearTimeout(armed);
+    armed = undefined;
+    stamps.clear();
+    save();
+    apply();
+  });
+
+  /** 「行く」を押した発表どうしで時間が重なっていたら、その行に注意を出す（押すのは止めない） */
+  function markClashes() {
+    const span = (r: HTMLElement) => {
+      const s = Date.parse(r.dataset.start!);
+      return [s, s + Number(r.dataset.mins) * 60e3] as const;
+    };
+    // 一日中やっている展示などは、ほかの予定と重なっても気にしなくていいので外す
+    const LONG = 120;
+    const stamped = [...document.querySelectorAll<HTMLElement>(".tt-row")].filter(
+      (r) => stamps.has(r.dataset.id!) && Number(r.dataset.mins) <= LONG,
+    );
+    for (const row of document.querySelectorAll<HTMLElement>(".tt-row")) {
+      const [s, e] = span(row);
+      const others = stamped.includes(row)
+        ? stamped.filter((o) => {
+            if (o === row) return false;
+            const [os, oe] = span(o);
+            return os < e && s < oe;
+          })
+        : [];
+      let note = row.querySelector<HTMLElement>(".tt-row__clash");
+      if (others.length === 0) {
+        note?.remove();
+        continue;
+      }
+      if (!note) {
+        note = document.createElement("p");
+        note.className = "tt-row__clash";
+        row.querySelector(".tt-row__meta")!.after(note);
+      }
+      const names = others.map((o) => {
+        const title = o.querySelector(".tt-row__title")!.textContent ?? "";
+        return `${o.querySelector(".tt-row__time")!.textContent}〜 ${title.length > 16 ? `${title.slice(0, 16)}…` : title}`;
+      });
+      note.textContent = `時間がかぶっています（${names.join("、")}）`;
+    }
+  }
+
   /** いま進んでいる行（なければ次に始まる行）へ */
   function scrollToNow(smooth = true) {
     const panel = panels.find((p) => p.dataset.day === today());
@@ -204,8 +270,10 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
   for (const tab of tabs) tab.addEventListener("click", () => showDay(tab.dataset.day!));
   for (const f of filters)
     f.addEventListener("click", () => {
-      filter = f.dataset.filter ?? "";
-      for (const g of filters) g.setAttribute("aria-pressed", String(g === f));
+      // 押されている絞り込みをもう一度押したら解除（「すべて」に戻す）
+      const id = f.dataset.filter ?? "";
+      filter = id === filter ? "" : id;
+      for (const g of filters) g.setAttribute("aria-pressed", String((g.dataset.filter ?? "") === filter));
       apply();
     });
   nowBtn.addEventListener("click", () => scrollToNow());
@@ -292,6 +360,31 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
   }
   .back--bottom {
     margin-top: 2.5rem;
+  }
+  /* 判子をぜんぶ消す: 朱色の文字だけの控えめなボタン。1 回押すと確かめる表示に */
+  .tt-reset {
+    min-height: 40px;
+    margin: -0.5rem 0 0.8rem;
+    padding: 0.2rem 0;
+    border: 0;
+    background: none;
+    color: var(--tt-stamp);
+    font: inherit;
+    font-size: 0.88rem;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    cursor: pointer;
+  }
+  .tt-reset.is-armed {
+    padding-inline: 0.7rem;
+    border-radius: 4px;
+    background: var(--tt-stamp);
+    color: #f7f2e3;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .tt-reset[hidden] {
+    display: none;
   }
   .tt__note {
     margin: 0 0 1rem;
@@ -629,6 +722,27 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
   .tt-board :global(.tt-row--slot .tt-row__title) {
     font-size: 0.95rem;
   }
+  /* 「行く」どうしの時間の重なり */
+  .tt-board :global(.tt-row__clash) {
+    margin: 0.3rem 0 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1.5;
+    color: #b8392f;
+  }
+  .tt-board :global(.tt-row__clash::before) {
+    content: "!";
+    display: inline-grid;
+    place-items: center;
+    width: 1.15em;
+    height: 1.15em;
+    margin-right: 0.35em;
+    border-radius: 50%;
+    background: #b8392f;
+    color: #f7f2e3;
+    font-size: 0.85em;
+    vertical-align: 0.05em;
+  }
   .tt-board :global(.tt-row__more) {
     margin-top: 0.15rem;
     font-size: 0.88rem;
@@ -728,6 +842,7 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
     }
     .tt-board :global(.tt-list .tt-row__title),
     .tt-board :global(.tt-list .tt-row__meta),
+    .tt-board :global(.tt-list .tt-row__clash),
     .tt-board :global(.tt-list .tt-row__more) {
       grid-column: 3;
     }
