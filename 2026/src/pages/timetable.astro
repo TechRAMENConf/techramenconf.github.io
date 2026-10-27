@@ -1,0 +1,808 @@
+---
+// タイムテーブル。fortee の API をビルド時に取得（取れなければ data/timetable.json の保存分）。
+// ページを開いたときにもブラウザから API を取り直し、当日の差し替えをデプロイなしで反映する。
+// 見た目はトップの「発車予定」と同じ、駅に貼られた紙の時刻表（左に「時」、右に「分」の行）。
+import BaseLayout from "../layouts/BaseLayout.astro";
+import saved from "../data/timetable.json";
+import { FEATURES } from "../data/features";
+import { FORTEE_TIMETABLE, GROUPS, byDay, normalize, renderDay, type Item } from "../lib/timetable";
+
+const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+
+let items: Item[] = [];
+try {
+  const res = await fetch(FORTEE_TIMETABLE, { signal: AbortSignal.timeout(8000) });
+  if (res.ok) items = normalize(await res.json());
+} catch (err) {
+  console.warn("[Timetable] fortee から取得できませんでした。保存分を使います", err);
+}
+if (items.length === 0) items = saved.items as Item[];
+
+const DAY_LABEL: Record<string, { label: string; sub: string }> = {
+  "2026-11-20": { label: "11/20 金", sub: "pre" },
+  "2026-11-21": { label: "11/21 土", sub: "main" },
+};
+const days = [...byDay(items).entries()];
+const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map(([id, label]) => ({ id, label }))];
+---
+
+<BaseLayout
+  title="タイムテーブル — TechRAMEN 2026 Conference"
+  description="TechRAMEN 2026 Conference（11/20 pre・11/21 main）のタイムテーブル。"
+  noindex={!FEATURES.timetable}
+>
+  <main class="tt">
+    <div class="wrap">
+      <a class="back hand" href={BASE}>← TechRAMEN 2026 へ戻る</a>
+      <p class="eyebrow">どこで聞く？</p>
+      <h1 class="section-title">タイムテーブル</h1>
+      <p class="tt__note">
+        気になる発表に「行く」の判子を押すと、この端末に覚えておきます。内容は変わることがあります。
+        <span class="tt__updated" hidden></span>
+      </p>
+    </div>
+
+    <!-- 日付・絞り込み（スクロールしても上に残す） -->
+    <div class="tt-bar">
+      <div class="wrap tt-bar__in">
+        <div class="tt-days" role="tablist" aria-label="日付">
+          {
+            days.map(([day], i) => (
+              <button
+                type="button"
+                class="tt-day"
+                role="tab"
+                id={`tab-${day}`}
+                aria-controls={`day-${day}`}
+                aria-selected={i === 0 ? "true" : "false"}
+                data-day={day}
+              >
+                <b>{DAY_LABEL[day]?.label ?? day}</b>
+                <small class="hand">{DAY_LABEL[day]?.sub}</small>
+              </button>
+            ))
+          }
+        </div>
+        <div class="tt-filters" role="group" aria-label="場所で絞り込み">
+          {
+            FILTERS.map((f, i) => (
+              <button
+                type="button"
+                class="tt-filter"
+                aria-pressed={i === 0 ? "true" : "false"}
+                data-filter={f.id}
+                data-group={f.id || undefined}
+              >
+                {f.label}
+              </button>
+            ))
+          }
+          <button type="button" class="tt-filter tt-filter--stamp" aria-pressed="false" data-filter="stamp">
+            行く
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <div class="tt-board">
+        {
+          days.map(([day, list]) => (
+            <div
+              class="tt-daylist"
+              id={`day-${day}`}
+              role="tabpanel"
+              aria-labelledby={`tab-${day}`}
+              data-day={day}
+            >
+              <p class="tt-board__head">
+                <span class="tt-board__title">時刻表</span>
+                <span class="tt-board__sub hand">
+                  {DAY_LABEL[day]?.label ?? day} {DAY_LABEL[day]?.sub} ・ コンシェルジュ フラノ
+                </span>
+              </p>
+              <div class="tt-daylist__body" set:html={renderDay(list)} />
+            </div>
+          ))
+        }
+        <p class="tt-empty" hidden>この日に「行く」の判子を押した発表はまだありません。</p>
+      </div>
+      <a class="back hand back--bottom" href={BASE}>← TechRAMEN 2026 へ戻る</a>
+    </div>
+    <!-- 当日だけ出す。親指で押せる右下に -->
+    <button type="button" class="tt-now-btn" hidden><span class="tt-lamp" aria-hidden="true"></span>いまここ</button>
+  </main>
+</BaseLayout>
+
+<script>
+  import { FORTEE_TIMETABLE, byDay, normalize, renderDay } from "../lib/timetable";
+
+  const KEY = "tr26-timetable-stamps";
+  const stamps = (() => {
+    try {
+      return new Set<string>(JSON.parse(localStorage.getItem(KEY) ?? "[]"));
+    } catch {
+      return new Set<string>();
+    }
+  })();
+  const save = () => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify([...stamps]));
+    } catch {
+      /* 保存できなくても、開いているあいだは使える */
+    }
+  };
+
+  const panels = [...document.querySelectorAll<HTMLElement>(".tt-daylist")];
+  const tabs = [...document.querySelectorAll<HTMLButtonElement>(".tt-day")];
+  const filters = [...document.querySelectorAll<HTMLButtonElement>(".tt-filter")];
+  const nowBtn = document.querySelector<HTMLButtonElement>(".tt-now-btn")!;
+  const empty = document.querySelector<HTMLElement>(".tt-empty")!;
+  let filter = "";
+
+  // 確かめる用: ?now=2026-11-21T13:45 で「いま」をずらせる
+  const nowParam = new URLSearchParams(location.search).get("now");
+  const now = () => (nowParam ? Date.parse(`${nowParam}:00+09:00`) : Date.now());
+  const today = () => new Date(now() + 9 * 3600e3).toISOString().slice(0, 10);
+
+  function showDay(day: string) {
+    for (const t of tabs) t.setAttribute("aria-selected", String(t.dataset.day === day));
+    for (const p of panels) p.hidden = p.dataset.day !== day;
+    apply();
+  }
+
+  /** 絞り込み・判子・いまここ を時刻表に反映する */
+  function apply() {
+    const t = now();
+    for (const row of document.querySelectorAll<HTMLElement>(".tt-row")) {
+      const id = row.dataset.id ?? "";
+      row.querySelector(".tt-stamp")?.setAttribute("aria-pressed", String(stamps.has(id)));
+      const g = row.dataset.group;
+      row.hidden = filter === "stamp" ? !stamps.has(id) : filter !== "" && g !== filter && g !== "all";
+      const start = Date.parse(row.dataset.start!);
+      row.classList.toggle("is-now", start <= t && t < start + Number(row.dataset.mins) * 60e3);
+    }
+    let shown = 0;
+    // 中の行がすべて隠れた列・囲み・行のまとまりは、見出しごと隠す
+    for (const box of document.querySelectorAll<HTMLElement>(".tt-lane, .tt-block, .tt-list")) {
+      box.hidden = !box.querySelector(".tt-row:not([hidden])");
+      if (!box.hidden && box.matches(".tt-list, .tt-block") && !box.closest<HTMLElement>(".tt-daylist")!.hidden) shown++;
+    }
+    // 「または」は、見えている列のあいだにだけ出す
+    for (const lanes of document.querySelectorAll<HTMLElement>(".tt-block__lanes")) {
+      let seen = false;
+      let or: HTMLElement | null = null;
+      for (const el of lanes.children as HTMLCollectionOf<HTMLElement>) {
+        if (el.matches(".tt-or")) {
+          el.hidden = true;
+          or = el;
+        } else if (!el.hidden) {
+          if (seen && or) or.hidden = false;
+          seen = true;
+          or = null;
+        }
+      }
+    }
+    empty.hidden = shown > 0;
+    nowBtn.hidden = !panels.some((p) => p.dataset.day === today());
+  }
+
+  /** いま進んでいる行（なければ次に始まる行）へ */
+  function scrollToNow(smooth = true) {
+    const panel = panels.find((p) => p.dataset.day === today());
+    if (!panel) return;
+    if (panel.hidden) showDay(panel.dataset.day!);
+    const rows = [...panel.querySelectorAll<HTMLElement>(".tt-row:not([hidden])")];
+    // 一日中の展示などに引っ張られないよう、1 時間以内の枠を優先する
+    const target =
+      rows.find((r) => r.classList.contains("is-now") && Number(r.dataset.mins) <= 60) ??
+      rows.find((r) => r.classList.contains("is-now")) ??
+      rows.find((r) => Date.parse(r.dataset.start!) >= now());
+    target?.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
+  }
+
+  for (const tab of tabs) tab.addEventListener("click", () => showDay(tab.dataset.day!));
+  for (const f of filters)
+    f.addEventListener("click", () => {
+      filter = f.dataset.filter ?? "";
+      for (const g of filters) g.setAttribute("aria-pressed", String(g === f));
+      apply();
+    });
+  nowBtn.addEventListener("click", () => scrollToNow());
+  document.addEventListener("click", (e) => {
+    const btn = (e.target as Element).closest(".tt-stamp");
+    if (!btn) return;
+    const id = btn.closest<HTMLElement>(".tt-row")!.dataset.id!;
+    if (stamps.has(id)) stamps.delete(id);
+    else stamps.add(id);
+    save();
+    apply();
+  });
+
+  // 貼り付く帯の高さ（狭い画面では絞り込みが 2 行になる）を、「時」の見出しとスクロール位置に使う
+  const bar = document.querySelector<HTMLElement>(".tt-bar")!;
+  const tt = document.querySelector<HTMLElement>(".tt")!;
+  const setBarH = () => tt.style.setProperty("--tt-bar-h", `${bar.offsetHeight}px`);
+  setBarH();
+  new ResizeObserver(setBarH).observe(bar);
+
+  // 当日はその日を開いて、いまの位置へ。それ以外は最初の日
+  const first = panels.find((p) => p.dataset.day === today()) ?? panels[0];
+  if (first) {
+    showDay(first.dataset.day!);
+    if (first.dataset.day === today()) scrollToNow(false);
+  }
+
+  // fortee から取り直して、変わっていれば差し替える（取れなければビルド時のまま）
+  (async () => {
+    try {
+      const res = await fetch(FORTEE_TIMETABLE, { signal: AbortSignal.timeout(8000) });
+      if (!res.ok) return;
+      const items = normalize(await res.json());
+      if (items.length === 0) return;
+      for (const [day, list] of byDay(items)) {
+        const body = panels.find((p) => p.dataset.day === day)?.querySelector<HTMLElement>(".tt-daylist__body");
+        if (!body) continue;
+        const html = renderDay(list);
+        if (body.innerHTML === html) continue;
+        // 開いている「概要」は差し替え後も開いたままにする
+        const open = [...body.querySelectorAll(".tt-row__more[open]")].map(
+          (d) => d.closest<HTMLElement>(".tt-row")!.dataset.id!,
+        );
+        body.innerHTML = html;
+        for (const id of open)
+          body.querySelector(`.tt-row[data-id="${CSS.escape(id)}"] .tt-row__more`)?.setAttribute("open", "");
+      }
+      apply();
+      const updated = document.querySelector<HTMLElement>(".tt__updated")!;
+      const at = new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
+      updated.textContent = `（${at} に fortee の最新を読み込みました）`;
+      updated.hidden = false;
+    } catch {
+      /* 電波が悪いときなどはビルド時の内容のまま */
+    }
+  })();
+</script>
+
+<style is:global>
+  /* このページは 3D の背景がないので、紙の背景にする（観光ページと同じ） */
+  body {
+    background:
+      radial-gradient(120% 90% at 80% -10%, rgba(207, 155, 62, 0.12), transparent 60%),
+      linear-gradient(180deg, #e9eef0 0%, #efe7d6 40%, #f3ead6 100%);
+    background-attachment: fixed;
+  }
+</style>
+
+<style>
+  .tt {
+    padding-block: clamp(2rem, 6vw, 4rem) 4rem;
+    /* 貼り付いた日付・絞り込みの帯の高さ（「時」の見出しとスクロール位置をこの下にそろえる） */
+    --tt-bar-h: 7rem;
+    --tt-line: rgba(110, 139, 61, 0.45);
+    --tt-stamp: #c8423a;
+  }
+  .back {
+    display: block;
+    width: fit-content;
+    font-size: 1.2rem;
+    color: var(--wine);
+    text-decoration: none;
+    margin-bottom: 1rem;
+  }
+  .back--bottom {
+    margin-top: 2.5rem;
+  }
+  .tt__note {
+    margin: 0 0 1rem;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+
+  /* ------- 日付と絞り込み（上に貼り付く。時刻表の上の案内札） ------- */
+  .tt-bar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    padding-block: 0.55rem;
+    background: rgba(243, 234, 214, 0.97);
+    border-bottom: 1.5px dashed var(--tt-line);
+  }
+  .tt-bar__in {
+    display: grid;
+    gap: 0.45rem;
+  }
+  /* 日付: 2 つに区切った札。選んだ日は緑の地に白抜き */
+  .tt-days {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    border: 1.5px solid var(--leaf);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .tt-day {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.5em;
+    min-height: 42px;
+    padding: 0.25rem 0.6rem;
+    border: 0;
+    background: #f7f2e3;
+    color: var(--leaf);
+    font: inherit;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+  }
+  .tt-day + .tt-day {
+    border-left: 1.5px solid var(--leaf);
+  }
+  .tt-day small {
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+  .tt-day[aria-selected="true"] {
+    background: var(--leaf);
+    color: #f7f2e3;
+  }
+  /* 絞り込み: 時刻表の凡例のような、線で区切った文字だけ */
+  .tt-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.1rem 0;
+    font-size: 0.85rem;
+  }
+  .tt-filter {
+    position: relative;
+    min-height: 36px;
+    padding: 0.1rem 0.6rem;
+    border: 0;
+    background: none;
+    color: var(--ink-soft);
+    font: inherit;
+    cursor: pointer;
+  }
+  .tt-filter + .tt-filter {
+    border-left: 1px solid rgba(46, 40, 38, 0.2);
+  }
+  .tt-filter:first-child {
+    padding-left: 0;
+  }
+  @media (max-width: 479px) {
+    .tt-filter {
+      padding-inline: 0.42rem;
+      font-size: 0.82rem;
+    }
+  }
+  /* 場所の色: 時刻表の「列車種別」の色の四角 */
+  .tt-filter[data-group]::before {
+    content: "";
+    display: inline-block;
+    width: 0.6em;
+    height: 0.6em;
+    margin-right: 0.35em;
+    background: var(--tt-color);
+  }
+  .tt-filter[aria-pressed="true"] {
+    color: var(--ink);
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-color: var(--gold);
+    text-decoration-thickness: 3px;
+    text-underline-offset: 5px;
+  }
+  /* 「行く」は場所の絞り込みと別物なので、右端に離して置く */
+  .tt-filter--stamp {
+    margin-left: auto;
+    border-left: 0 !important;
+    color: var(--tt-stamp);
+  }
+  .tt-filter--stamp::before {
+    content: "";
+    display: inline-block;
+    width: 0.85em;
+    height: 0.85em;
+    margin-right: 0.3em;
+    border: 1.5px solid currentColor;
+    border-radius: 50%;
+    vertical-align: -0.1em;
+  }
+
+  /* 場所のまとまりの色（行の四角・絞り込みの四角で共通） */
+  .tt {
+    --c-hall: var(--wine);
+    --c-handson: var(--leaf);
+    --c-exhibit: #b5852c;
+    --c-all: #8c837a;
+  }
+  .tt :global([data-group="hall"]) {
+    --tt-color: var(--c-hall);
+  }
+  .tt :global([data-group="handson"]) {
+    --tt-color: var(--c-handson);
+  }
+  .tt :global([data-group="exhibit"]) {
+    --tt-color: var(--c-exhibit);
+  }
+  .tt :global([data-group="all"]) {
+    --tt-color: var(--c-all);
+  }
+
+  /* ------- 時刻表の紙（トップの「発車予定」と同じ: 生成り紙＋緑の帯、罫線は点線） ------- */
+  .tt-board {
+    margin-top: 1.2rem;
+    background: #f7f2e3;
+    border-top: 10px solid var(--leaf);
+    border-radius: 4px;
+    box-shadow:
+      inset 0 0 0 1.5px rgba(110, 139, 61, 0.35),
+      0 12px 22px -14px rgba(46, 40, 38, 0.55);
+  }
+  .tt-board__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.2rem 1rem;
+    margin: 0;
+    padding: 0.8rem clamp(0.9rem, 3vw, 1.6rem) 0.55rem;
+    border-bottom: 2px solid var(--leaf);
+  }
+  .tt-board__title {
+    font-weight: 700;
+    font-size: 1.3rem;
+    letter-spacing: 0.3em;
+    color: var(--leaf);
+  }
+  .tt-board__sub {
+    font-size: 1.15rem;
+    color: var(--ink-soft);
+  }
+  .tt-daylist[hidden],
+  .tt-empty[hidden],
+  .tt-now-btn[hidden] {
+    display: none;
+  }
+  .tt-empty {
+    margin: 0;
+    padding: 1.4rem clamp(0.9rem, 3vw, 1.6rem);
+    color: var(--ink-soft);
+  }
+
+  /* 1 行ずつのまとまり（同時に進むものがない時間） */
+  .tt-board :global(.tt-list),
+  .tt-board :global(.tt-lane__rows) {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .tt-board :global(.tt-list) {
+    border-top: 1.5px dashed var(--tt-line);
+  }
+  .tt-board :global(.tt-daylist__body > :first-child) {
+    border-top: 0;
+  }
+  .tt-board :global(.tt-list[hidden]),
+  .tt-board :global(.tt-block[hidden]),
+  .tt-board :global(.tt-lane[hidden]),
+  .tt-board :global(.tt-or[hidden]) {
+    display: none;
+  }
+
+  /* 同時に進む時間の囲み: 少し濃い紙を敷き、見出しで「どれか 1 つ」と言う */
+  .tt-board :global(.tt-block) {
+    margin: 0.4rem clamp(0.25rem, 1.5vw, 0.9rem) 0.6rem;
+    padding: 0 0 0.3rem;
+    background: #efe6cc;
+    border: 1.5px solid var(--tt-line);
+    border-radius: 6px;
+  }
+  .tt-board :global(.tt-block__head) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 0.7rem;
+    margin: 0;
+    padding: 0.55rem 0.8rem 0.45rem;
+    border-bottom: 1.5px solid var(--tt-line);
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+  }
+  .tt-board :global(.tt-block__head b) {
+    font-size: 1.15rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--leaf);
+  }
+  .tt-board :global(.tt-block__lanes) {
+    display: grid;
+  }
+  /* 場所ごとの列。見出しは場所の色の帯 */
+  .tt-board :global(.tt-lane) {
+    margin: 0.4rem 0.35rem 0;
+    background: #f7f2e3;
+    border-top: 4px solid var(--tt-color);
+    border-radius: 3px;
+  }
+  .tt-board :global(.tt-lane__place) {
+    margin: 0;
+    padding: 0.35rem 0.6rem 0.1rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--tt-color);
+  }
+  .tt-board :global(.tt-lane .tt-row:first-child) {
+    border-top: 0;
+  }
+  /* 列のあいだの「または」 */
+  .tt-board :global(.tt-or) {
+    margin: 0.35rem 0 -0.15rem;
+    text-align: center;
+    font-size: 1.15rem;
+    line-height: 1;
+    color: var(--wine);
+  }
+
+  /* 1 枠の行 */
+  .tt-board :global(.tt-row) {
+    display: grid;
+    grid-template-columns: 2.9rem 1fr auto;
+    gap: 0 0.5rem;
+    align-items: start;
+    padding: 0.6rem 0.5rem 0.65rem 0.7rem;
+    border-top: 1.5px dashed var(--tt-line);
+    scroll-margin-top: calc(var(--tt-bar-h) + 0.5rem);
+  }
+  .tt-board :global(.tt-row:first-child) {
+    border-top: 0;
+  }
+  .tt-board :global(.tt-row[hidden]) {
+    display: none;
+  }
+  .tt-board :global(.tt-row__time) {
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1.45;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+  .tt-board :global(.tt-row__body) {
+    min-width: 0;
+  }
+  .tt-board :global(.tt-row__place) {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--tt-color);
+  }
+  .tt-board :global(.tt-row__place::before) {
+    content: "";
+    display: inline-block;
+    width: 0.6em;
+    height: 0.6em;
+    margin-right: 0.35em;
+    background: var(--tt-color);
+  }
+  .tt-board :global(.tt-row__title) {
+    margin: 0.05rem 0 0;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--grape);
+    overflow-wrap: anywhere;
+  }
+  .tt-board :global(.tt-row__meta) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.1rem 0.6rem;
+    margin: 0.25rem 0 0;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+  .tt-board :global(.tt-row__speaker) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .tt-board :global(.tt-row__speaker img) {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--paper-deep);
+  }
+  /* 休憩・開場などの枠は控えめに（時刻表の「回送」の行のように） */
+  .tt-board :global(.tt-row--slot) {
+    padding-block: 0.45rem;
+  }
+  .tt-board :global(.tt-row--slot .tt-row__time),
+  .tt-board :global(.tt-row--slot .tt-row__title) {
+    font-weight: 500;
+    color: var(--ink-soft);
+  }
+  .tt-board :global(.tt-row--slot .tt-row__title) {
+    font-size: 0.95rem;
+  }
+  .tt-board :global(.tt-row__more) {
+    margin-top: 0.15rem;
+    font-size: 0.88rem;
+  }
+  .tt-board :global(.tt-row__more summary) {
+    width: fit-content;
+    padding-block: 0.3rem;
+    color: var(--wine);
+    cursor: pointer;
+  }
+  .tt-board :global(.tt-row__abstract) {
+    margin: 0.1rem 0 0.4rem;
+    padding-left: 0.7rem;
+    border-left: 2px solid var(--paper-deep);
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+
+  /* いま進んでいる行: 赤いランプ（「発車予定」の受付中と同じ） */
+  .tt-board :global(.tt-row.is-now) {
+    background: rgba(207, 155, 62, 0.16);
+  }
+  .tt-board :global(.tt-row.is-now .tt-row__time::before),
+  .tt-lamp {
+    content: "";
+    display: block;
+    width: 0.6rem;
+    height: 0.6rem;
+    margin-bottom: 0.2rem;
+    border-radius: 50%;
+    background: #e2563d;
+    box-shadow: 0 0 0 3px rgba(226, 86, 61, 0.22);
+  }
+  .tt-board :global(.tt-row.is-now .tt-row__place::after) {
+    content: "いま";
+    margin-left: 0.5em;
+    color: #c2412b;
+  }
+
+  /* 「行く」の判子: 押す前は薄い点線の丸、押すと朱肉の判子 */
+  .tt-board :global(.tt-stamp) {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin: -0.2rem -0.1rem 0 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+  .tt-board :global(.tt-stamp span) {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border: 1.5px dashed rgba(46, 40, 38, 0.3);
+    border-radius: 50%;
+    font-family: var(--font-hand);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: rgba(46, 40, 38, 0.35);
+    transition:
+      transform 0.15s ease,
+      color 0.15s ease;
+  }
+  .tt-board :global(.tt-stamp[aria-pressed="true"] span) {
+    border: 2.5px solid var(--tt-stamp);
+    color: var(--tt-stamp);
+    font-size: 0.95rem;
+    transform: rotate(-14deg);
+    /* 朱肉のかすれ */
+    mask-image: radial-gradient(circle at 30% 70%, #000 55%, rgba(0, 0, 0, 0.75) 75%, #000 90%);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tt-board :global(.tt-stamp span) {
+      transition: none;
+    }
+  }
+
+  /* PC: 1 行ずつの所は場所を列にして表のように。同時に進む囲みは、場所の列を横に並べる */
+  @media (min-width: 760px) {
+    .tt-board :global(.tt-list .tt-row) {
+      grid-template-columns: 3.4rem 11rem 1fr auto;
+      padding-inline: 1rem 0.8rem;
+    }
+    .tt-board :global(.tt-list .tt-row__body) {
+      display: contents;
+    }
+    .tt-board :global(.tt-list .tt-row__time) {
+      grid-row: 1 / span 3;
+    }
+    .tt-board :global(.tt-list .tt-row__place) {
+      grid-column: 2;
+      grid-row: 1 / span 3;
+      padding-top: 0.2rem;
+    }
+    .tt-board :global(.tt-list .tt-row__title),
+    .tt-board :global(.tt-list .tt-row__meta),
+    .tt-board :global(.tt-list .tt-row__more) {
+      grid-column: 3;
+    }
+    .tt-board :global(.tt-list .tt-stamp) {
+      grid-column: 4;
+      grid-row: 1 / span 3;
+    }
+    .tt-board :global(.tt-block__lanes) {
+      grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+      gap: 0.5rem;
+      padding: 0.5rem 0.5rem 0.2rem;
+    }
+    .tt-board :global(.tt-lane) {
+      margin: 0;
+    }
+    /* 列は幅が狭いので、時刻を題の上に置き、題の幅を取る */
+    .tt-board :global(.tt-lane .tt-row) {
+      grid-template-columns: 1fr auto;
+      padding-inline: 0.6rem 0.3rem;
+    }
+    .tt-board :global(.tt-lane .tt-row__time) {
+      grid-column: 1;
+      font-size: 0.95rem;
+      line-height: 1.3;
+    }
+    .tt-board :global(.tt-lane .tt-row__body) {
+      grid-column: 1;
+    }
+    .tt-board :global(.tt-lane .tt-stamp) {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+    }
+    /* 横に並べば同時だと分かるので、「または」は出さない */
+    .tt-board :global(.tt-or) {
+      display: none;
+    }
+  }
+
+  /* いまここ（当日だけ。右下） */
+  .tt-now-btn {
+    position: fixed;
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 48px;
+    padding: 0.4rem 1.1rem;
+    border: 1.5px solid var(--leaf);
+    border-top-width: 6px;
+    border-radius: 4px;
+    background: #f7f2e3;
+    color: var(--leaf);
+    font: inherit;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    box-shadow: 0 10px 18px -10px rgba(46, 40, 38, 0.6);
+    cursor: pointer;
+  }
+  .tt-now-btn .tt-lamp {
+    margin: 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .tt-board :global(.tt-row.is-now .tt-row__time::before),
+    .tt-lamp {
+      animation: lamp 1.6s ease-in-out infinite alternate;
+    }
+  }
+  @keyframes lamp {
+    from {
+      opacity: 0.45;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+</style>
