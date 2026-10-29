@@ -36,8 +36,8 @@ interface RawItem {
   url?: string;
   title: string;
   abstract?: string;
-  track: { name: string; sort: number };
-  starts_at: string;
+  track?: { name: string; sort: number };
+  starts_at?: string;
   length_min: number;
   tags?: { name: string }[];
   speaker?: { name: string; avatar_url?: string };
@@ -75,11 +75,16 @@ const placeOf = (track: string): { group: Exclude<Group, "all">; place: string; 
 };
 
 export function normalize(raw: { timetable?: RawItem[] }): Item[] {
-  const list = (raw.timetable ?? []).filter((r) =>
-    r.type === "talk" ? r.title?.trim() : PUBLIC_SLOTS.has(r.title.trim()),
+  // 時刻・場所がまだ決まっていないもの（fortee で枠に入れる前の発表）は出さない
+  type Scheduled = RawItem & Required<Pick<RawItem, "track" | "starts_at">>;
+  const list = (raw.timetable ?? []).filter(
+    (r): r is Scheduled =>
+      !!r.track?.name &&
+      !!r.starts_at &&
+      !!(r.type === "talk" ? r.title?.trim() : PUBLIC_SLOTS.has(r.title.trim())),
   );
   // 同じ時刻・同じ名前の枠が複数の場所にあるとき（懇親会など）は 1 つにまとめる
-  const merged = new Map<string, { r: RawItem; tracks: RawItem["track"][] }>();
+  const merged = new Map<string, { r: Scheduled; tracks: Scheduled["track"][] }>();
   for (const r of list) {
     const key = r.type === "talk" ? r.uuid : `${r.title}|${r.starts_at}|${r.length_min}`;
     const m = merged.get(key);
