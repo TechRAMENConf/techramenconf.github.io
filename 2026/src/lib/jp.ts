@@ -4,7 +4,7 @@ import { loadDefaultJapaneseParser } from "budoux";
 // （.jp クラスの word-break: keep-all と併用。全ブラウザ対応）
 const budoux = loadDefaultJapaneseParser();
 // BudouX が分けてしまうが、1 語として読ませたい言い回し
-const KEEP = ["決まり次第"];
+const KEEP = ["決まり次第", "お茶の水女子大学"];
 export const jp = (text: string) =>
   KEEP.reduce(
     (h, w) => h.replace(new RegExp([...w].join("(?:<wbr>)?"), "g"), w),
