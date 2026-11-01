@@ -28,6 +28,7 @@ export interface Item {
   place: string;
   speaker?: { name: string; avatar?: string };
   tags: string[];
+  keynote?: true;
 }
 
 interface RawItem {
@@ -61,6 +62,8 @@ const PUBLIC_SLOTS = new Set([
   "懇親会",
 ]);
 const PLACE_SLOTS = new Set(["ライトニングハンズオン", "ものづくり展示"]);
+// キーノートの登壇者（fortee では発表がキーノートの枠に入るので、枠の名前が残らない）。空白は無視して比べる
+const KEYNOTE_SPEAKERS = new Set(["五十嵐悠紀"]);
 // 参加者向けのタグだけ（「対象地域在住」などの選考用のタグは出さない）
 const PUBLIC_TAGS = /^(難易度|手ぶらでOK|パソコン必須|要事前準備|児童・生徒・学生)/;
 
@@ -114,6 +117,9 @@ export function normalize(raw: { timetable?: RawItem[] }): Item[] {
           ? { speaker: { name: r.speaker.name, ...(r.speaker.avatar_url ? { avatar: r.speaker.avatar_url } : {}) } }
           : {}),
         tags: (r.tags ?? []).map((t) => t.name).filter((t) => PUBLIC_TAGS.test(t)),
+        ...(r.type === "talk" && KEYNOTE_SPEAKERS.has(r.speaker?.name.replace(/\s/g, "") ?? "")
+          ? { keynote: true as const }
+          : {}),
         sort: Math.min(...tracks.map((t) => t.sort)),
       };
     })
@@ -165,7 +171,8 @@ function row(it: Item, withPlace = true): string {
           it.abstract ? `<p class="tt-row__abstract">${esc(it.abstract)}</p>` : ""
         }${it.url ? `<a href="${esc(it.url)}" target="_blank" rel="noopener">fortee で見る →</a>` : ""}</details>`
       : "";
-  return `<li class="tt-row" ${attrs}>${time}<div class="tt-row__body">${place}<p class="tt-row__title">${esc(
+  const badge = it.keynote ? `<p class="tt-row__badge">キーノート</p>` : "";
+  return `<li class="tt-row" ${attrs}>${time}<div class="tt-row__body">${place}${badge}<p class="tt-row__title">${esc(
     it.title,
   )}</p><p class="tt-row__meta">${speaker}<span>${notes}</span></p>${more}</div>${stamp}</li>`;
 }

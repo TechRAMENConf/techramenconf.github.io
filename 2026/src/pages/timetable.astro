@@ -677,6 +677,19 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
     margin-right: 0.35em;
     background: var(--tt-color);
   }
+  /* キーノートの札 */
+  .tt-board :global(.tt-row__badge) {
+    width: fit-content;
+    margin: 0.25rem 0 0.1rem;
+    padding: 0.05rem 0.5rem;
+    border-radius: 3px;
+    background: var(--wine);
+    color: #f7f2e3;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.5;
+    letter-spacing: 0.1em;
+  }
   .tt-board :global(.tt-row__title) {
     margin: 0.05rem 0 0;
     font-size: 1rem;
@@ -840,6 +853,7 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
       grid-row: 1 / span 3;
       padding-top: 0.2rem;
     }
+    .tt-board :global(.tt-list .tt-row__badge),
     .tt-board :global(.tt-list .tt-row__title),
     .tt-board :global(.tt-list .tt-row__meta),
     .tt-board :global(.tt-list .tt-row__clash),
