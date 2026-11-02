@@ -49,6 +49,10 @@ const live = PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
             <button type="button" class="game__reset" data-reset hidden>
               もう一度
             </button>
+            {/* 動きを減らす設定のときだけ出す（止まっているのを壊れていると思われないように） */}
+            <button type="button" class="game__reset" data-motion aria-pressed="false" hidden>
+              気球を飛ばす
+            </button>
           </p>
 
           {/* 空（装飾＋ゲーム）。一覧は下にあるので、読み上げ・キーボード操作からは外す */}
@@ -137,7 +141,18 @@ const live = PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
     const catchVerb = game.querySelector<HTMLElement>("[data-catch-verb]")!;
     const catchNote = game.querySelector<HTMLElement>("[data-catch-note]")!;
     const catchLink = game.querySelector<HTMLAnchorElement>("[data-catch-link]")!;
-    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // 動きを減らす設定のときは止めて並べる。「気球を飛ばす」を押したら流す（押したことはその端末に覚える）
+    const MOTION_KEY = "tr2026:sponsor-motion";
+    const prefersStill = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const optedIn = () => {
+      try {
+        return localStorage.getItem(MOTION_KEY) === "1";
+      } catch {
+        return false;
+      }
+    };
+    let still = prefersStill && !optedIn();
+    const motionEl = game.querySelector<HTMLButtonElement>("[data-motion]")!;
 
     // つかまえたときの一言。富良野のあちこちから応援が届く（[名前の前, 名前の後]）
     const LINES: [string, string][] = [
@@ -180,6 +195,9 @@ const live = PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
     const start = (sky: HTMLElement) => {
       const units = [...sky.querySelectorAll<HTMLElement>(".unit")];
       all = [...sky.querySelectorAll<HTMLElement>(".bln")];
+      sky.classList.toggle("is-moving", !still);
+      // 動かし方を切り替えてやり直すときは、前に出ていた気球をいったん下ろす
+      for (const u of units) u.classList.remove("is-up");
       const members = (u: HTMLElement) => [...u.querySelectorAll<HTMLElement>(".bln")];
       const seats = Math.min(units.length, sky.clientWidth < 560 ? 7 : 14);
 
@@ -287,6 +305,28 @@ const live = PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
       render();
       catchEl.hidden = true;
     });
+
+    // 「気球を飛ばす／止める」。空を作り直して（古いイベントを捨てて）、新しい動かし方で最初から並べる
+    const showMotion = () => {
+      motionEl.hidden = !prefersStill;
+      motionEl.textContent = still ? "気球を飛ばす" : "気球を止める";
+      motionEl.setAttribute("aria-pressed", String(!still));
+    };
+    motionEl.addEventListener("click", () => {
+      still = !still;
+      try {
+        if (still) localStorage.removeItem(MOTION_KEY);
+        else localStorage.setItem(MOTION_KEY, "1");
+      } catch {
+        /* 覚えられなくても、いまの表示では切り替わる */
+      }
+      showMotion();
+      const old = game.querySelector<HTMLElement>("[data-sky]")!;
+      const sky = old.cloneNode(true) as HTMLElement;
+      old.replaceWith(sky);
+      start(sky);
+    });
+    showMotion();
 
     start(game.querySelector<HTMLElement>("[data-sky]")!);
 
@@ -461,7 +501,9 @@ const live = PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
     .bln.is-caught .bln__card {
       border-color: #c8402f;
     }
-    @media (prefers-reduced-motion: no-preference) {
+    /* 動かすかどうかは空の is-moving で決める（JS が付ける）。
+       動きを減らす設定のときは付けずに止めて並べ、「気球を飛ばす」を押した人にだけ付ける */
+    .sky.is-moving {
       .unit {
         translate: -110% 0;
       }
@@ -471,20 +513,24 @@ const live = PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
       .bln__bob {
         animation: bob var(--bob) ease-in-out infinite alternate;
       }
-      .sky:not(.is-on) :is(.unit, .bln__bob),
-      .unit:hover,
-      .bln:not(.is-pop):hover .bln__bob {
+      &:not(.is-on) :is(.unit, .bln__bob) {
         animation-play-state: paused;
+      }
+      /* マウスの下の気球は止めて、つかまえやすく。タッチでは止めない
+         （指を離しても最後に触った気球が :hover のまま残り、次に空へ出たとき止まったままになる） */
+      @media (hover: hover) and (pointer: fine) {
+        .unit:hover,
+        .bln:not(.is-pop):hover .bln__bob {
+          animation-play-state: paused;
+        }
       }
       .bln.is-pop .bln__bob {
         animation: pop 0.45s ease-in forwards;
         animation-play-state: running;
       }
     }
-    @media (prefers-reduced-motion: reduce) {
-      .unit {
-        left: var(--x);
-      }
+    .sky:not(.is-moving) .unit {
+      left: var(--x);
     }
     /* 狭い画面では気球を少し小さく */
     @container (max-width: 560px) {
