@@ -1,0 +1,87 @@
+---
+// トップの「参加チケット」欄。料金と「チケットを買う」。
+// 料金・注記・販売期限は data/tickets.json から出す（手で書かない）。
+import tickets from "../data/tickets.json";
+import { jp } from "../lib/jp";
+
+const yen = (n: number) => `${n.toLocaleString("ja-JP")}円`;
+// 販売期限（いちばん遅いもの）。「11月21日 18:00」
+const until = tickets.admission.map((t) => t.until).sort().at(-1);
+const untilText = until
+  ? `${Number(until.slice(5, 7))}月${Number(until.slice(8, 10))}日 ${until.slice(11, 16)}`
+  : "";
+---
+
+<section id="tickets" class="section">
+  <div class="wrap sheet reveal">
+    <p class="eyebrow">いくらで参加できる？</p>
+    <h2 class="section-title">参加チケット</h2>
+
+    {
+      tickets.status === "open" ? (
+        <>
+          <ul class="fares">
+            {tickets.admission.map((t) => (
+              <li class="fare">
+                <span class="fare__name">{t.name}</span>
+                <span class="fare__price">{yen(t.price)}</span>
+              </li>
+            ))}
+          </ul>
+          <p class="fares__note jp" set:html={jp(`※ ${tickets.regionNote}`)} />
+          {untilText && <p class="fares__note">※ 販売は {untilText} まで</p>}
+          <a class="btn fares__buy" href={tickets.url} target="_blank" rel="noopener">
+            fortee でチケットを買う
+          </a>
+        </>
+      ) : (
+        <p class="fares__note">チケットの販売は準備中です。</p>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  /* 駅の運賃表のように: 名前と金額を点線でつなぐ */
+  .fares {
+    display: grid;
+    gap: 0.2rem;
+    max-width: 34rem;
+    margin: 1.6rem 0 0.8rem;
+    padding: 0.8rem 1.2rem;
+    border-top: 8px solid var(--leaf);
+    border-radius: 4px;
+    background: #f7f2e3;
+    box-shadow: inset 0 0 0 1.5px rgba(110, 139, 61, 0.35);
+    list-style: none;
+  }
+  .fare {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding: 0.4rem 0;
+  }
+  .fare + .fare {
+    border-top: 1.5px dashed rgba(110, 139, 61, 0.45);
+  }
+  .fare__name {
+    flex: 1;
+    font-weight: 700;
+    color: var(--grape);
+  }
+  .fare__price {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--wine);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .fares__note {
+    margin: 0.2rem 0 0;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+  .fares__buy {
+    margin-top: 1.4rem;
+  }
+</style>

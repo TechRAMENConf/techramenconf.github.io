@@ -6,14 +6,16 @@ import Icon from "../components/Icon.astro";
 import Ticket from "../components/Ticket.astro";
 import Concept from "../components/Concept.astro";
 import Shiori from "../components/Shiori.astro";
-import Timetable from "../components/Timetable.astro";
 import Cfp from "../components/Cfp.astro";
+import Program from "../components/Program.astro";
+import Tickets from "../components/Tickets.astro";
 import Guest from "../components/Guest.astro";
 import NoteFeed from "../components/NoteFeed.astro";
 import Sponsors from "../components/Sponsors.astro";
 import Staff from "../components/Staff.astro";
 import venue from "../data/venue.json";
 import tickets from "../data/tickets.json";
+import cfp from "../data/cfp.json";
 import { FEATURES } from "../data/features";
 import { jp, jpHtml } from "../lib/jp";
 
@@ -86,11 +88,23 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
   <main id="main">
   <Hero3D />
 
-  <!-- ============ コンセプト ============ -->
-  <Concept />
+  <!--
+    並びは、来た人の流れ「どんなトークがある？ → いくら？ → 買う」に合わせる。
+    タイムテーブル → ゲスト（キーノート）→ 参加チケット → 日程と会場 → コンセプト
+  -->
+  <!-- ============ タイムテーブル（要約。くわしくは /timetable/） ============ -->
+  {FEATURES.timetable && <Program />}
+
+  <!-- ============ CfP（募集中・準備中のときだけ。締め切ったら出さない）・ゲスト ============ -->
+  {cfp.status !== "closed" && <Cfp />}
+  <Guest />
+
+  <!-- ============ 参加チケット（料金と購入） ============ -->
+  <Tickets />
 
   <!-- ============ 日程・会場 + カレンダー ============ -->
-  <section id="dates" class="section" data-beat="dates">
+  <!-- 3D のカメラの「日程」はタイムテーブル欄が持つ（無いときはここ） -->
+  <section id="dates" class="section" data-beat={FEATURES.timetable ? undefined : "dates"}>
     <div class="wrap sheet reveal">
       <h2 class="section-title">日程と会場</h2>
 
@@ -134,10 +148,8 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
     </div>
   </section>
 
-  <!-- ============ CfP（登壇者募集）・ゲスト ============ -->
-  <Cfp />
-  <Guest />
-
+  <!-- ============ コンセプト ============ -->
+  <Concept />
 
   <!-- ============ 富良野 観光・モデル旅程（別ページへ誘導） ============ -->
   <section id="travel" class="section" data-beat="travel">
@@ -191,16 +203,6 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
           <figcaption class="hand">温泉</figcaption>
         </figure>
       </div>
-    </div>
-  </section>
-
-  <!-- ============ 公開ロードマップ ============ -->
-  <section id="roadmap" class="section" data-beat="roadmap">
-    <div class="wrap sheet reveal">
-      <p class="eyebrow">これから出ます</p>
-      <h2 class="section-title">公開ロードマップ</h2>
-
-      <Timetable />
     </div>
   </section>
 

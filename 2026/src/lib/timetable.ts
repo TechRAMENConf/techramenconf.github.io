@@ -5,11 +5,12 @@
 export const FORTEE_TIMETABLE = "https://fortee.jp/techramen-26-conf/api/timetable";
 
 /** 場所のまとまり（絞り込みと色）。all は全員向けの枠（オープニング・懇親会など） */
-export type Group = "hall" | "handson" | "exhibit" | "all";
+export type Group = "hall" | "handson" | "exhibit" | "cafe" | "all";
 export const GROUPS: Record<Exclude<Group, "all">, string> = {
   hall: "大ホール",
   handson: "ハンズオン",
   exhibit: "展示",
+  cafe: "カフェ",
 };
 
 export interface Item {
@@ -70,10 +71,12 @@ const PUBLIC_TAGS = /^(難易度|手ぶらでOK|パソコン必須|要事前準�
 /** "醤油 - 2F大ホール" → 場所のまとまりと表示名 */
 const placeOf = (track: string): { group: Exclude<Group, "all">; place: string; room: string } => {
   const [name, where = ""] = track.split(/\s*-\s*/);
-  const room = where.replace(/^(\dF)/, "$1 ").replace(/（.*）$/, "");
+  const room = where.replace(/^(\dF)/, "$1 ").replace(/\s*[（(].*[）)]$/, "");
   const floor = where.replace(/^(\dF)/, "$1 ");
   if (name.startsWith("醤油")) return { group: "hall", place: floor, room };
   if (name.startsWith("味噌")) return { group: "handson", place: `${floor} ${name}`, room };
+  // 塩1・塩2: 1F カフェ EVELSA（手前側・奥側）。もくもく会など
+  if (name.startsWith("塩")) return { group: "cafe", place: room, room };
   return { group: "exhibit", place: floor, room };
 };
 

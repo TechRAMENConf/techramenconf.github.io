@@ -3,20 +3,14 @@
 // ページを開いたときにもブラウザから API を取り直し、当日の差し替えをデプロイなしで反映する。
 // 見た目はトップの「発車予定」と同じ、駅に貼られた紙の時刻表（左に「時」、右に「分」の行）。
 import BaseLayout from "../layouts/BaseLayout.astro";
-import saved from "../data/timetable.json";
+import tickets from "../data/tickets.json";
 import { FEATURES } from "../data/features";
-import { FORTEE_TIMETABLE, GROUPS, byDay, normalize, renderDay, type Item } from "../lib/timetable";
+import { GROUPS, byDay, renderDay } from "../lib/timetable";
+import { loadTimetable } from "../lib/loadTimetable";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
 
-let items: Item[] = [];
-try {
-  const res = await fetch(FORTEE_TIMETABLE, { signal: AbortSignal.timeout(8000) });
-  if (res.ok) items = normalize(await res.json());
-} catch (err) {
-  console.warn("[Timetable] fortee から取得できませんでした。保存分を使います", err);
-}
-if (items.length === 0) items = saved.items as Item[];
+const items = await loadTimetable();
 
 const DAY_LABEL: Record<string, { label: string; sub: string }> = {
   "2026-11-20": { label: "11/20 金", sub: "pre" },
@@ -108,6 +102,18 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
         }
         <p class="tt-empty" hidden>この日に「行く」の判子を押した発表はまだありません。</p>
       </div>
+      {/* 時間割を見た人が、そのまま買いに行けるように */}
+      {
+        tickets.status === "open" && (
+          <div class="tt-buy">
+            <p class="tt-buy__text">
+              <b>参加チケット</b>
+              <span>{tickets.summary}</span>
+            </p>
+            <a class="btn" href={tickets.url} target="_blank" rel="noopener">チケットを買う</a>
+          </div>
+        )
+      }
       <a class="back hand back--bottom" href={BASE}>← TechRAMEN 2026 へ戻る</a>
     </div>
     <!-- 当日だけ出す。親指で押せる右下に -->
@@ -361,6 +367,30 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
   .back--bottom {
     margin-top: 2.5rem;
   }
+  /* 時刻表の下の「参加チケット」 */
+  .tt-buy {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem 1.2rem;
+    margin-top: 2rem;
+    padding: 1rem 1.2rem;
+    border: 1.5px dashed var(--tt-line);
+    border-radius: 4px;
+    background: #f7f2e3;
+  }
+  .tt-buy__text {
+    display: grid;
+    gap: 0.1rem;
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+  .tt-buy__text b {
+    font-size: 1.05rem;
+    color: var(--grape);
+  }
   /* 判子をぜんぶ消す: 朱色の文字だけの控えめなボタン。1 回押すと確かめる表示に */
   .tt-reset {
     min-height: 40px;
@@ -463,10 +493,21 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
   .tt-filter:first-child {
     padding-left: 0;
   }
+  /* スマホでも「行く」まで 1 行に収める（場所が 4 つ＋すべて＋行く） */
   @media (max-width: 479px) {
     .tt-filter {
-      padding-inline: 0.42rem;
-      font-size: 0.82rem;
+      padding-inline: 0.3rem;
+      font-size: 0.78rem;
+      letter-spacing: -0.02em;
+    }
+    .tt-filters .tt-filter[data-group]::before {
+      margin-right: 0.2em;
+    }
+  }
+  /* もっと狭い画面（360px など）では、色の四角を省く（行の側に色が出ている） */
+  @media (max-width: 379px) {
+    .tt-filters .tt-filter[data-group]::before {
+      display: none;
     }
   }
   /* 場所の色: 時刻表の「列車種別」の色の四角 */
@@ -508,6 +549,7 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
     --c-hall: var(--wine);
     --c-handson: var(--leaf);
     --c-exhibit: #b5852c;
+    --c-cafe: #5b7fa3;
     --c-all: #8c837a;
   }
   .tt :global([data-group="hall"]) {
@@ -518,6 +560,9 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
   }
   .tt :global([data-group="exhibit"]) {
     --tt-color: var(--c-exhibit);
+  }
+  .tt :global([data-group="cafe"]) {
+    --tt-color: var(--c-cafe);
   }
   .tt :global([data-group="all"]) {
     --tt-color: var(--c-all);
