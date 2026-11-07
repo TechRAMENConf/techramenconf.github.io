@@ -2,6 +2,7 @@
 // トップの「タイムテーブル」欄。どんな発表があるかを 2 日分ひと目で見せ、タイムテーブルのページへつなぐ。
 // 本数・時刻・キーノートは fortee のタイムテーブルから数える（手で書かない）。
 // 会期中だけ、ブラウザで「いま」と「つぎ」を出す（?now=2026-11-21T13:45 で確かめられる）。
+// 1 分ごとに決め直す。開いたとき・タブに戻ったとき・「更新」を押したときは fortee から取り直す。
 import { byDay, hhmm, type Item } from "../lib/timetable";
 import { loadTimetable } from "../lib/loadTimetable";
 import { jp } from "../lib/jp";
@@ -56,6 +57,10 @@ const live = items.map((it) => ({ s: it.start, m: it.mins, t: it.title, p: it.pl
           <p class="prog-live__row" data-live-next hidden>
             <span class="prog-live__tag prog-live__tag--next">つぎ</span>
             <span data-live-next-text />
+          </p>
+          <p class="prog-live__foot">
+            <span data-live-at />
+            <button type="button" class="prog-live__reload" data-live-reload>更新</button>
           </p>
         </div>
 
@@ -114,7 +119,11 @@ const live = items.map((it) => ({ s: it.start, m: it.mins, t: it.title, p: it.pl
 }
 
 <script>
-  // 会期中だけ「いま」と「つぎ」を出す。長い枠（展示など 2 時間超）は「いま」に入れない
+  // 会期中だけ「いま」と「つぎ」を出す。長い枠（展示など 2 時間超）は「いま」に入れない。
+  // 1 分ごとに決め直し、開いたとき・タブに戻ったとき・「更新」を押したときは fortee から取り直す
+  // （本番ビルドは保存分なので、当日の差し替えはここで拾う）。会期外は fortee に取りに行かない
+  import { FORTEE_TIMETABLE, normalize } from "../lib/timetable";
+
   const box = document.querySelector<HTMLElement>("[data-live]");
   const data = document.querySelector("[data-live-items]")?.textContent;
   if (box && data) {
@@ -126,12 +135,18 @@ const live = items.map((it) => ({ s: it.start, m: it.mins, t: it.title, p: it.pl
       /* 出さない */
     }
     const nowParam = new URLSearchParams(location.search).get("now");
-    const now = nowParam ? Date.parse(`${nowParam}:00+09:00`) : Date.now();
-    const today = new Date(now + 9 * 3600e3).toISOString().slice(0, 10);
-    const day = list.filter((it) => it.d === today);
+    const now = () => (nowParam ? Date.parse(`${nowParam}:00+09:00`) : Date.now());
+    const today = () => new Date(now() + 9 * 3600e3).toISOString().slice(0, 10);
+    const clock = (ms: number) => new Date(ms + 9 * 3600e3).toISOString().slice(11, 16);
     const start = (it: Live) => Date.parse(it.s);
     const end = (it: Live) => start(it) + it.m * 60e3;
     const label = (it: Live) => `${it.s.slice(11, 16)}〜 ${it.t}（${it.p}）`;
+    const at = box.querySelector<HTMLElement>("[data-live-at]")!;
+    const reload = box.querySelector<HTMLButtonElement>("[data-live-reload]")!;
+    // 実際の時計（?now= で時刻をずらしているときも、取り直した時刻は本当の時刻で出す）
+    let fetchedAt = 0;
+    let triedAt = 0;
+
     const fill = (row: string, items: Live[]) => {
       const p = box.querySelector<HTMLElement>(`[data-live-${row}]`)!;
       p.hidden = items.length === 0;
@@ -140,15 +155,57 @@ const live = items.map((it) => ({ s: it.start, m: it.mins, t: it.title, p: it.pl
       if (items.length > 3) shown.push(`ほか ${items.length - 3} 件`);
       p.querySelector(`[data-live-${row}-text]`)!.textContent = shown.join(" ／ ");
     };
-    const current = day.filter((it) => it.m <= 120 && start(it) <= now && now < end(it));
-    const upcoming = day.filter((it) => start(it) > now);
-    const nextAt = upcoming.length ? Math.min(...upcoming.map(start)) : NaN;
-    const next = upcoming.filter((it) => start(it) === nextAt);
-    if (current.length || next.length) {
+    const render = () => {
+      const t = now();
+      const day = list.filter((it) => it.d === today());
+      const current = day.filter((it) => it.m <= 120 && start(it) <= t && t < end(it));
+      const upcoming = day.filter((it) => start(it) > t);
+      const nextAt = upcoming.length ? Math.min(...upcoming.map(start)) : NaN;
+      const next = upcoming.filter((it) => start(it) === nextAt);
       fill("now", current);
       fill("next", next);
-      box.hidden = false;
-    }
+      box.hidden = !(current.length || next.length);
+      at.textContent = fetchedAt ? `${clock(fetchedAt)} の情報` : "";
+    };
+    // タブを行き来するたびに取りに行かないよう、自動のときは 30 秒あける（ボタンはいつでも）
+    const refetch = async (force = false) => {
+      if (!list.some((it) => it.d === today())) return;
+      if (!force && Date.now() - triedAt < 30e3) return;
+      triedAt = Date.now();
+      reload.disabled = true;
+      reload.textContent = "更新中…";
+      try {
+        const res = await fetch(FORTEE_TIMETABLE, { signal: AbortSignal.timeout(8000), cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const items = normalize(await res.json());
+        if (items.length > 0) {
+          list = items.map((it) => ({ s: it.start, m: it.mins, t: it.title, p: it.place, d: it.day }));
+          fetchedAt = Date.now();
+        }
+        reload.textContent = "更新";
+      } catch (err) {
+        console.warn("[Program] fortee から取得できませんでした", err);
+        reload.textContent = "もう一度";
+      } finally {
+        reload.disabled = false;
+        render();
+      }
+    };
+
+    render();
+    void refetch();
+    reload.addEventListener("click", () => void refetch(true));
+    // タブが表にあるあいだだけ 1 分ごとに決め直す。戻ってきたら取り直す
+    let timer = 0;
+    const tick = () => {
+      clearInterval(timer);
+      if (document.visibilityState === "visible") timer = window.setInterval(render, 60e3);
+    };
+    document.addEventListener("visibilitychange", () => {
+      tick();
+      if (document.visibilityState === "visible") void refetch();
+    });
+    tick();
   }
 </script>
 
@@ -182,6 +239,30 @@ const live = items.map((it) => ({ s: it.start, m: it.mins, t: it.title, p: it.pl
   }
   .prog-live__tag--next {
     background: var(--leaf);
+  }
+  .prog-live__foot {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+    justify-content: flex-end;
+    margin: 0.2rem 0 0;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
+  .prog-live__reload {
+    min-height: 32px;
+    padding: 0.1rem 0.8rem;
+    border: 1.5px solid currentColor;
+    border-radius: 999px;
+    background: none;
+    color: var(--wine);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .prog-live__reload:disabled {
+    opacity: 0.6;
+    cursor: progress;
   }
 
   /* 2 日分: 駅の時刻表の紙 */
