@@ -1,0 +1,304 @@
+---
+// トップの「タイムテーブル」欄。どんな発表があるかを 2 日分ひと目で見せ、タイムテーブルのページへつなぐ。
+// 本数・時刻・キーノートは fortee のタイムテーブルから数える（手で書かない）。
+// 会期中だけ、ブラウザで「いま」と「つぎ」を出す（?now=2026-11-21T13:45 で確かめられる）。
+import { byDay, hhmm, type Item } from "../lib/timetable";
+import { loadTimetable } from "../lib/loadTimetable";
+import { jp } from "../lib/jp";
+
+const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+const items = await loadTimetable();
+
+const DAY: Record<string, { date: string; dow: string; sub: string; name: string }> = {
+  "2026-11-20": { date: "11/20", dow: "金", sub: "pre", name: "前夜祭" },
+  "2026-11-21": { date: "11/21", dow: "土", sub: "main", name: "本祭" },
+};
+// 本数の横に名前だけ添える枠（その日にあるものだけ出す）
+const EXTRAS = ["ライトニングハンズオン", "もくもく会", "ものづくり展示", "パネルディスカッション", "懇親会"];
+const endOf = (it: Item) => Date.parse(it.start) + it.mins * 60e3;
+const clock = (ms: number) => new Date(ms + 9 * 3600e3).toISOString().slice(11, 16);
+
+const days = [...byDay(items).entries()].map(([day, list]) => {
+  const talks = list.filter((it) => it.kind === "talk");
+  const hall = talks.filter((it) => it.group === "hall");
+  return {
+    day,
+    meta: DAY[day] ?? { date: day, dow: "", sub: "", name: "" },
+    open: list[0].title === "開場" ? `${hhmm(list[0].start)} 開場` : `${hhmm(list[0].start)} 開始`,
+    end: clock(Math.max(...list.map(endOf))),
+    counts: [
+      { label: "大ホールの発表", n: hall.filter((it) => it.mins > 5).length },
+      { label: "LT（5 分）", n: hall.filter((it) => it.mins <= 5).length },
+      { label: "ハンズオン", n: talks.filter((it) => it.group === "handson").length },
+    ].filter((c) => c.n > 0),
+    extras: EXTRAS.filter((name) => list.some((it) => it.title === name)),
+  };
+});
+const keynotes = items.filter((it) => it.keynote);
+
+// 「いま／つぎ」に使う分だけ、ページに埋め込む
+const live = items.map((it) => ({ s: it.start, m: it.mins, t: it.title, p: it.place, d: it.day }));
+---
+
+{
+  items.length > 0 && (
+    <section id="timetable" class="section" data-beat="dates">
+      <div class="wrap sheet reveal">
+        <p class="eyebrow">どんなトークがある？</p>
+        <h2 class="section-title">タイムテーブル</h2>
+
+        {/* 会期中だけ出す */}
+        <div class="prog-live" data-live hidden>
+          <p class="prog-live__row" data-live-now hidden>
+            <span class="prog-live__tag">いま</span>
+            <span data-live-now-text />
+          </p>
+          <p class="prog-live__row" data-live-next hidden>
+            <span class="prog-live__tag prog-live__tag--next">つぎ</span>
+            <span data-live-next-text />
+          </p>
+        </div>
+
+        <div class="prog-days">
+          {
+            days.map((d) => (
+              <article class="prog-day">
+                <h3 class="prog-day__head">
+                  <span class="prog-day__date">
+                    {d.meta.date}
+                    <small>（{d.meta.dow}）</small>
+                  </span>
+                  <span class="prog-day__name">
+                    {d.meta.name}
+                    <small class="hand">{d.meta.sub}</small>
+                  </span>
+                </h3>
+                <p class="prog-day__time">
+                  {d.open} 〜 {d.end}
+                </p>
+                <ul class="prog-day__counts">
+                  {d.counts.map((c) => (
+                    <li>
+                      {c.label}
+                      <b>{c.n}</b>本
+                    </li>
+                  ))}
+                </ul>
+                {d.extras.length > 0 && <p class="prog-day__extras">{d.extras.join("・")}</p>}
+              </article>
+            ))
+          }
+        </div>
+
+        {
+          keynotes.map((k) => (
+            <div class="prog-key">
+              <p class="prog-key__badge">キーノート</p>
+              <p class="prog-key__title jp" set:html={jp(k.title)} />
+              <p class="prog-key__meta">
+                {k.speaker && <b>{k.speaker.name}</b>}
+                <span>
+                  {DAY[k.day]?.date ?? k.day} {hhmm(k.start)}〜・{k.place}
+                </span>
+                <a href="#guest">ゲストの紹介 →</a>
+              </p>
+            </div>
+          ))
+        }
+
+        <a class="btn prog__more" href={`${BASE}timetable/`}>タイムテーブルを見る</a>
+        <script is:inline type="application/json" data-live-items set:html={JSON.stringify(live).replace(/</g, "\\u003c")} />
+      </div>
+    </section>
+  )
+}
+
+<script>
+  // 会期中だけ「いま」と「つぎ」を出す。長い枠（展示など 2 時間超）は「いま」に入れない
+  const box = document.querySelector<HTMLElement>("[data-live]");
+  const data = document.querySelector("[data-live-items]")?.textContent;
+  if (box && data) {
+    type Live = { s: string; m: number; t: string; p: string; d: string };
+    let list: Live[] = [];
+    try {
+      list = JSON.parse(data);
+    } catch {
+      /* 出さない */
+    }
+    const nowParam = new URLSearchParams(location.search).get("now");
+    const now = nowParam ? Date.parse(`${nowParam}:00+09:00`) : Date.now();
+    const today = new Date(now + 9 * 3600e3).toISOString().slice(0, 10);
+    const day = list.filter((it) => it.d === today);
+    const start = (it: Live) => Date.parse(it.s);
+    const end = (it: Live) => start(it) + it.m * 60e3;
+    const label = (it: Live) => `${it.s.slice(11, 16)}〜 ${it.t}（${it.p}）`;
+    const fill = (row: string, items: Live[]) => {
+      const p = box.querySelector<HTMLElement>(`[data-live-${row}]`)!;
+      p.hidden = items.length === 0;
+      // 同じ時刻に始まるものが多いときは 3 つまで
+      const shown = items.slice(0, 3).map(label);
+      if (items.length > 3) shown.push(`ほか ${items.length - 3} 件`);
+      p.querySelector(`[data-live-${row}-text]`)!.textContent = shown.join(" ／ ");
+    };
+    const current = day.filter((it) => it.m <= 120 && start(it) <= now && now < end(it));
+    const upcoming = day.filter((it) => start(it) > now);
+    const nextAt = upcoming.length ? Math.min(...upcoming.map(start)) : NaN;
+    const next = upcoming.filter((it) => start(it) === nextAt);
+    if (current.length || next.length) {
+      fill("now", current);
+      fill("next", next);
+      box.hidden = false;
+    }
+  }
+</script>
+
+<style>
+  /* 会期中の「いま／つぎ」 */
+  .prog-live {
+    display: grid;
+    gap: 0.4rem;
+    margin: 1.4rem 0 0;
+    padding: 0.8rem 1rem;
+    border-left: 6px solid #e2563d;
+    border-radius: 4px;
+    background: rgba(207, 155, 62, 0.16);
+  }
+  .prog-live__row {
+    display: flex;
+    gap: 0.6rem;
+    align-items: baseline;
+    margin: 0;
+    font-weight: 700;
+    color: var(--grape);
+    line-height: 1.6;
+  }
+  .prog-live__tag {
+    flex: none;
+    padding: 0 0.5rem;
+    border-radius: 3px;
+    background: #c2412b;
+    color: #f7f2e3;
+    font-size: 0.8rem;
+  }
+  .prog-live__tag--next {
+    background: var(--leaf);
+  }
+
+  /* 2 日分: 駅の時刻表の紙 */
+  .prog-days {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.6rem;
+  }
+  @media (min-width: 720px) {
+    .prog-days {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .prog-day {
+    padding: 1rem 1.2rem 1.1rem;
+    border-top: 8px solid var(--leaf);
+    border-radius: 4px;
+    background: #f7f2e3;
+    box-shadow:
+      inset 0 0 0 1.5px rgba(110, 139, 61, 0.35),
+      0 10px 18px -14px rgba(46, 40, 38, 0.55);
+  }
+  .prog-day__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.2rem 0.8rem;
+    margin: 0;
+  }
+  .prog-day__date {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--leaf);
+    font-variant-numeric: tabular-nums;
+  }
+  .prog-day__date small {
+    font-size: 0.9rem;
+  }
+  .prog-day__name {
+    font-size: 1.1rem;
+    color: var(--grape);
+  }
+  .prog-day__name small {
+    margin-left: 0.4rem;
+    color: var(--wine);
+    font-weight: 400;
+  }
+  .prog-day__time {
+    margin: 0.2rem 0 0.6rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1.5px dashed rgba(110, 139, 61, 0.45);
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .prog-day__counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 1.2rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .prog-day__counts b {
+    margin: 0 0.15rem 0 0.4rem;
+    font-size: 1.5rem;
+    color: var(--wine);
+    font-variant-numeric: tabular-nums;
+  }
+  .prog-day__extras {
+    margin: 0.4rem 0 0;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+
+  /* キーノート */
+  .prog-key {
+    margin-top: 1.4rem;
+    padding: 1rem 1.2rem;
+    border-left: 6px solid var(--wine);
+    border-radius: 4px;
+    background: var(--paper-card);
+  }
+  .prog-key__badge {
+    width: fit-content;
+    margin: 0 0 0.3rem;
+    padding: 0.05rem 0.6rem;
+    border-radius: 3px;
+    background: var(--wine);
+    color: #f7f2e3;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+  }
+  .prog-key__title {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--grape);
+  }
+  .prog-key__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 1rem;
+    margin: 0.3rem 0 0;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+  .prog-key__meta b {
+    color: var(--ink);
+  }
+  .prog-key__meta a {
+    color: var(--wine);
+  }
+
+  .prog__more {
+    margin-top: 1.6rem;
+  }
+</style>

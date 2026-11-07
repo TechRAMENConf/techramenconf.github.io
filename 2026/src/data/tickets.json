@@ -9,5 +9,12 @@
     { "name": "地域限定特別参加チケット", "price": 2000, "until": "2026-11-21T18:00:00+09:00" },
     { "name": "一般学生チケット", "price": 500, "until": "2026-11-21T18:00:00+09:00" },
     { "name": "地域限定特別学生チケット", "price": 500, "until": "2026-11-21T18:00:00+09:00" }
-  ]
+  ],
+  "others": [
+    { "name": "懇親会チケット", "price": 5000, "until": "2026-11-21T18:00:00+09:00", "url": "https://fortee.jp/techramen-26-conf/ticket-shop/index/a180eb0e-dabd-44a0-9d4f-0d76d1b969ac" },
+    { "name": "学生懇親会チケット", "price": 1000, "until": "2026-11-21T18:00:00+09:00", "url": "https://fortee.jp/techramen-26-conf/ticket-shop/index/a180eb0e-dabd-44a0-9d4f-0d76d1b969ac" },
+    { "name": "二次会チケット", "price": 3200, "until": "2026-11-20T09:00:00+09:00", "url": "https://fortee.jp/techramen-26-conf/ticket-shop/index/a180eb0e-dabd-44a0-9d4f-0d76d1b969ac" },
+    { "name": "お弁当（本祭のランチ）", "price": 1100, "until": "2026-11-21T12:00:00+09:00", "url": "https://fortee.jp/techramen-26-conf/ticket-shop/index/9653b8ba-9059-45c0-98d1-ec289de95c54" }
+  ],
+  "othersNote": "懇親会は参加チケットを、二次会は懇親会チケットをお持ちの方が買えます。二次会は未成年の方は参加できません"
 }

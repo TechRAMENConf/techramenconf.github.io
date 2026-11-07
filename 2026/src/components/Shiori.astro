@@ -5,13 +5,16 @@
 // - それ未満: 画面下の紙帯タブバー
 import Icon from "./Icon.astro";
 
+import { FEATURES } from "../data/features";
+
+// ページの並び順に書く（現在地は、並び順で最初に見えている欄にする）
 const items = [
-  { id: "dates", label: "日程・会場", short: "日程", icon: "calendar" },
-  { id: "cfp", label: "登壇募集", short: "登壇", icon: "mic" },
-  { id: "access", label: "会場・アクセス", short: "会場", icon: "train" },
-  { id: "travel", label: "観光", short: "観光", icon: "map" },
-  { id: "news", label: "おしらせ", short: "おしらせ", icon: "note" },
-] as const;
+  ...(FEATURES.timetable ? [{ id: "timetable", label: "タイムテーブル", short: "時間割", icon: "clock" } as const] : []),
+  { id: "tickets", label: "参加チケット", short: "チケット", icon: "ticket" } as const,
+  { id: "dates", label: "日程・会場", short: FEATURES.timetable ? "会場" : "日程", icon: "train" } as const,
+  { id: "travel", label: "観光", short: "観光", icon: "map" } as const,
+  { id: "news", label: "おしらせ", short: "おしらせ", icon: "note" } as const,
+];
 ---
 
 <nav class="shiori torn" aria-label="ページ内の目次">

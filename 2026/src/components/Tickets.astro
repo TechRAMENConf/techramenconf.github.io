@@ -1,0 +1,185 @@
+---
+// トップの「参加チケット」欄。料金と「チケットを買う」。
+// 料金・注記・販売期限は data/tickets.json から出す（手で書かない）。
+// 参加チケットの下に、懇親会・お弁当などほかのチケットと、参加しない人向けの応援窓口を添える。
+import tickets from "../data/tickets.json";
+import { PERSONAL_SPONSORS } from "../data/personalSponsors";
+import { jp } from "../lib/jp";
+
+const yen = (n: number) => `${n.toLocaleString("ja-JP")}円`;
+// "2026-11-21T18:00:00+09:00" → 「11月21日 18:00」
+const dateText = (iso: string) => `${Number(iso.slice(5, 7))}月${Number(iso.slice(8, 10))}日 ${iso.slice(11, 16)}`;
+// チケット名は BudouX が区切らないので、「地域限定｜特別学生｜チケット」の位置で折り返せるようにする
+const nameHtml = (name: string) => jp(name).replace(/^(地域限定)/, "$1<wbr>").replace(/(チケット)$/, "<wbr>$1");
+// 販売期限（いちばん遅いもの）
+const until = tickets.admission.map((t) => t.until).sort().at(-1);
+---
+
+<section id="tickets" class="section">
+  <div class="wrap sheet reveal">
+    <p class="eyebrow">いくらで参加できる？</p>
+    <h2 class="section-title">参加チケット</h2>
+
+    {
+      tickets.status === "open" ? (
+        <>
+          <ul class="fares">
+            {tickets.admission.map((t) => (
+              <li class="fare">
+                <span class="fare__name jp" set:html={nameHtml(t.name)} />
+                <span class="fare__price">{yen(t.price)}</span>
+              </li>
+            ))}
+          </ul>
+          <p class="fares__note jp" set:html={jp(`※ ${tickets.regionNote}`)} />
+          {until && <p class="fares__note">※ 販売は {dateText(until)} まで</p>}
+          <a class="btn fares__buy" href={tickets.url} target="_blank" rel="noopener">
+            fortee でチケットを買う
+          </a>
+
+          {tickets.others.length > 0 && (
+            <div class="fares-more">
+              <h3 class="fares-more__h hand">ほかのチケット</h3>
+              <ul class="fares fares--small">
+                {tickets.others.map((t) => (
+                  <li class="fare">
+                    <a class="fare__name jp" href={t.url} target="_blank" rel="noopener" set:html={nameHtml(t.name)} />
+                    <span class="fare__until">{dateText(t.until)} まで</span>
+                    <span class="fare__price">{yen(t.price)}</span>
+                  </li>
+                ))}
+              </ul>
+              <p class="fares__note jp" set:html={jp(`※ ${tickets.othersNote}`)} />
+            </div>
+          )}
+        </>
+      ) : (
+        <p class="fares__note">チケットの販売は準備中です。</p>
+      )
+    }
+
+    {
+      PERSONAL_SPONSORS.joinUrl && (
+        <p class="fares-support">
+          <b>参加はしないけど、応援したい方へ</b>
+          <span>
+            fortee の
+            <a href={PERSONAL_SPONSORS.joinUrl} target="_blank" rel="noopener">
+              ラーメン応援窓口
+            </a>
+            から、{`1\u00a0口 ${yen(PERSONAL_SPONSORS.joinPrice)}`} で
+            <a href="#sponsors">応援団</a>
+            になれます。
+          </span>
+        </p>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  /* 駅の運賃表のように: 名前と金額を点線でつなぐ */
+  .fares {
+    display: grid;
+    gap: 0.2rem;
+    max-width: 34rem;
+    margin: 1.6rem 0 0.8rem;
+    padding: 0.8rem 1.2rem;
+    border-top: 8px solid var(--leaf);
+    border-radius: 4px;
+    background: #f7f2e3;
+    box-shadow: inset 0 0 0 1.5px rgba(110, 139, 61, 0.35);
+    list-style: none;
+  }
+  .fare {
+    display: flex;
+    align-items: baseline;
+    gap: 0 0.6rem;
+    padding: 0.4rem 0;
+  }
+  .fare + .fare {
+    border-top: 1.5px dashed rgba(110, 139, 61, 0.45);
+  }
+  .fare__name {
+    flex: 1;
+    min-width: 0;
+    font-weight: 700;
+    color: var(--grape);
+  }
+  .fare__price {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--wine);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .fares__note {
+    margin: 0.2rem 0 0;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+  .fares__buy {
+    margin-top: 1.4rem;
+  }
+
+  /* ほかのチケット: 参加チケットより一段小さく */
+  .fares-more {
+    margin-top: 2.2rem;
+  }
+  .fares-more__h {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--grape);
+  }
+  .fares-more {
+    max-width: 34rem;
+  }
+  .fares--small {
+    margin-top: 0.6rem;
+    border-top-width: 4px;
+    border-top-color: var(--gold);
+  }
+  .fares--small .fare {
+    flex-wrap: wrap;
+  }
+  .fares--small .fare__name {
+    flex-basis: 100%;
+    color: var(--grape);
+  }
+  .fares--small .fare__until {
+    flex: 1;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .fares--small .fare__price {
+    font-size: 1.1rem;
+  }
+  @media (min-width: 560px) {
+    .fares--small .fare__name {
+      flex-basis: auto;
+    }
+    .fares--small .fare__until {
+      flex: none;
+    }
+  }
+
+  /* 参加しない人向けの応援窓口 */
+  .fares-support {
+    display: grid;
+    gap: 0.2rem;
+    max-width: 34rem;
+    margin: 2rem 0 0;
+    padding: 0.8rem 1rem;
+    border-left: 6px solid var(--wine);
+    border-radius: 4px;
+    background: var(--paper-card);
+    font-size: 0.95rem;
+  }
+  .fares-support b {
+    color: var(--grape);
+  }
+  .fares-support a {
+    color: var(--wine);
+  }
+</style>

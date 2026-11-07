@@ -4,6 +4,7 @@ import Icon from "./Icon.astro";
 import Logo from "./Logo.astro";
 import cfp from "../data/cfp.json";
 import tickets from "../data/tickets.json";
+import { FEATURES } from "../data/features";
 
 // 「いま」いちばん伝えたいことを荷札で出す。CfP の募集中・準備中が先、締切後はチケット販売中
 const tag =
@@ -40,9 +41,10 @@ const tag =
       <span class="hero__fact"><b>富良野</b><small>北海道</small></span>
     </p>
     <div class="hero__cta">
+      {/* 来た人の流れ「どんなトークがある？ → 買う」の順に並べる */}
       {
-        tickets.status === "open" ? (
-          <a class="btn" href={tickets.url} target="_blank" rel="noopener">チケットを買う</a>
+        FEATURES.timetable ? (
+          <a class="btn" href="#timetable">タイムテーブル</a>
         ) : (
           <a class="btn" href="#dates">日程と会場</a>
         )
@@ -50,6 +52,8 @@ const tag =
       {
         cfp.status === "open" ? (
           <a class="btn btn--ghost" href="#cfp">登壇者を募集中</a>
+        ) : tickets.status === "open" ? (
+          <a class="btn btn--ghost" href="#tickets">チケットを買う</a>
         ) : (
           <a class="btn btn--ghost" href="#concept">今年のテーマ</a>
         )
@@ -57,7 +61,11 @@ const tag =
     </div>
   </div>
 
-  <a class="hero__scroll hand" href="#dates" aria-label="scroll（日程と会場へ）">
+  <a
+    class="hero__scroll hand"
+    href="#concept"
+    aria-label="scroll（今年のテーマへ）"
+  >
     <span aria-hidden="true">scroll</span>
     <Icon name="chevron-down" size="1.1em" />
   </a>

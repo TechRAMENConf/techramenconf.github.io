@@ -1,6 +1,16 @@
 ---
 // 手描き風ラインアイコン（currentColorを継承。装飾なのでaria-hidden）
-type IconName = "calendar" | "plane" | "train" | "house" | "chevron-down" | "mic" | "map" | "note";
+type IconName =
+  | "calendar"
+  | "plane"
+  | "train"
+  | "house"
+  | "chevron-down"
+  | "mic"
+  | "map"
+  | "note"
+  | "clock"
+  | "ticket";
 
 interface Props {
   name: IconName;
@@ -87,6 +97,22 @@ const { name, size = "1em", class: className } = Astro.props;
         <path d="M5.4 3.4 H15 L18.6 7 V20.6 H5.4 Z" />
         <path d="M15 3.4 V7 H18.6" />
         <path d="M8.4 11 h7.2 M8.4 14.4 h7.2 M8.4 17.6 h4.4" />
+      </>
+    )
+  }
+  {
+    name === "clock" && (
+      <>
+        <circle cx="12" cy="12.4" r="8.8" />
+        <path d="M12 7 V12.6 L15.6 14.8" />
+      </>
+    )
+  }
+  {
+    name === "ticket" && (
+      <>
+        <path d="M3.2 7.2 H20.8 V10 a2.4 2.4 0 0 0 0 4.8 V17.6 H3.2 V14.8 a2.4 2.4 0 0 0 0 -4.8 Z" />
+        <path d="M15 7.6 V9.2 M15 11.6 V13.2 M15 15.6 V17.2" />
       </>
     )
   }
