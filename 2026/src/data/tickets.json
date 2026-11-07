@@ -16,5 +16,8 @@
     { "name": "二次会チケット", "price": 3200, "until": "2026-11-20T09:00:00+09:00", "url": "https://fortee.jp/techramen-26-conf/ticket-shop/index/a180eb0e-dabd-44a0-9d4f-0d76d1b969ac" },
     { "name": "お弁当（本祭のランチ）", "price": 1100, "until": "2026-11-21T12:00:00+09:00", "url": "https://fortee.jp/techramen-26-conf/ticket-shop/index/9653b8ba-9059-45c0-98d1-ec289de95c54" }
   ],
-  "othersNote": "懇親会は参加チケットを、二次会は懇親会チケットをお持ちの方が買えます。二次会は未成年の方は参加できません"
+  "othersNotes": [
+    "懇親会は参加チケットをお持ちの方が対象です",
+    "二次会は懇親会チケットをお持ちの方が対象です（未成年の方は参加できません）"
+  ]
 }

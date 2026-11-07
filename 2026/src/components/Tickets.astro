@@ -49,7 +49,9 @@ const until = tickets.admission.map((t) => t.until).sort().at(-1);
                   </li>
                 ))}
               </ul>
-              <p class="fares__note jp" set:html={jp(`※ ${tickets.othersNote}`)} />
+              {tickets.othersNotes.map((n) => (
+                <p class="fares__note jp" set:html={jp(`※ ${n}`)} />
+              ))}
             </div>
           )}
         </>
@@ -61,15 +63,14 @@ const until = tickets.admission.map((t) => t.until).sort().at(-1);
     {
       PERSONAL_SPONSORS.joinUrl && (
         <p class="fares-support">
-          <b>参加はしないけど、応援したい方へ</b>
+          <b>応援だけしたい方へ</b>
           <span>
-            fortee の
             <a href={PERSONAL_SPONSORS.joinUrl} target="_blank" rel="noopener">
               ラーメン応援窓口
             </a>
-            から、{`1\u00a0口 ${yen(PERSONAL_SPONSORS.joinPrice)}`} で
+            （{`1\u00a0口 ${yen(PERSONAL_SPONSORS.joinPrice)}`}）で
             <a href="#sponsors">応援団</a>
-            になれます。
+            になれます
           </span>
         </p>
       )
