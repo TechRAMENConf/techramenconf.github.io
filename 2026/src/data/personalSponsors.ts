@@ -14,6 +14,9 @@ export const PERSONAL_SPONSORS = {
    * そのときは false にする
    */
   live: true,
-  /** 「応援団員になる」の申込先。空ならボタンを出さない */
-  joinUrl: "",
+  /** 「応援団員になる」の申込先（fortee のラーメン応援窓口）。空ならボタンを出さない */
+  joinUrl: "https://fortee.jp/techramen-26-conf/ticket-shop/index/e81a5c0b-9e4b-4577-895f-2babbe3c2ce1",
+  /** 1 口の金額と、1 人が申し込める口数（fortee の応援窓口に合わせる） */
+  joinPrice: 5000,
+  joinMax: 20,
 };

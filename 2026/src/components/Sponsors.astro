@@ -87,9 +87,15 @@ const live = PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
 
         {
           PERSONAL_SPONSORS.joinUrl && (
-            <a class="btn sp-join" href={PERSONAL_SPONSORS.joinUrl} target="_blank" rel="noopener">
-              応援団員になる
-            </a>
+            <div class="sp-join">
+              <a class="btn" href={PERSONAL_SPONSORS.joinUrl} target="_blank" rel="noopener">
+                応援団員になる
+              </a>
+              <p class="sp-join__note">
+                {`1\u00a0口 ${PERSONAL_SPONSORS.joinPrice.toLocaleString("ja-JP")}\u00a0円（${PERSONAL_SPONSORS.joinMax}\u00a0口まで）`}。ご希望の方はこのページに載ります。
+                <br />法人の方は <a href="mailto:techramenconf@gmail.com">メール</a> でどうぞ。
+              </p>
+            </div>
           )
         }
       </div>
@@ -832,6 +838,15 @@ const live = PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
 
     .sp-join {
       margin-top: 2rem;
+    }
+    .sp-join__note {
+      max-width: 34rem;
+      margin: 0.8rem 0 0;
+      font-size: 0.9rem;
+      color: var(--ink-soft);
+    }
+    .sp-join__note a {
+      color: var(--wine);
     }
   }
 

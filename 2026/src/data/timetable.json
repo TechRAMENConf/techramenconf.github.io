@@ -1,7 +1,7 @@
 {
   "items": [
     {
-      "id": "2ddb4748-b8de-483c-84dd-bf5c7277bd37",
+      "id": "ad79d7fd-98eb-4413-b436-4385e2edfff9",
       "kind": "slot",
       "title": "開場",
       "abstract": "",
@@ -9,7 +9,7 @@
       "start": "2026-11-20T17:00:00+09:00",
       "mins": 30,
       "group": "all",
-      "place": "1F 中央広間",
+      "place": "会場ぜんぶ",
       "tags": []
     },
     {
@@ -40,7 +40,7 @@
       "id": "6c506e68-8618-463d-8a32-6ba1764959f1",
       "kind": "talk",
       "title": "札幌に引っ越しても、現場にいたい",
-      "abstract": "2025年5月に新しい職場に迎え入れられ、7月に東京から札幌へ引っ越した。AIによって開発のあり方が変わり、職場ではもうコードを書いていない。それでも、利用者の不便を受け止め、改善として返せる「現場にいる人」であり続けたい。\n\n組織と地理的に離れていても社内に居続けられるよう、常駐Meetを取り入れ、Slackでも積極的に発言してきた。一方で、飲み会や直接顔を合わせる時間など、物理的なつながりの大切さも感じている。それでも私は、札幌で暮らし、働いていきたい。\n\n本発表では、移住してみて簡単だったことと難しかったこと、距離を埋めるために試みた手段と、その限界を紹介する。《走り続けろ》という言葉に託した私自身の選択を通じて、これから札幌などへ移住する開発者が、暮らしたい場所と組織とのつながりを両立するために取れる手段を持ち帰ってもらいたい。",
+      "abstract": "2025年5月に新しい職場に迎え入れられ、7月に東京から札幌へ引っ越した。AIによって開発のあり方が変わり、職場ではもうコードを書いていない。それでも、利用者の不便を受け止め、改善として返せる「現場にいる人」であり続けたい。\n\n組織と地理的に離れていても社内に居続けられるよう、常駐Meetを取り入れ、Slackでも積極的に発言してきた。一方で、飲み会や直接顔を合わせる時間など、物理的なつながりの大切さも感じている。それでも私は、札幌で暮らし、働いていきたい。\n\n本発表では、移住してみて簡単だったことと難しかったこと、距離を埋めるために試みた手段と、その限界を紹介する。私自身の選択を通じて、これから札幌などへ移住する開発者が、暮らしたい場所と組織とのつながりを両立するために取れる手段を持ち帰ってもらいたい。",
       "url": "https://fortee.jp/techramen-26-conf/proposal/6c506e68-8618-463d-8a32-6ba1764959f1",
       "day": "2026-11-20",
       "start": "2026-11-20T18:20:00+09:00",
@@ -51,21 +51,6 @@
         "name": "funwarioisii",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/12d76957-2f3f-4393-9b0b-c62800bd901f.jpg"
       },
-      "tags": [
-        "難易度: 🍇",
-        "手ぶらでOK"
-      ]
-    },
-    {
-      "id": "0901d06b-d258-4a90-994e-e9da1fa683a1",
-      "kind": "slot",
-      "title": "ライトニングハンズオン",
-      "abstract": "",
-      "day": "2026-11-20",
-      "start": "2026-11-20T18:20:00+09:00",
-      "mins": 60,
-      "group": "handson",
-      "place": "1F 中央広間 味噌5",
       "tags": []
     },
     {
@@ -77,7 +62,24 @@
       "start": "2026-11-20T18:20:00+09:00",
       "mins": 135,
       "group": "exhibit",
-      "place": "1F 中央広間（入口側）",
+      "place": "1F 北側広間",
+      "tags": []
+    },
+    {
+      "id": "09e34354-313c-4f7e-aaee-5f68851d0c27",
+      "kind": "talk",
+      "title": "もくもく会",
+      "abstract": "会場内カフェ EVELSA の一角に，普段の FuraIT.fuel(もくもく会) の会場を錬成！💪\nTechRAMEN 2026 Confernce 参加チケットをお持ちの方 あるいは FuraIT.fuel #87 connpass で申し込んだ方が入れます．\n　  \nプログラミングしたり，電子工作したり，絵をかいたり，おりがみしたり...... 大きなカンファレンスの一角でクリエイティブを解き放とう！！",
+      "url": "https://fortee.jp/techramen-26-conf/proposal/09e34354-313c-4f7e-aaee-5f68851d0c27",
+      "day": "2026-11-20",
+      "start": "2026-11-20T18:20:00+09:00",
+      "mins": 135,
+      "group": "cafe",
+      "place": "1F カフェ EVELSA",
+      "speaker": {
+        "name": "西原 翔太",
+        "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/4a7781a0-3702-42fd-ab58-129017b8407d.png"
+      },
       "tags": []
     },
     {
@@ -95,10 +97,7 @@
         "name": "西原 翔太",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/4a7781a0-3702-42fd-ab58-129017b8407d.png"
       },
-      "tags": [
-        "難易度: 🍇",
-        "手ぶらでOK"
-      ]
+      "tags": []
     },
     {
       "id": "15455271-265e-471e-9958-7acbfdafa83c",
@@ -115,11 +114,7 @@
         "name": "うさみけんた",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/1d718d30-7811-44b0-b7dd-c77c7f013067.jpg"
       },
-      "tags": [
-        "難易度: 🍇🍇",
-        "パソコン必須",
-        "要事前準備"
-      ]
+      "tags": []
     },
     {
       "id": "f0475c29-cd2b-4496-a6c7-95cb8f69d62d",
@@ -136,10 +131,7 @@
         "name": "fkuMnk",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/59e1f003-991c-4bf1-a6ce-7524f5948234.jpg"
       },
-      "tags": [
-        "難易度: 🍇🍇",
-        "手ぶらでOK"
-      ]
+      "tags": []
     },
     {
       "id": "67ffd6fb-1d47-4014-bfd1-0134b3cb658f",
@@ -156,10 +148,7 @@
         "name": "井出尭夫",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/25847929-499b-4184-8873-1ecd97150ec9.jpg"
       },
-      "tags": [
-        "難易度: 🍇🍇",
-        "手ぶらでOK"
-      ]
+      "tags": []
     },
     {
       "id": "c6d34530-2ff9-4e40-861e-576a03d4158a",
@@ -176,21 +165,6 @@
         "name": "yutannihilation",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/e5de4766-4a71-4a96-b61c-014b8bf4c164.jpg"
       },
-      "tags": [
-        "難易度: 🍇🍇🍇",
-        "手ぶらでOK"
-      ]
-    },
-    {
-      "id": "f30a2486-52d9-4e3f-884c-2c51ac722053",
-      "kind": "slot",
-      "title": "ライトニングハンズオン",
-      "abstract": "",
-      "day": "2026-11-20",
-      "start": "2026-11-20T19:35:00+09:00",
-      "mins": 60,
-      "group": "handson",
-      "place": "1F 中央広間 味噌6",
       "tags": []
     },
     {
@@ -208,11 +182,7 @@
         "name": "たくみ",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/4c041b2b-f8b7-4ffb-b70f-4276e57450fb.jpg"
       },
-      "tags": [
-        "難易度: 🍇🍇",
-        "パソコン必須",
-        "要事前準備"
-      ]
+      "tags": []
     },
     {
       "id": "d1d1374f-dd90-41f4-a911-b305a86b99ac",
@@ -229,10 +199,7 @@
         "name": "myou",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/ef9fc01d-76ed-404e-8257-814cb3f2e2b6.jpg"
       },
-      "tags": [
-        "難易度: 🍇🍇",
-        "パソコン必須"
-      ]
+      "tags": []
     },
     {
       "id": "c68d4f23-3395-46d7-9434-727b6fe2abb9",
@@ -249,10 +216,7 @@
         "name": "DE-TEIU",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/0cc6355c-cdb9-410a-bc6b-6a75b86f2413.png"
       },
-      "tags": [
-        "難易度: 🍇",
-        "手ぶらでOK"
-      ]
+      "tags": []
     },
     {
       "id": "e1319682-cdfe-4712-a013-5af37017c334",
@@ -276,18 +240,6 @@
       "mins": 5,
       "group": "all",
       "place": "2F 大ホール",
-      "tags": []
-    },
-    {
-      "id": "98482052-e9ab-4716-bef8-73370a79124c",
-      "kind": "slot",
-      "title": "開場",
-      "abstract": "",
-      "day": "2026-11-21",
-      "start": "2026-11-21T09:30:00+09:00",
-      "mins": 15,
-      "group": "all",
-      "place": "1F 中央広間",
       "tags": []
     },
     {
@@ -353,7 +305,24 @@
       "start": "2026-11-21T11:15:00+09:00",
       "mins": 295,
       "group": "exhibit",
-      "place": "1F 中央広間（入口側）",
+      "place": "1F 北側広間",
+      "tags": []
+    },
+    {
+      "id": "2f582a03-bb30-412d-9544-01076271eda8",
+      "kind": "talk",
+      "title": "もくもく会",
+      "abstract": "会場内カフェ EVELSA の一角に，普段の FuraIT.fuel(もくもく会) の会場を錬成！💪\nTechRAMEN 2026 Confernce 参加チケットをお持ちの方 あるいは FuraIT.fuel #87 connpass で申し込んだ方が入れます．\n　  \nプログラミングしたり，電子工作したり，絵をかいたり，おりがみしたり...... 大きなカンファレンスの一角でクリエイティブを解き放とう！！",
+      "url": "https://fortee.jp/techramen-26-conf/proposal/2f582a03-bb30-412d-9544-01076271eda8",
+      "day": "2026-11-21",
+      "start": "2026-11-21T11:15:00+09:00",
+      "mins": 295,
+      "group": "cafe",
+      "place": "1F カフェ EVELSA",
+      "speaker": {
+        "name": "西原 翔太",
+        "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/4a7781a0-3702-42fd-ab58-129017b8407d.png"
+      },
       "tags": []
     },
     {
@@ -371,20 +340,6 @@
         "name": "坂本 純一",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/b3fd09d6-bee7-4bf0-8942-ec45cb23f472.png"
       },
-      "tags": [
-        "難易度: 🍇🍇🍇"
-      ]
-    },
-    {
-      "id": "ec08a726-af78-49b9-8ede-a2051bccf010",
-      "kind": "slot",
-      "title": "ライトニングハンズオン",
-      "abstract": "",
-      "day": "2026-11-21",
-      "start": "2026-11-21T12:15:00+09:00",
-      "mins": 60,
-      "group": "handson",
-      "place": "1F 中央広間 味噌5",
       "tags": []
     },
     {
@@ -402,10 +357,7 @@
         "name": "sogaoh",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/6d1ee8ca-ca02-457a-b380-b740b0baa21c.jpg"
       },
-      "tags": [
-        "難易度: 🍇🍇",
-        "要事前準備"
-      ]
+      "tags": []
     },
     {
       "id": "b9450c21-f653-4d42-857c-39380cd00d15",
@@ -423,8 +375,6 @@
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/bc18d6e5-4c5e-4f1a-b924-8ae0945287b6.jpg"
       },
       "tags": [
-        "難易度: 🍇",
-        "手ぶらでOK",
         "児童・生徒・学生"
       ]
     },
@@ -443,10 +393,7 @@
         "name": "mktakuya",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/33100f95-4a21-4272-854a-aa9e1479be4c.jpg"
       },
-      "tags": [
-        "難易度: 🍇🍇🍇🍇",
-        "手ぶらでOK"
-      ]
+      "tags": []
     },
     {
       "id": "efb2338a-0b27-438e-84c4-fd8691095ec8",
@@ -463,21 +410,6 @@
         "name": "うさみけんた",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/1d718d30-7811-44b0-b7dd-c77c7f013067.jpg"
       },
-      "tags": [
-        "難易度: 🍇🍇",
-        "手ぶらでOK"
-      ]
-    },
-    {
-      "id": "eddb7912-87b8-41c3-90a7-6d708d8445ff",
-      "kind": "slot",
-      "title": "ライトニングハンズオン",
-      "abstract": "",
-      "day": "2026-11-21",
-      "start": "2026-11-21T13:30:00+09:00",
-      "mins": 60,
-      "group": "handson",
-      "place": "1F 中央広間 味噌6",
       "tags": []
     },
     {
@@ -495,11 +427,7 @@
         "name": "はくすけ",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/3b342b0f-f42e-4f5a-9ab8-28a9cc8f082b.jpg"
       },
-      "tags": [
-        "難易度: 🍇🍇🍇🍇",
-        "パソコン必須",
-        "要事前準備"
-      ]
+      "tags": []
     },
     {
       "id": "82e8973a-7762-4e4c-88df-35129b997595",
@@ -516,10 +444,7 @@
         "name": "northprint",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/ee28f77f-f455-4484-b2fa-1f46018e2e86.png"
       },
-      "tags": [
-        "難易度: 🍇🍇🍇",
-        "パソコン必須"
-      ]
+      "tags": []
     },
     {
       "id": "c532df3d-e560-4b8a-b56b-f3de7c7e5d06",
@@ -536,10 +461,7 @@
         "name": "Kazuki Nitta",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/dad362a6-710a-4ddc-9b44-a07ebbf198cf.jpg"
       },
-      "tags": [
-        "難易度: 🍇",
-        "手ぶらでOK"
-      ]
+      "tags": []
     },
     {
       "id": "0bcecb23-58b7-4406-86c5-112d95de0b9a",
@@ -556,10 +478,7 @@
         "name": "黒井春人",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/2c0e975b-015f-43a5-8ce0-a29fcc829fc9.jpg"
       },
-      "tags": [
-        "難易度: 🍇",
-        "手ぶらでOK"
-      ]
+      "tags": []
     },
     {
       "id": "20e4a418-6112-457f-bf88-e52ca0783eb8",
@@ -575,21 +494,6 @@
       "speaker": {
         "name": "げんき"
       },
-      "tags": [
-        "難易度: 🍇",
-        "手ぶらでOK"
-      ]
-    },
-    {
-      "id": "59df74ac-78bc-4070-9c80-114f0d70a2f2",
-      "kind": "slot",
-      "title": "ライトニングハンズオン",
-      "abstract": "",
-      "day": "2026-11-21",
-      "start": "2026-11-21T14:45:00+09:00",
-      "mins": 60,
-      "group": "handson",
-      "place": "1F 中央広間 味噌5",
       "tags": []
     },
     {
@@ -607,10 +511,7 @@
         "name": "みゆ吉",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/8748466c-d95c-4b82-b44a-25da5ba2dd3c.jpg"
       },
-      "tags": [
-        "難易度: 🍇",
-        "手ぶらでOK"
-      ]
+      "tags": []
     },
     {
       "id": "00305ece-6c18-4eb9-82a5-53cf53459a2e",
@@ -627,10 +528,7 @@
         "name": "山川広人",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/74be05df-f673-4127-bbde-57c9b80eaa66.jpg"
       },
-      "tags": [
-        "難易度: 🍇",
-        "手ぶらでOK"
-      ]
+      "tags": []
     },
     {
       "id": "515b16b6-627e-4687-9917-2ae69ef91395",
@@ -647,10 +545,7 @@
         "name": "yuskesh",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/383fc4e8-da80-44bb-8aa2-2a6c85db5d75.jpg"
       },
-      "tags": [
-        "難易度: 🍇🍇🍇🍇",
-        "手ぶらでOK"
-      ]
+      "tags": []
     },
     {
       "id": "9dd74736-94f9-4273-b337-f5889a392ccb",
@@ -667,21 +562,6 @@
         "name": "okui",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/1342997a-87ef-4c07-853b-5654b065de4c.jpg"
       },
-      "tags": [
-        "難易度: 🍇🍇",
-        "手ぶらでOK"
-      ]
-    },
-    {
-      "id": "253417c9-7009-444f-a74a-1d34c3f041b2",
-      "kind": "slot",
-      "title": "ライトニングハンズオン",
-      "abstract": "",
-      "day": "2026-11-21",
-      "start": "2026-11-21T16:00:00+09:00",
-      "mins": 60,
-      "group": "handson",
-      "place": "1F 中央広間 味噌6",
       "tags": []
     },
     {
@@ -699,10 +579,7 @@
         "name": "Akiba",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/6095a678-19af-48b5-983e-89dba9b0e431.jpg"
       },
-      "tags": [
-        "難易度: 🍇🍇",
-        "手ぶらでOK"
-      ]
+      "tags": []
     },
     {
       "id": "01a57934-098b-4f88-a668-8f84a3efbcf2",
@@ -719,10 +596,7 @@
         "name": "かぶ",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/924ee89a-c887-4dcc-ba6b-9686bcad563c.jpg"
       },
-      "tags": [
-        "難易度: 🍇",
-        "手ぶらでOK"
-      ]
+      "tags": []
     },
     {
       "id": "0d5b06bf-e1da-4976-b070-91d21466894c",
@@ -739,10 +613,7 @@
         "name": "坂本 純一",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/b3fd09d6-bee7-4bf0-8942-ec45cb23f472.png"
       },
-      "tags": [
-        "難易度: 🍇",
-        "手ぶらでOK"
-      ]
+      "tags": []
     },
     {
       "id": "e7f9235f-e95a-414b-b4d2-8b71dd3d4190",
@@ -758,10 +629,7 @@
       "speaker": {
         "name": "yu fujioka"
       },
-      "tags": [
-        "難易度: 🍇🍇🍇",
-        "パソコン必須"
-      ]
+      "tags": []
     },
     {
       "id": "6bde4d2c-1802-4a13-950a-d27725217785",
@@ -778,10 +646,7 @@
         "name": "おさない",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/3b5f9901-8e35-4f33-86b0-840af01a377a.jpg"
       },
-      "tags": [
-        "難易度: 🍇",
-        "手ぶらでOK"
-      ]
+      "tags": []
     },
     {
       "id": "13c9708c-42c6-47b7-af6e-c62e42618d8b",
@@ -798,10 +663,7 @@
         "name": "DE-TEIU",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/0cc6355c-cdb9-410a-bc6b-6a75b86f2413.png"
       },
-      "tags": [
-        "難易度: 🍇🍇",
-        "手ぶらでOK"
-      ]
+      "tags": []
     },
     {
       "id": "3455dd2b-94fc-4267-b575-27b2282b0fa5",
@@ -818,10 +680,7 @@
         "name": "Gacha",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/026e6127-9f8b-48d1-90c5-111abaf08483.jpg"
       },
-      "tags": [
-        "難易度: 🍇",
-        "手ぶらでOK"
-      ]
+      "tags": []
     },
     {
       "id": "3252d9d5-9324-4f9f-841a-5472452bc29a",
@@ -829,7 +688,7 @@
       "title": "パネルディスカッション",
       "abstract": "",
       "day": "2026-11-21",
-      "start": "2026-11-21T17:15:00+09:00",
+      "start": "2026-11-21T17:10:00+09:00",
       "mins": 60,
       "group": "all",
       "place": "2F 大ホール",
@@ -841,7 +700,7 @@
       "title": "クロージング",
       "abstract": "",
       "day": "2026-11-21",
-      "start": "2026-11-21T18:20:00+09:00",
+      "start": "2026-11-21T18:10:00+09:00",
       "mins": 20,
       "group": "all",
       "place": "2F 大ホール",
@@ -853,10 +712,27 @@
       "title": "アンケート回答",
       "abstract": "",
       "day": "2026-11-21",
-      "start": "2026-11-21T18:40:00+09:00",
-      "mins": 20,
+      "start": "2026-11-21T18:30:00+09:00",
+      "mins": 10,
       "group": "all",
       "place": "2F 大ホール",
+      "tags": []
+    },
+    {
+      "id": "dc2b4964-9c62-4c99-b9c6-2e90c786a6ec",
+      "kind": "talk",
+      "title": "ようこそ富良野へ！きっとまた来たくなる富良野の過ごし方。",
+      "abstract": "富良野に生まれ、富良野に育ち、富良野の風景に魅了され写真を撮る。\nそんな私が富良野の魅力を、ただただ話し続ける20分。\n\n富良野市はワーケーションに来る方をサポートする制度や施設が多くあります。\nその紹介やオススメの観光スポット、飲食店、季節の移り変わりなど様々な富良野をお伝えします。\n\nこの20分であなたはきっと、また富良野に行きたくなる。",
+      "url": "https://fortee.jp/techramen-26-conf/proposal/dc2b4964-9c62-4c99-b9c6-2e90c786a6ec",
+      "day": "2026-11-21",
+      "start": "2026-11-21T18:40:00+09:00",
+      "mins": 20,
+      "group": "hall",
+      "place": "2F 大ホール",
+      "speaker": {
+        "name": "Hazime",
+        "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/33830385-5e24-4ef8-b21d-ed2ce4a17621.jpg"
+      },
       "tags": []
     },
     {
@@ -868,7 +744,7 @@
       "start": "2026-11-21T19:00:00+09:00",
       "mins": 90,
       "group": "all",
-      "place": "1F 中央広間",
+      "place": "会場ぜんぶ",
       "tags": []
     }
   ]
