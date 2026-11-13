@@ -40,7 +40,9 @@ const FLOOR_PAPER: Record<RoomKind, { color: number; kind: PaperKind }> = {
   wc: { color: 0xe4e0d8, kind: "stock" },
   staff: { color: 0xc9c2b4, kind: "kraft" },
 };
-/** 床の素材（仕切りのない区画の床・部屋の間・通路） */
+/** 建物の外の区画（屋外のタイルのような青みの灰色の紙） */
+const OUTDOOR_PAPER: { color: number; kind: PaperKind } = { color: 0xb4c2c6, kind: "stock" };
+/** 床の素材（仕切りのない区画の床・通路） */
 const FLOOR_FINISH: Record<"wood" | "carpet", { color: number; kind: PaperKind }> = {
   wood: { color: 0xdcb98a, kind: "kraft" },
   carpet: { color: 0xc4c2bb, kind: "washi" },
@@ -158,6 +160,17 @@ function centroid(poly: [number, number][]) {
   return [x / poly.length, y / poly.length] as const;
 }
 
+/** 点が多角形の内側にあるか（偶奇判定） */
+function inPoly(x: number, y: number, poly: [number, number][]) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i];
+    const [xj, yj] = poly[j];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
 export function createVenueMap(
   canvas: HTMLCanvasElement,
   labelLayer: HTMLElement,
@@ -165,7 +178,7 @@ export function createVenueMap(
   routes: Record<string, RouteLeg[]>,
   onSelect: (roomId: string | null) => void,
   hooks: {
-    /** カメラの向き（ラジアン、北が 0）が変わったとき。方角の印を回すのに使う */
+    /** カメラの向き（ラジアン、図面の上が 0）が変わったとき。方角の印を回すのに使う */
     onAzimuth?: (rad: number) => void;
     /** 1 本指で触った／ctrl なしでホイールを回したとき（操作方法の案内を出す） */
     onHint?: (kind: "touch" | "wheel") => void;
@@ -173,6 +186,8 @@ export function createVenueMap(
     onFloor?: (id: string) => void;
     /** 案内が終わったとき */
     onGuideEnd?: (roomId: string) => void;
+    /** マウスを乗せた部屋が変わったとき（説明札を出す。外れたら null） */
+    onHover?: (roomId: string | null) => void;
   } = {},
 ): VenueMapController {
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -259,22 +274,40 @@ export function createVenueMap(
     const maxX = x1 + 1.2;
     const minY = y0 - 1.2;
     const maxY = y1 + 1.2;
-    // 建物の外まわりの辺か（仕切りのない区画は、ここにだけ壁を立てる）
-    const near = (a: number, b: number) => Math.abs(a - b) < 0.05;
-    const isOuter = (ax: number, ay: number, bx: number, by: number) =>
-      (near(ax, x0) && near(bx, x0)) ||
-      (near(ax, x1) && near(bx, x1)) ||
-      (near(ay, y0) && near(by, y0)) ||
-      (near(ay, y1) && near(by, y1));
     const isGlass = (ax: number, ay: number, bx: number, by: number) =>
       (floor.glass ?? []).some((g) => onSegment(ax, ay, g) && onSegment(bx, by, g));
-    // 台紙の上面: 部屋の間の床（無ければクラフト紙）
-    const base = floor.baseFloor ? FLOOR_FINISH[floor.baseFloor] : { color: 0xe7d8bf, kind: "kraft" as PaperKind };
+    // 建物の中の区画（建物の外の区画は、壁の相手にしない）
+    const indoor = floor.rooms.filter((r) => !r.outdoor);
+    /**
+     * 辺 a→b のうち、ほかの区画に接していない所（a からの距離の範囲の一覧）。
+     * 描かない部屋に面した所なので、仕切りのない区画でもここには壁を立てる
+     */
+    const exposedParts = (self: Room, ax: number, ay: number, bx: number, by: number) => {
+      const len = Math.hypot(bx - ax, by - ay);
+      const n = Math.max(1, Math.round(len / 0.25));
+      const [ux, uy] = [(bx - ax) / len, (by - ay) / len];
+      const out: [number, number][] = [];
+      for (let k = 0; k < n; k++) {
+        const t = ((k + 0.5) / n) * len;
+        const [px, py] = [ax + ux * t, ay + uy * t];
+        // 辺の両側を調べ、自分の外側がどの区画にも入っていなければ「むき出し」
+        const sides = [1, -1].map((s) => [px - uy * 0.1 * s, py + ux * 0.1 * s] as const);
+        const outside = sides.find(([qx, qy]) => !inPoly(qx, qy, self.poly)) ?? sides[0];
+        const covered = indoor.some((r) => r !== self && inPoly(outside[0], outside[1], r.poly));
+        if (covered) continue;
+        const [t0, t1] = [(k / n) * len, ((k + 1) / n) * len];
+        const last = out[out.length - 1];
+        if (last && Math.abs(last[1] - t0) < 1e-6) last[1] = t1;
+        else out.push([t0, t1]);
+      }
+      return out;
+    };
+    // 台紙（クラフト紙）。建物の外枠は描かず、使う区画だけを台紙の上に置く
     const plate = new THREE.Mesh(
       new THREE.BoxGeometry(maxX - minX, PLATE_T, maxY - minY),
-      [coreMat, coreMat, paperMaterial(base.color, { kind: base.kind, seed: fi * 5 }), coreMat, coreMat, coreMat],
+      [coreMat, coreMat, paperMaterial(0xe7d8bf, { kind: "kraft", seed: fi * 5 }), coreMat, coreMat, coreMat],
     );
-    // 図面の y（北）を three の -z に
+    // 図面の y（上）を three の -z に
     plate.position.set((minX + maxX) / 2, -PLATE_T / 2, -(minY + maxY) / 2);
     group.add(plate);
 
@@ -363,7 +396,9 @@ export function createVenueMap(
       const track = room.use ? TRACK_COLOR.find(([k]) => room.use!.startsWith(k)) : undefined;
       const paper = track
         ? { color: track[1], kind: "washi" as PaperKind }
-        : room.floor
+        : room.outdoor
+          ? OUTDOOR_PAPER
+          : room.floor
           ? FLOOR_FINISH[room.floor]
           : FLOOR_PAPER[room.kind];
       const shape = new THREE.Shape(room.poly.map(([x, y]) => new THREE.Vector2(x, y)));
@@ -384,17 +419,23 @@ export function createVenueMap(
           : room.kind === "entrance" && !floor.doors
             ? WALL_H * 0.6
             : WALL_H;
-      // 廊下は複数の長方形をつないでいるので壁を立てない（つなぎ目をふさがないように）
       const isCorridor = room.id.startsWith("corridor");
-      for (let i = 0; i < (isCorridor ? 0 : room.poly.length); i++) {
+      // 建物の外の区画は床だけ
+      for (let i = 0; i < (room.outdoor ? 0 : room.poly.length); i++) {
         const [ax, ay] = room.poly[i];
         const [bx, by] = room.poly[(i + 1) % room.poly.length];
         // 出入口の外側の辺は開けておく（入れる感じに）。ドアを書いた階は、ドアの所だけ開ける
         if (room.kind === "entrance" && !room.open && !floor.doors && i === 0) continue;
-        // 仕切りのない区画は、建物の外まわりの辺だけ（ほかの部屋との境目は閉じた部屋の側が壁を立てる）
         const glass = isGlass(ax, ay, bx, by);
-        if (room.open && !glass && !isOuter(ax, ay, bx, by)) continue;
-        addWallWithDoors(ax, ay, bx, by, h, glass);
+        if (!room.open) {
+          addWallWithDoors(ax, ay, bx, by, h, glass);
+          continue;
+        }
+        // 仕切りのない区画は、ほかの区画と接していない所だけ（境目は閉じた部屋の側が壁を立てる）
+        const len = Math.hypot(bx - ax, by - ay);
+        const [ux, uy] = [(bx - ax) / len, (by - ay) / len];
+        for (const [t0, t1] of exposedParts(room, ax, ay, bx, by))
+          addWallWithDoors(ax + ux * t0, ay + uy * t0, ax + ux * t1, ay + uy * t1, h, glass);
       }
 
       // 使える範囲: 床の縁を範囲の色の帯で縁取る
@@ -426,6 +467,8 @@ export function createVenueMap(
       label.dataset.room = room.id;
       if (room.kind === "staff" || isCorridor) label.dataset.skip = "1";
       label.addEventListener("click", () => onSelect(room.id));
+      label.addEventListener("pointerenter", (e) => e.pointerType === "mouse" && setHover(room.id));
+      label.addEventListener("pointerleave", (e) => e.pointerType === "mouse" && setHover(null));
       labelLayer.append(label);
 
       return {
@@ -467,15 +510,6 @@ export function createVenueMap(
       counter.rotation.y = Math.atan2(by - ay, bx - ax);
       group.add(counter);
       walls.push(counter);
-    }
-
-    // フローリングの通路（床だけの帯。部屋の床の上に重ねる）
-    if (floor.walkway) {
-      const geo = new THREE.ShapeGeometry(new THREE.Shape(floor.walkway.map(([x, y]) => new THREE.Vector2(x, y))));
-      geo.rotateX(-Math.PI / 2);
-      const way = new THREE.Mesh(geo, paperMaterial(FLOOR_FINISH.wood.color, { kind: FLOOR_FINISH.wood.kind, seed: fi * 7 }));
-      way.position.y = 0.02;
-      group.add(way);
     }
 
     // 柱（丸柱は直径 1.1m ほど）
@@ -542,10 +576,10 @@ export function createVenueMap(
     // 縦長は斜め視点で横幅が広がって見えるので少し引く
     const r = fitDistance(f.radius) * (camera.aspect < 1 ? 0.84 : 0.47);
     camGoal.target.copy(f.center);
-    // 真上: 少しだけ南に寄せて、北（図面の上）が画面の上に来る向きに固定する
+    // 真上: 少しだけ手前に寄せて、図面の上が画面の上に来る向きに固定する
     if (view === "top") camGoal.pos.set(f.center.x, r * 1.6, f.center.z + r * 0.03);
     else {
-      // 斜めから見ると手前が大きく見えて模型が下に寄るので、注視点を少し手前（南）にずらして中央に
+      // 斜めから見ると手前が大きく見えて模型が下に寄るので、注視点を少し手前（図面の下）にずらして中央に
       camGoal.target.z += f.radius * (camera.aspect < 1 ? 0.28 : 0.12);
       camGoal.pos.set(camGoal.target.x - r * 0.35, r * 0.95, camGoal.target.z + r * 0.95);
     }
@@ -817,16 +851,42 @@ export function createVenueMap(
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
   let downAt = { x: 0, y: 0 };
+  /** 画面の位置にある部屋（関係者のみ・廊下は除く） */
+  function roomAt(clientX: number, clientY: number) {
+    if (!current) return null;
+    const rect = canvas.getBoundingClientRect();
+    ndc.set(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    const hit = ray.intersectObjects(current.rooms.map((r) => r.floorMesh))[0];
+    const room = current.rooms.find((r) => r.room.id === hit?.object.userData.roomId)?.room;
+    return room && room.kind !== "staff" && !room.id.startsWith("corridor") ? room.id : null;
+  }
   canvas.addEventListener("pointerdown", (e) => (downAt = { x: e.clientX, y: e.clientY }));
   canvas.addEventListener("pointerup", (e) => {
     if (!current || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 6) return; // ドラッグは除外
-    const rect = canvas.getBoundingClientRect();
-    ndc.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
-    ray.setFromCamera(ndc, camera);
-    const hit = ray.intersectObjects(current.rooms.map((r) => r.floorMesh))[0];
-    const id = hit?.object.userData.roomId as string | undefined;
-    const room = current.rooms.find((r) => r.room.id === id);
-    onSelect(room && room.room.kind !== "staff" ? room.room.id : null);
+    onSelect(roomAt(e.clientX, e.clientY));
+  });
+
+  // マウスを乗せた部屋（ドラッグ中は調べない。1 コマに 1 回だけ）
+  let hovered: string | null = null;
+  let hoverRaf = 0;
+  function setHover(id: string | null) {
+    if (id === hovered) return;
+    hovered = id;
+    hooks.onHover?.(id);
+  }
+  canvas.addEventListener("pointermove", (e) => {
+    if (e.pointerType !== "mouse" || e.buttons || hoverRaf) return;
+    const { clientX, clientY } = e;
+    hoverRaf = requestAnimationFrame(() => {
+      hoverRaf = 0;
+      setHover(roomAt(clientX, clientY));
+    });
+  });
+  canvas.addEventListener("pointerleave", () => {
+    cancelAnimationFrame(hoverRaf);
+    hoverRaf = 0;
+    setHover(null);
   });
 
   // --- ラベルを 3D の位置に合わせる ---
@@ -854,6 +914,8 @@ export function createVenueMap(
       // 札の大きさはフロア表示中は変わらないので初回だけ測る
       const lw = (el.dataset.w ??= String(el.offsetWidth || 80));
       const lh = (el.dataset.h ??= String(el.offsetHeight || 24));
+      // 端の部屋の札が画面の外に切れないよう、横は画面の中に寄せる
+      if (it.onScreen) it.x = Math.min(Math.max(it.x, +lw / 2 + 4), Math.max(+lw / 2 + 4, w - +lw / 2 - 4));
       const box = { x0: it.x - +lw / 2 - 3, y0: it.y - +lh - 3, x1: it.x + +lw / 2 + 3, y1: it.y + 3 };
       const hit = placed.some((p) => box.x0 < p.x1 && p.x0 < box.x1 && box.y0 < p.y1 && p.y0 < box.y1);
       const show = it.onScreen && !hit;
