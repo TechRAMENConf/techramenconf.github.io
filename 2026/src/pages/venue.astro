@@ -74,7 +74,9 @@ const ACCESS_HTML = JSON.stringify(Object.fromEntries(Object.entries(ACCESS).map
         </div>
 
         <p class="vm__hint" data-hint aria-live="polite" hidden></p>
-        <p class="vm__info" data-info aria-live="polite" hidden></p>
+        <!-- 説明札はマウスを乗せただけでも書き換わるので、読み上げは下の欄で、選んだときだけ -->
+        <p class="vm__info" data-info hidden></p>
+        <p class="visually-hidden" data-announce aria-live="polite"></p>
 
         <!-- スマホ: 部屋の札を地図の下端に横並び（選んだ結果が地図で同時に見える） -->
         {
@@ -662,6 +664,7 @@ const ACCESS_HTML = JSON.stringify(Object.fromEntries(Object.entries(ACCESS).map
   const canvas = root.querySelector<HTMLCanvasElement>(".vm__canvas")!;
   const labels = root.querySelector<HTMLElement>(".vm__labels")!;
   const info = root.querySelector<HTMLElement>("[data-info]")!;
+  const announcer = root.querySelector<HTMLElement>("[data-announce]")!;
   const hint = root.querySelector<HTMLElement>("[data-hint]")!;
   const compass = root.querySelector<HTMLElement>(".vm-compass")!;
   const floorBtns = [...document.querySelectorAll<HTMLButtonElement>("[data-floor]")];
@@ -714,6 +717,13 @@ const ACCESS_HTML = JSON.stringify(Object.fromEntries(Object.entries(ACCESS).map
       }
     }
   };
+  /** 選んだ部屋を読み上げる（説明札と同じ中身を文字だけで） */
+  const announce = (id: string | null) => {
+    const room = FLOORS.flatMap((f) => f.rooms).find((r) => r.id === id);
+    announcer.textContent = room
+      ? [room.use, room.name, room.detail, room.access && ACCESS[room.access].label].filter(Boolean).join("、")
+      : "";
+  };
   const markRooms = () =>
     roomBtns().forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.room === selected)));
 
@@ -721,6 +731,7 @@ const ACCESS_HTML = JSON.stringify(Object.fromEntries(Object.entries(ACCESS).map
     selected = fromMap ? id : selected === id ? null : id; // 一覧で同じ部屋をもう一度押すと解除
     markRooms();
     showInfo(selected);
+    announce(selected);
     map?.focus(selected);
     // 帯の中で、選んだ札が見える位置までスクロール
     if (selected) {
@@ -784,6 +795,7 @@ const ACCESS_HTML = JSON.stringify(Object.fromEntries(Object.entries(ACCESS).map
             selected = id;
             markRooms();
             showInfo(id);
+            announce(id);
           },
           // マウスを乗せた部屋の説明。外れたら選んだ部屋の説明に戻す
           onHover: (id) => {
