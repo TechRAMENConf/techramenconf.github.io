@@ -6,31 +6,18 @@ import { jp } from "../lib/jp";
 import { FEATURES } from "../data/features";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
-// 一覧に出す部屋（関係者のみ・廊下は除く）。主役の部屋を先に、階段・トイレ・出入口は後ろに
-const ORDER = { room: 0, hall: 0, entrance: 1, stairs: 2, wc: 2, staff: 9 } as const;
+// 一覧に出す部屋（廊下は除く）。主役の部屋を先に、階段・トイレ・出入口は後ろに
+const ORDER = { room: 0, hall: 0, entrance: 1, stairs: 2, wc: 2 } as const;
 const listed = (f: (typeof FLOORS)[number]) =>
   f.rooms
-    .filter((r) => r.kind !== "staff" && !r.id.startsWith("corridor"))
+    .filter((r) => !r.id.startsWith("corridor"))
     .sort((a, b) => (a.use ? -1 : 0) - (b.use ? -1 : 0) || ORDER[a.kind] - ORDER[b.kind]);
 
-// 使える範囲（地図の床の縁取り）とドア
-const ACCESS_LEGEND = Object.values(ACCESS);
-const DOOR_LEGEND = [
-  { label: "自動ドア", color: "#9ccbe0" },
-  { label: "手動ドア", color: "#b98a5a" },
-  { label: "鍵の掛かるドア", color: "#c8423a" },
-];
-/** 一覧の補足: 部屋の説明と使える範囲 */
-const sub = (r: (typeof FLOORS)[number]["rooms"][number]) =>
-  [r.detail, r.access && ACCESS[r.access].label].filter(Boolean).join("・");
-
-const LEGEND = [
-  { label: "部屋・ホール", color: "#f1e4c8" },
-  { label: "出入口", color: "#d9e2bf" },
-  { label: "階段・EV", color: "#d7e3ea" },
-  { label: "トイレ", color: "#e4e0d8" },
-  { label: "関係者のみ", color: "#c9c2b4" },
-];
+// 使える範囲（地図の床の縁取り）。地図で使っているものだけ
+const used = new Set(FLOORS.flatMap((f) => f.rooms.map((r) => r.access)));
+const ACCESS_LEGEND = (Object.keys(ACCESS) as (keyof typeof ACCESS)[]).filter((k) => used.has(k)).map((k) => ACCESS[k]);
+// 説明札の「使える範囲」は長いので、文節で折り返せるように <wbr> を入れておく（BudouX はビルド時だけ使う）
+const ACCESS_HTML = JSON.stringify(Object.fromEntries(Object.entries(ACCESS).map(([k, a]) => [k, jp(a.label)])));
 ---
 
 <BaseLayout
@@ -49,7 +36,7 @@ const LEGEND = [
 
     <div class="vm-wrap">
       <!-- 地図（操作ボタンは地図の中に重ねる） -->
-      <div class="vm">
+      <div class="vm" data-access-html={ACCESS_HTML}>
         <canvas class="vm__canvas"></canvas>
         <div class="vm__labels"></div>
 
@@ -87,7 +74,9 @@ const LEGEND = [
         </div>
 
         <p class="vm__hint" data-hint aria-live="polite" hidden></p>
-        <p class="vm__info" data-info aria-live="polite" hidden></p>
+        <!-- 説明札はマウスを乗せただけでも書き換わるので、読み上げは下の欄で、選んだときだけ -->
+        <p class="vm__info" data-info hidden></p>
+        <p class="visually-hidden" data-announce aria-live="polite"></p>
 
         <!-- スマホ: 部屋の札を地図の下端に横並び（選んだ結果が地図で同時に見える） -->
         {
@@ -122,15 +111,7 @@ const LEGEND = [
                       {r.use ? (
                         <>
                           <b>{r.use}</b>
-                          <small>
-                            {r.name}
-                            {sub(r) && `・${sub(r)}`}
-                          </small>
-                        </>
-                      ) : sub(r) ? (
-                        <>
-                          {r.name}
-                          <small>{sub(r)}</small>
+                          <small>{r.name}</small>
                         </>
                       ) : (
                         r.name
@@ -144,50 +125,22 @@ const LEGEND = [
         }
 
         <h2 class="vm-panel__h vm-panel__h--legend hand">見かた</h2>
-        <ul class="vm-legend">
-          {
-            LEGEND.map((l) => (
-              <li>
-                <span class="vm-legend__chip" style={`--chip:${l.color}`} />
-                {l.label}
-              </li>
-            ))
-          }
-          <li>
-            <span class="vm-legend__steps"><i></i><i></i><i></i></span>
-            入口から EV・階段への道順
-          </li>
-        </ul>
         <h3 class="vm-legend__h">使える範囲（床のふちの色）</h3>
-        <ul class="vm-legend">
+        <ul class="vm-legend vm-legend--rows">
           {
             ACCESS_LEGEND.map((a) => (
               <li>
                 <span class="vm-legend__chip vm-legend__chip--ring" style={`--chip:${a.color}`} />
-                {a.label}
-              </li>
-            ))
-          }
-        </ul>
-        <h3 class="vm-legend__h">ドア</h3>
-        <ul class="vm-legend">
-          {
-            DOOR_LEGEND.map((d) => (
-              <li>
-                <span class="vm-legend__chip vm-legend__chip--door" style={`--chip:${d.color}`} />
-                {d.label}
+                <span class="jp" set:html={jp(a.label)} />
               </li>
             ))
           }
         </ul>
         <p class="vm-panel__ops">
-          <span class="vm-ops--touch">2 本指で回す・拡大</span>
-          <span class="vm-ops--mouse">ドラッグで回す／ctrl＋スクロールで拡大</span>
+          <span class="vm-ops--touch">部屋をタップすると説明が出ます。2 本指で回す・拡大</span>
+          <span class="vm-ops--mouse">部屋にマウスを乗せると説明が出ます。ドラッグで回す／ctrl＋スクロールで拡大</span>
         </p>
-        <p
-          class="vm-panel__note jp"
-          set:html={jp("※ 図面をもとにした模式図です。どの部屋で何をするかは、決まり次第ここに載せます。")}
-        />
+        <p class="vm-panel__note jp" set:html={jp("※ 図面をもとにした模式図です。参加者が使う所だけ載せています。")} />
       </aside>
     </div>
 
@@ -324,7 +277,8 @@ const LEGEND = [
     border-radius: 50%;
     background: var(--paper-card);
     box-shadow: 0 3px 6px -3px rgba(46, 40, 38, 0.45);
-    transform: rotate(var(--az, 0rad));
+    /* 図面の右がだいたい北なので、地図の向き（--az）から 90° 回した向きを指す */
+    transform: rotate(calc(var(--az, 0rad) + 90deg));
   }
   .vm-compass svg {
     width: 30px;
@@ -405,11 +359,32 @@ const LEGEND = [
     font: 700 0.85rem var(--font-body);
     cursor: pointer;
   }
+  .vm__info {
+    width: max-content;
+    max-width: min(26rem, calc(100% - 2rem));
+  }
   .vm__info :global(small) {
     display: block;
     font-weight: 400;
     font-size: 0.8rem;
     color: var(--ink-soft);
+  }
+  /* 使える範囲: 床のふちと同じ色の印を添える */
+  .vm__info :global(.vm-info__access) {
+    display: block;
+    margin-top: 0.15rem;
+    font-weight: 400;
+    font-size: 0.8rem;
+    color: var(--ink);
+  }
+  .vm__info :global(.vm-info__access i) {
+    display: inline-block;
+    margin-right: 0.35rem;
+    vertical-align: -0.05em;
+    width: 0.7rem;
+    height: 0.7rem;
+    border: 2.5px solid var(--chip);
+    border-radius: 2px;
   }
 
   /* スマホの部屋の帯（下端・横スクロール） */
@@ -541,22 +516,16 @@ const LEGEND = [
     border: 3px solid var(--chip);
     background: #efe6d2;
   }
-  .vm-legend__chip--door {
-    height: 0.35rem;
-    border: 0;
+  /* 説明の長い範囲があるので 1 行に 1 つ */
+  .vm-legend--rows {
+    display: grid;
   }
-  .vm-legend__steps {
-    display: inline-flex;
-    gap: 3px;
+  .vm-legend--rows li {
+    align-items: flex-start;
   }
-  .vm-legend__steps i {
-    width: 5px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--wine);
-  }
-  .vm-legend__steps i:nth-child(even) {
-    translate: 0 3px;
+  .vm-legend--rows .vm-legend__chip {
+    flex: none;
+    margin-top: 0.2em;
   }
   .vm-panel__ops {
     margin: 0 0 0.6rem;
@@ -695,6 +664,7 @@ const LEGEND = [
   const canvas = root.querySelector<HTMLCanvasElement>(".vm__canvas")!;
   const labels = root.querySelector<HTMLElement>(".vm__labels")!;
   const info = root.querySelector<HTMLElement>("[data-info]")!;
+  const announcer = root.querySelector<HTMLElement>("[data-announce]")!;
   const hint = root.querySelector<HTMLElement>("[data-hint]")!;
   const compass = root.querySelector<HTMLElement>(".vm-compass")!;
   const floorBtns = [...document.querySelectorAll<HTMLButtonElement>("[data-floor]")];
@@ -717,14 +687,24 @@ const LEGEND = [
     hintTimer = window.setTimeout(() => (hint.hidden = true), 1600);
   };
 
+  const accessHtml: Record<string, string> = JSON.parse(root.dataset.accessHtml ?? "{}");
+  // マウスを乗せている部屋（PC）。選んだ部屋より優先して説明札を出す
+  let hovered: string | null = null;
+
+  /** 説明札: 用途（なければ名前）、名前と補足、使える範囲。歩いて案内のボタンは選んだ部屋だけ */
   const showInfo = (id: string | null) => {
     const room = FLOORS.flatMap((f) => f.rooms).find((r) => r.id === id);
-    // 用途が決まった部屋だけ説明札を出す（名前だけなら、選んだボタンと地図の札で足りる）
-    info.hidden = !room?.use;
-    if (room?.use) {
-      const extra = [room.detail, room.access && ACCESS[room.access].label].filter(Boolean).join("・");
-      info.innerHTML = `${room.use}<small>${room.name}${extra ? `・${extra}` : ""}</small>`;
-      if (ROUTES[room.id]) {
+    info.hidden = !room;
+    if (room) {
+      const sub = [room.use && room.name, room.detail].filter(Boolean).join("・");
+      const access = room.access ? ACCESS[room.access] : null;
+      info.innerHTML =
+        `${room.use ?? room.name}` +
+        (sub ? `<small>${sub}</small>` : "") +
+        (access
+          ? `<span class="vm-info__access jp"><i style="--chip:${access.color}"></i>${accessHtml[room.access!] ?? access.label}</span>`
+          : "");
+      if (room.id === selected && ROUTES[room.id]) {
         const b = document.createElement("button");
         b.type = "button";
         b.className = "vm-guide";
@@ -737,6 +717,13 @@ const LEGEND = [
       }
     }
   };
+  /** 選んだ部屋を読み上げる（説明札と同じ中身を文字だけで） */
+  const announce = (id: string | null) => {
+    const room = FLOORS.flatMap((f) => f.rooms).find((r) => r.id === id);
+    announcer.textContent = room
+      ? [room.use, room.name, room.detail, room.access && ACCESS[room.access].label].filter(Boolean).join("、")
+      : "";
+  };
   const markRooms = () =>
     roomBtns().forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.room === selected)));
 
@@ -744,6 +731,7 @@ const LEGEND = [
     selected = fromMap ? id : selected === id ? null : id; // 一覧で同じ部屋をもう一度押すと解除
     markRooms();
     showInfo(selected);
+    announce(selected);
     map?.focus(selected);
     // 帯の中で、選んだ札が見える位置までスクロール
     if (selected) {
@@ -807,6 +795,12 @@ const LEGEND = [
             selected = id;
             markRooms();
             showInfo(id);
+            announce(id);
+          },
+          // マウスを乗せた部屋の説明。外れたら選んだ部屋の説明に戻す
+          onHover: (id) => {
+            hovered = id;
+            showInfo(hovered ?? selected);
           },
           // 北の印は、地図の回転に合わせて回す
           onAzimuth: (rad) => compass.style.setProperty("--az", `${rad}rad`),
