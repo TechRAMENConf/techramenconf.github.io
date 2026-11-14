@@ -38,7 +38,6 @@ const FLOOR_PAPER: Record<RoomKind, { color: number; kind: PaperKind }> = {
   entrance: { color: 0xd9e2bf, kind: "washi" },
   stairs: { color: 0xd7e3ea, kind: "stock" },
   wc: { color: 0xe4e0d8, kind: "stock" },
-  staff: { color: 0xc9c2b4, kind: "kraft" },
 };
 /** 建物の外の区画（屋外のタイルのような青みの灰色の紙） */
 const OUTDOOR_PAPER: { color: number; kind: PaperKind } = { color: 0xb4c2c6, kind: "stock" };
@@ -258,7 +257,7 @@ export function createVenueMap(
   const doorAutoMat = paperMaterial(0x9ccbe0, { kind: "stock", seed: 18 });
   const doorManualMat = paperMaterial(0xb98a5a, { kind: "kraft", seed: 19 });
   const outlineMats = new Map<string, THREE.Material>();
-  const DOOR_MAT = { auto: doorAutoMat, manual: doorManualMat, locked: paperMaterial(0xc8423a, { kind: "stock", seed: 20 }) };
+  const DOOR_MAT = { auto: doorAutoMat, manual: doorManualMat };
 
   // --- フロアを組み立てる ---
   const built: BuiltFloor[] = floors.map((floor, fi) => {
@@ -326,7 +325,7 @@ export function createVenueMap(
     /** 壁 a→b の上にあるドアの位置（a からの距離） */
     const doorsOn = (ax: number, ay: number, bx: number, by: number) =>
       (floor.doors ?? [])
-        .filter((dr) => dr.kind !== "locked" && onSegment(dr.x, dr.y, [ax, ay, bx, by], 0.1))
+        .filter((dr) => onSegment(dr.x, dr.y, [ax, ay, bx, by], 0.1))
         .map((dr) => Math.hypot(dr.x - ax, dr.y - ay));
     /** 壁 a→b を、道順とドアの所だけ開けて立てる */
     const addWallWithDoors = (ax: number, ay: number, bx: number, by: number, h: number, glass: boolean) => {
@@ -410,15 +409,9 @@ export function createVenueMap(
       floorMesh.userData.roomId = room.id;
       group.add(floorMesh);
 
-      // 壁: 外形の各辺に厚紙の板を立てる（関係者のみは低い塊にする）
+      // 壁: 外形の各辺に厚紙の板を立てる
       // ドアを書いた階の出入口は、四方を壁で囲んだ部屋（風除室）として高い壁にする
-      const h = room.open
-        ? WALL_H
-        : room.kind === "staff"
-          ? 0.6
-          : room.kind === "entrance" && !floor.doors
-            ? WALL_H * 0.6
-            : WALL_H;
+      const h = !room.open && room.kind === "entrance" && !floor.doors ? WALL_H * 0.6 : WALL_H;
       const isCorridor = room.id.startsWith("corridor");
       // 建物の外の区画は床だけ
       for (let i = 0; i < (room.outdoor ? 0 : room.poly.length); i++) {
@@ -455,7 +448,7 @@ export function createVenueMap(
       const w = Math.max(...room.poly.map((p) => p[0])) - Math.min(...room.poly.map((p) => p[0]));
       const d = Math.max(...room.poly.map((p) => p[1])) - Math.min(...room.poly.map((p) => p[1]));
 
-      // ラベル（荷札）。関係者のみは出さない
+      // ラベル（荷札）。廊下は出さない
       const label = document.createElement("button");
       label.type = "button";
       label.className = `vm-tag vm-tag--${room.kind}`;
@@ -465,7 +458,7 @@ export function createVenueMap(
         : `<span>${room.name}</span>`;
       label.hidden = true;
       label.dataset.room = room.id;
-      if (room.kind === "staff" || isCorridor) label.dataset.skip = "1";
+      if (isCorridor) label.dataset.skip = "1";
       label.addEventListener("click", () => onSelect(room.id));
       label.addEventListener("pointerenter", (e) => e.pointerType === "mouse" && setHover(room.id));
       label.addEventListener("pointerleave", (e) => e.pointerType === "mouse" && setHover(null));
@@ -481,35 +474,19 @@ export function createVenueMap(
       };
     });
 
-    // 部屋の辺のほかに立てる壁
-    for (const [ax, ay, bx, by] of floor.partitions ?? []) addWallWithDoors(ax, ay, bx, by, WALL_H, false);
-
-    // ドアの印（床に置く細い紙。自動ドアは水色、手動ドアは木の色、鍵の掛かるドアは赤）
+    // ドアの印（床に置く細い紙。自動ドアは水色、手動ドアは木の色）
     for (const dr of floor.doors ?? []) {
       if (dr.kind === "opening") continue;
-      // ドアが乗っている壁の向き（部屋の辺か仕切りから探す）
-      const edges: [number, number, number, number][] = [
-        ...floor.rooms.flatMap((r) =>
-          r.poly.map((p, k) => [...p, ...r.poly[(k + 1) % r.poly.length]] as [number, number, number, number]),
-        ),
-        ...(floor.partitions ?? []),
-      ];
+      // ドアが乗っている壁の向き（部屋の辺から探す）
+      const edges = floor.rooms.flatMap((r) =>
+        r.poly.map((p, k) => [...p, ...r.poly[(k + 1) % r.poly.length]] as [number, number, number, number]),
+      );
       const e = edges.find((g) => onSegment(dr.x, dr.y, g, 0.1));
       const ang = e ? Math.atan2(e[3] - e[1], e[2] - e[0]) : 0;
       const mark = new THREE.Mesh(new THREE.BoxGeometry(DOOR * 0.9, 0.05, 0.42), DOOR_MAT[dr.kind]);
       mark.position.set(dr.x, 0.04, -dr.y);
       mark.rotation.y = ang;
       group.add(mark);
-    }
-
-    // カウンター（低い木の台）
-    for (const [ax, ay, bx, by] of floor.counters ?? []) {
-      const len = Math.hypot(bx - ax, by - ay);
-      const counter = new THREE.Mesh(new THREE.BoxGeometry(len, 0.55, 0.45), [columnMat, columnMat, doorManualMat, columnMat, columnMat, columnMat]);
-      counter.position.set((ax + bx) / 2, 0.275, -(ay + by) / 2);
-      counter.rotation.y = Math.atan2(by - ay, bx - ax);
-      group.add(counter);
-      walls.push(counter);
     }
 
     // 柱（丸柱は直径 1.1m ほど）
@@ -851,7 +828,7 @@ export function createVenueMap(
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
   let downAt = { x: 0, y: 0 };
-  /** 画面の位置にある部屋（関係者のみ・廊下は除く） */
+  /** 画面の位置にある部屋（廊下は除く） */
   function roomAt(clientX: number, clientY: number) {
     if (!current) return null;
     const rect = canvas.getBoundingClientRect();
@@ -859,7 +836,7 @@ export function createVenueMap(
     ray.setFromCamera(ndc, camera);
     const hit = ray.intersectObjects(current.rooms.map((r) => r.floorMesh))[0];
     const room = current.rooms.find((r) => r.room.id === hit?.object.userData.roomId)?.room;
-    return room && room.kind !== "staff" && !room.id.startsWith("corridor") ? room.id : null;
+    return room && !room.id.startsWith("corridor") ? room.id : null;
   }
   canvas.addEventListener("pointerdown", (e) => (downAt = { x: e.clientX, y: e.clientY }));
   canvas.addEventListener("pointerup", (e) => {
@@ -892,7 +869,7 @@ export function createVenueMap(
   // --- ラベルを 3D の位置に合わせる ---
   const _v = new THREE.Vector3();
   // 札の優先度（重なったら低いものから隠す）
-  const PRIORITY: Record<RoomKind, number> = { room: 3, hall: 3, entrance: 2, stairs: 1, wc: 1, staff: 0 };
+  const PRIORITY: Record<RoomKind, number> = { room: 3, hall: 3, entrance: 2, stairs: 1, wc: 1 };
   function placeLabels(w: number, h: number) {
     if (!current) return;
     const placed: { x0: number; y0: number; x1: number; y1: number }[] = [];

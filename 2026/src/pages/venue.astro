@@ -6,11 +6,11 @@ import { jp } from "../lib/jp";
 import { FEATURES } from "../data/features";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
-// 一覧に出す部屋（関係者のみ・廊下は除く）。主役の部屋を先に、階段・トイレ・出入口は後ろに
-const ORDER = { room: 0, hall: 0, entrance: 1, stairs: 2, wc: 2, staff: 9 } as const;
+// 一覧に出す部屋（廊下は除く）。主役の部屋を先に、階段・トイレ・出入口は後ろに
+const ORDER = { room: 0, hall: 0, entrance: 1, stairs: 2, wc: 2 } as const;
 const listed = (f: (typeof FLOORS)[number]) =>
   f.rooms
-    .filter((r) => r.kind !== "staff" && !r.id.startsWith("corridor"))
+    .filter((r) => !r.id.startsWith("corridor"))
     .sort((a, b) => (a.use ? -1 : 0) - (b.use ? -1 : 0) || ORDER[a.kind] - ORDER[b.kind]);
 
 // 使える範囲（地図の床の縁取り）。地図で使っているものだけ

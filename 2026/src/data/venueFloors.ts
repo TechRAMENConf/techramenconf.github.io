@@ -12,17 +12,15 @@
  * use: 当日の用途（トラック・ハンズオン・受付など）。決まったらここに書くと、ラベルと色が変わる。
  */
 /** 使える範囲 */
-export type Access = "ticket" | "event" | "shared" | "guests" | "staff" | "closed";
+export type Access = "ticket" | "event" | "shared" | "guests";
 export const ACCESS: Record<Access, { label: string; color: string }> = {
   ticket: { label: "チケットが要ります", color: "#7b2c3a" },
   event: { label: "一般の方も入れます", color: "#d9a520" },
   shared: { label: "一般のお客さんと共有（占有せず、ゆずりあって使ってください）", color: "#6f9a3a" },
   guests: { label: "宿泊の方専用（立ち入り禁止）", color: "#e07fc0" },
-  staff: { label: "スタッフのみ", color: "#3f78b0" },
-  closed: { label: "立ち入り禁止", color: "#c8423a" },
 };
 
-export type RoomKind = "room" | "hall" | "entrance" | "stairs" | "wc" | "staff";
+export type RoomKind = "room" | "hall" | "entrance" | "stairs" | "wc";
 
 export interface Room {
   id: string;
@@ -63,12 +61,8 @@ export interface Floor {
   glass?: [number, number, number, number][];
   /** 丸柱（無ければ角柱） */
   roundColumns?: boolean;
-  /** 部屋の辺のほかに立てる壁（x0, y0, x1, y1） */
-  partitions?: [number, number, number, number][];
-  /** ドア（壁に開ける。auto = 自動ドア、manual = 手動ドア、opening = 印のない出入口、locked = 鍵の掛かるドア。閉じたまま描く） */
-  doors?: { x: number; y: number; kind: "auto" | "manual" | "opening" | "locked" }[];
-  /** カウンター（低い木の台。x0, y0, x1, y1） */
-  counters?: [number, number, number, number][];
+  /** ドア（壁に開ける。auto = 自動ドア、manual = 手動ドア、opening = 印のない出入口、閉じたまま描く） */
+  doors?: { x: number; y: number; kind: "auto" | "manual" | "opening" }[];
 }
 
 const rect = (x0: number, y0: number, x1: number, y1: number): [number, number][] => [
@@ -125,7 +119,7 @@ export const FLOORS: Floor[] = [
       },
       { id: "ev2", name: "西の EV・階段", use: null, kind: "stairs", poly: rect(17.5, 18.0, 28.0, Y4), access: "shared" },
       // 西の EV の北から北の出入口の手前までと、中央広間の北（借りているが、一般のお客さんと共有）。
-      // 南東の角（図面の右下寄り）は BARISTART COFFEE の専用エリアなので切り欠く
+      // 北東の角（図面の右下寄り）は BARISTART COFFEE の専用エリアなので切り欠く
       {
         id: "east",
         name: "北ホール",
@@ -157,7 +151,7 @@ export const FLOORS: Floor[] = [
         open: true,
         floor: "wood",
       },
-      // 北の窓際。南の細い帯（もとは BARISTART COFFEE の場所）まで含める
+      // 北の窓際。東の細い帯（もとは BARISTART COFFEE の場所）まで含める
       {
         id: "entrance-hall",
         name: "北側広間",
