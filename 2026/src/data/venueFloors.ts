@@ -38,8 +38,6 @@ export interface Room {
    * 壁は、ほかの区画と接していない辺（描かない所に面した辺）にだけ立てる
    */
   open?: boolean;
-  /** 建物の外（壁を立てず、床だけ置く） */
-  outdoor?: boolean;
   /** 床の素材（用途が決まった部屋はトラックの色が優先） */
   floor?: "wood" | "carpet";
   /** 使える範囲（地図では床の縁取りの色、説明札では文字） */
@@ -239,17 +237,9 @@ export const FLOORS: Floor[] = [
         poly: rect(20.29, 15.47, 31.92, 19.9),
         access: "guests",
       },
-      { id: "ev2N", name: "西の EV・階段", use: null, kind: "stairs", poly: rect(18.11, 20.13, 28.53, 24.65), access: "shared" },
-      // 建物の外。運営の書き込み（2026-11-13）の位置から概略
-      {
-        id: "smoking",
-        name: "喫煙スペース",
-        use: null,
-        detail: "建物の外",
-        kind: "room",
-        poly: rect(16.4, Y4, 27.8, 26.65),
-        outdoor: true,
-      },
+      { id: "ev2N", name: "西の EV・階段", use: null, kind: "stairs", poly: rect(18.11, 20.13, 28.53, 22.3), access: "shared" },
+      // EV・階段の奥（図面の上の端）の帯。運営の書き込み（2026-11-13）の位置から概略
+      { id: "smoking", name: "喫煙スペース", use: null, kind: "room", poly: rect(18.11, 22.3, 27.8, Y4) },
       { id: "corridor-w", name: "廊下", use: null, kind: "hall", poly: rect(15.62, 10.95, 17.8, 20.13), open: true },
       // EV とラウンジの間の廊下。自販機は使ってよい
       {
@@ -265,6 +255,7 @@ export const FLOORS: Floor[] = [
     // 参加者は西の EV から廊下を通って、大ホールの後ろ（廊下側）の扉へ
     doors: [
       { x: 19.2, y: 20.13, kind: "opening" }, // 西の EV → 廊下（自販機）
+      { x: 23.0, y: 22.3, kind: "opening" }, // 西の EV → 喫煙スペース
       { x: 15.62, y: 13.3, kind: "manual" }, // 大ホールの後ろの扉
     ],
     columns: [],

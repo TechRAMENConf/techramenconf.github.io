@@ -612,6 +612,18 @@ const ACCESS_HTML = JSON.stringify(Object.fromEntries(Object.entries(ACCESS).map
       align-content: center;
     }
   }
+  /* 札が重なったときの短い札（「塩」「味噌」など。用途のない部屋は名前だけを小さく） */
+  :global(.vm-tag.is-short) {
+    padding: 0.15rem 0.5rem 0.2rem 1.1rem;
+    font-size: 0.75rem;
+  }
+  :global(.vm-tag.is-short .vm-tag__short) {
+    display: inline;
+  }
+  :global(.vm-tag.is-short .vm-tag__long),
+  :global(.vm-tag.is-short small) {
+    display: none;
+  }
   :global(.vm-tag[hidden]) {
     display: none;
   }

@@ -39,8 +39,6 @@ const FLOOR_PAPER: Record<RoomKind, { color: number; kind: PaperKind }> = {
   stairs: { color: 0xd7e3ea, kind: "stock" },
   wc: { color: 0xe4e0d8, kind: "stock" },
 };
-/** 建物の外の区画（屋外のタイルのような青みの灰色の紙） */
-const OUTDOOR_PAPER: { color: number; kind: PaperKind } = { color: 0xb4c2c6, kind: "stock" };
 /** 床の素材（仕切りのない区画の床・通路） */
 const FLOOR_FINISH: Record<"wood" | "carpet", { color: number; kind: PaperKind }> = {
   wood: { color: 0xdcb98a, kind: "kraft" },
@@ -61,6 +59,8 @@ interface BuiltRoom {
   floorMesh: THREE.Mesh;
   baseColor: THREE.Color;
   center: THREE.Vector3;
+  /** 床の角（札を出すか決めるのに、床が画面に入っているかを見る） */
+  corners: THREE.Vector3[];
   size: number;
   label: HTMLButtonElement;
 }
@@ -275,8 +275,6 @@ export function createVenueMap(
     const maxY = y1 + 1.2;
     const isGlass = (ax: number, ay: number, bx: number, by: number) =>
       (floor.glass ?? []).some((g) => onSegment(ax, ay, g) && onSegment(bx, by, g));
-    // 建物の中の区画（建物の外の区画は、壁の相手にしない）
-    const indoor = floor.rooms.filter((r) => !r.outdoor);
     /**
      * 辺 a→b のうち、ほかの区画に接していない所（a からの距離の範囲の一覧）。
      * 描かない部屋に面した所なので、仕切りのない区画でもここには壁を立てる
@@ -292,7 +290,7 @@ export function createVenueMap(
         // 辺の両側を調べ、自分の外側がどの区画にも入っていなければ「むき出し」
         const sides = [1, -1].map((s) => [px - uy * 0.1 * s, py + ux * 0.1 * s] as const);
         const outside = sides.find(([qx, qy]) => !inPoly(qx, qy, self.poly)) ?? sides[0];
-        const covered = indoor.some((r) => r !== self && inPoly(outside[0], outside[1], r.poly));
+        const covered = floor.rooms.some((r) => r !== self && inPoly(outside[0], outside[1], r.poly));
         if (covered) continue;
         const [t0, t1] = [(k / n) * len, ((k + 1) / n) * len];
         const last = out[out.length - 1];
@@ -395,9 +393,7 @@ export function createVenueMap(
       const track = room.use ? TRACK_COLOR.find(([k]) => room.use!.startsWith(k)) : undefined;
       const paper = track
         ? { color: track[1], kind: "washi" as PaperKind }
-        : room.outdoor
-          ? OUTDOOR_PAPER
-          : room.floor
+        : room.floor
           ? FLOOR_FINISH[room.floor]
           : FLOOR_PAPER[room.kind];
       const shape = new THREE.Shape(room.poly.map(([x, y]) => new THREE.Vector2(x, y)));
@@ -413,8 +409,7 @@ export function createVenueMap(
       // ドアを書いた階の出入口は、四方を壁で囲んだ部屋（風除室）として高い壁にする
       const h = !room.open && room.kind === "entrance" && !floor.doors ? WALL_H * 0.6 : WALL_H;
       const isCorridor = room.id.startsWith("corridor");
-      // 建物の外の区画は床だけ
-      for (let i = 0; i < (room.outdoor ? 0 : room.poly.length); i++) {
+      for (let i = 0; i < room.poly.length; i++) {
         const [ax, ay] = room.poly[i];
         const [bx, by] = room.poly[(i + 1) % room.poly.length];
         // 出入口の外側の辺は開けておく（入れる感じに）。ドアを書いた階は、ドアの所だけ開ける
@@ -469,6 +464,7 @@ export function createVenueMap(
         floorMesh,
         baseColor: new THREE.Color(paper.color),
         center: new THREE.Vector3(cx, 0, -cy),
+        corners: room.poly.map(([x, y]) => new THREE.Vector3(x, 0, -y)),
         size: Math.max(w, d),
         label,
       };
@@ -785,8 +781,7 @@ export function createVenueMap(
     focused = null;
     if (!walk) doll.visible = false;
     for (const r of next.rooms) {
-      delete r.label.dataset.w;
-      delete r.label.dataset.h;
+      for (const k of ["w", "h", "sw", "sh"]) delete r.label.dataset[k];
     }
     paintFocus();
     if (reduced) {
@@ -870,6 +865,22 @@ export function createVenueMap(
   const _v = new THREE.Vector3();
   // 札の優先度（重なったら低いものから隠す）
   const PRIORITY: Record<RoomKind, number> = { room: 3, hall: 3, entrance: 2, stairs: 1, wc: 1 };
+  /** 札の大きさ（ふつう／短い）。フロア表示中は変わらないので初回だけ測る */
+  function labelSize(el: HTMLElement, short: boolean) {
+    const [kw, kh] = short ? ["sw", "sh"] : ["w", "h"];
+    if (!el.dataset[kw]) {
+      const was = el.classList.contains("is-short");
+      el.classList.toggle("is-short", short);
+      el.dataset[kw] = String(el.offsetWidth || 80);
+      el.dataset[kh] = String(el.offsetHeight || 24);
+      el.classList.toggle("is-short", was);
+    }
+    return [Number(el.dataset[kw]), Number(el.dataset[kh])] as const;
+  }
+  /**
+   * 札を並べる。重なったら、まず短い札（「塩」「味噌」など）にする。
+   * 部屋・広間の札は消さない。重なって消すのは、階段・トイレ・出入口だけ
+   */
   function placeLabels(w: number, h: number) {
     if (!current) return;
     const placed: { x0: number; y0: number; x1: number; y1: number }[] = [];
@@ -879,26 +890,49 @@ export function createVenueMap(
         _v.copy(r.center).setY(WALL_H + 0.4).project(camera);
         const x = ((_v.x + 1) / 2) * w;
         const y = ((1 - _v.y) / 2) * h;
-        const onScreen = _v.z < 1 && Math.abs(_v.x) < 1.1 && Math.abs(_v.y) < 1.1;
-        // 選んだ部屋の札は必ず出す
+        // 床が少しでも画面に入っていれば出す（真ん中が画面の外でも、札は端に寄せる）
+        let [sx0, sy0, sx1, sy1] = [Infinity, Infinity, -Infinity, -Infinity];
+        for (const c of r.corners) {
+          _v.copy(c).project(camera);
+          if (_v.z >= 1) continue;
+          const px = ((_v.x + 1) / 2) * w;
+          const py = ((1 - _v.y) / 2) * h;
+          [sx0, sy0, sx1, sy1] = [Math.min(sx0, px), Math.min(sy0, py), Math.max(sx1, px), Math.max(sy1, py)];
+        }
+        const onScreen = sx1 > 0 && sx0 < w && sy1 > 0 && sy0 < h;
         // 選んだ部屋 > 用途が決まった部屋 > そのほか
         const pri = r === focused ? 9 : r.room.use ? 5 : PRIORITY[r.room.kind];
         return { r, x, y, onScreen, pri };
       })
       .sort((a, b) => b.pri - a.pri);
+    const boxAt = (x: number, y: number, lw: number, lh: number) => {
+      // 札は画面の中に寄せる（下端が札の位置）
+      const cx = Math.min(Math.max(x, lw / 2 + 4), Math.max(lw / 2 + 4, w - lw / 2 - 4));
+      const cy = Math.min(Math.max(y, lh + 4), Math.max(lh + 4, h - 4));
+      return { cx, cy, x0: cx - lw / 2 - 3, y0: cy - lh - 3, x1: cx + lw / 2 + 3, y1: cy + 3 };
+    };
+    const hits = (b: { x0: number; y0: number; x1: number; y1: number }) =>
+      placed.some((p) => b.x0 < p.x1 && p.x0 < b.x1 && b.y0 < p.y1 && p.y0 < b.y1);
     for (const it of items) {
       const el = it.r.label;
-      // 札の大きさはフロア表示中は変わらないので初回だけ測る
-      const lw = (el.dataset.w ??= String(el.offsetWidth || 80));
-      const lh = (el.dataset.h ??= String(el.offsetHeight || 24));
-      // 端の部屋の札が画面の外に切れないよう、横は画面の中に寄せる
-      if (it.onScreen) it.x = Math.min(Math.max(it.x, +lw / 2 + 4), Math.max(+lw / 2 + 4, w - +lw / 2 - 4));
-      const box = { x0: it.x - +lw / 2 - 3, y0: it.y - +lh - 3, x1: it.x + +lw / 2 + 3, y1: it.y + 3 };
-      const hit = placed.some((p) => box.x0 < p.x1 && p.x0 < box.x1 && box.y0 < p.y1 && p.y0 < box.y1);
-      const show = it.onScreen && !hit;
+      let short = false;
+      let box = boxAt(it.x, it.y, ...labelSize(el, false));
+      if (hits(box)) {
+        short = true;
+        const [sw, sh] = labelSize(el, true);
+        box = boxAt(it.x, it.y, sw, sh);
+        // 短くしても重なるときは、上下に少しずらして空いた所を探す（部屋・広間の札は消さないので）
+        for (const k of [1, -1, 2, -2]) {
+          if (!hits(box)) break;
+          const moved = boxAt(it.x, it.y + k * (sh + 4), sw, sh);
+          if (!hits(moved)) box = moved;
+        }
+      }
+      const show = it.onScreen && (it.pri >= PRIORITY.room || !hits(box));
       if (show) placed.push(box);
+      el.classList.toggle("is-short", short);
       el.style.visibility = show ? "visible" : "hidden";
-      el.style.transform = `translate(-50%, -100%) translate(${it.x}px, ${it.y}px)`;
+      el.style.transform = `translate(-50%, -100%) translate(${box.cx}px, ${box.cy}px)`;
     }
   }
 
