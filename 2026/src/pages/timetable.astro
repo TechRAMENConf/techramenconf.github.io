@@ -31,7 +31,7 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
       <p class="eyebrow">どこで聞く？</p>
       <h1 class="section-title">タイムテーブル</h1>
       <p class="tt__note">
-        気になる発表に「行く」の判子を押すと、この端末に覚えておきます。内容は変わることがあります。
+        気になる発表に「行く」の判子を押しておくと、表示の絞り込みができます。
         <span class="tt__updated" hidden></span>
       </p>
       <button type="button" class="tt-reset" hidden></button>
@@ -300,8 +300,10 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
   setBarH();
   new ResizeObserver(setBarH).observe(bar);
 
-  // 当日はその日を開いて、いまの位置へ。それ以外は最初の日
-  const first = panels.find((p) => p.dataset.day === today()) ?? panels[0];
+  // ?day= があればその日（トップの日ごとのカードから）。なければ当日、それ以外は最初の日。当日ならいまの位置へ
+  const wantDay = new URLSearchParams(location.search).get("day");
+  const first =
+    panels.find((p) => p.dataset.day === wantDay) ?? panels.find((p) => p.dataset.day === today()) ?? panels[0];
   if (first) {
     showDay(first.dataset.day!);
     if (first.dataset.day === today()) scrollToNow(false);
@@ -628,7 +630,7 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
     display: none;
   }
 
-  /* 同時に進む時間の囲み: 少し濃い紙を敷き、見出しで「どれか 1 つ」と言う */
+  /* 同時に進む時間の囲み: 少し濃い紙を敷き、見出しは時刻だけ */
   .tt-board :global(.tt-block) {
     margin: 0.4rem clamp(0.25rem, 1.5vw, 0.9rem) 0.6rem;
     padding: 0 0 0.3rem;
