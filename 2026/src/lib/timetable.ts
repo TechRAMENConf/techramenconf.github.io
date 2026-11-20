@@ -186,6 +186,13 @@ const endMs = (it: Item) => ms(it) + it.mins * 60e3;
 const parallel = (it: Item) => it.group === "hall" || it.group === "handson";
 
 /**
+ * 囲みの中の列の順番。大ホールを先頭に、あとは場所の名前の番号順（味噌1 → 味噌5）。
+ * 始まる時刻で決めると、大ホールの最初の発表が遅いときに大ホールが右端に回ってしまうので固定する
+ */
+const laneOrder = ([pa, la]: [string, Item[]], [pb, lb]: [string, Item[]]) =>
+  Number(lb[0].group === "hall") - Number(la[0].group === "hall") || pa.localeCompare(pb, "ja", { numeric: true });
+
+/**
  * 1 日分。時間が重なる発表は 1 つの囲みにまとめ、場所ごとの列に分ける
  * （列が並ぶので、同じ時間に行けるのはどれか 1 つだと見て分かる）。重ならないものは 1 行ずつ
  */
@@ -216,6 +223,7 @@ export function renderDay(items: Item[]): string {
     const to = endOf({ ...p.items[0], mins: Math.round((p.end - ms(p.items[0])) / 60e3) });
     return [
       `<section class="tt-block" aria-label="${from}〜${to}"><p class="tt-block__head"><b>${from}〜${to}</b></p><div class="tt-block__lanes">${[...lanes.entries()]
+        .sort(laneOrder)
         .map(
           ([place, list]) =>
             `<div class="tt-lane" data-group="${list[0].group}"><p class="tt-lane__place">${esc(
