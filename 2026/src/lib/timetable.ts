@@ -187,7 +187,7 @@ const parallel = (it: Item) => it.group === "hall" || it.group === "handson";
 
 /**
  * 1 日分。時間が重なる発表は 1 つの囲みにまとめ、場所ごとの列に分ける
- * （「行けるのはどれか 1 つ」と分かるように）。重ならないものは 1 行ずつ
+ * （列が並ぶので、同じ時間に行けるのはどれか 1 つだと見て分かる）。重ならないものは 1 行ずつ
  */
 export function renderDay(items: Item[]): string {
   type Block = { items: Item[]; end: number };
@@ -215,9 +215,7 @@ export function renderDay(items: Item[]): string {
     const from = hhmm(p.items[0].start);
     const to = endOf({ ...p.items[0], mins: Math.round((p.end - ms(p.items[0])) / 60e3) });
     return [
-      `<section class="tt-block" aria-label="${from}〜${to} は ${lanes.size} か所で同時に進みます"><p class="tt-block__head"><b>${from}〜${to}</b><span>${
-        lanes.size
-      } か所で同時に進みます・同じ時間に行けるのは 1 か所</span></p><div class="tt-block__lanes">${[...lanes.entries()]
+      `<section class="tt-block" aria-label="${from}〜${to}"><p class="tt-block__head"><b>${from}〜${to}</b></p><div class="tt-block__lanes">${[...lanes.entries()]
         .map(
           ([place, list]) =>
             `<div class="tt-lane" data-group="${list[0].group}"><p class="tt-lane__place">${esc(

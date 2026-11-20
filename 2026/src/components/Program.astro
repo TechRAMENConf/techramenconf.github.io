@@ -52,11 +52,11 @@ const live = items.map((it) => ({ s: it.start, m: it.mins, t: it.title, p: it.pl
         <div class="prog-live" data-live hidden>
           <p class="prog-live__row" data-live-now hidden>
             <span class="prog-live__tag">いま</span>
-            <span data-live-now-text />
+            <a class="prog-live__link" href={`${BASE}timetable/`} data-live-now-text />
           </p>
           <p class="prog-live__row" data-live-next hidden>
             <span class="prog-live__tag prog-live__tag--next">つぎ</span>
-            <span data-live-next-text />
+            <a class="prog-live__link" href={`${BASE}timetable/`} data-live-next-text />
           </p>
           <p class="prog-live__foot">
             <span data-live-at />
@@ -90,10 +90,18 @@ const live = items.map((it) => ({ s: it.start, m: it.mins, t: it.title, p: it.pl
                   ))}
                 </ul>
                 {d.extras.length > 0 && <p class="prog-day__extras">{d.extras.join("・")}</p>}
+                {/* カード全体を押せるようにする（文字は出さず、読み上げ用の名前だけ） */}
+                <a class="prog-day__link" href={`${BASE}timetable/?day=${d.day}`}>
+                  <span class="visually-hidden">
+                    {d.meta.date} {d.meta.name}のタイムテーブル
+                  </span>
+                </a>
               </article>
             ))
           }
         </div>
+
+        <a class="btn prog__more" href={`${BASE}timetable/`}>タイムテーブルを見る</a>
 
         {
           keynotes.map((k) => (
@@ -111,7 +119,6 @@ const live = items.map((it) => ({ s: it.start, m: it.mins, t: it.title, p: it.pl
           ))
         }
 
-        <a class="btn prog__more" href={`${BASE}timetable/`}>タイムテーブルを見る</a>
         <script is:inline type="application/json" data-live-items set:html={JSON.stringify(live).replace(/</g, "\\u003c")} />
       </div>
     </section>
@@ -220,6 +227,9 @@ const live = items.map((it) => ({ s: it.start, m: it.mins, t: it.title, p: it.pl
     border-radius: 4px;
     background: rgba(207, 155, 62, 0.16);
   }
+  .prog-live__row[hidden] {
+    display: none;
+  }
   .prog-live__row {
     display: flex;
     gap: 0.6rem;
@@ -239,6 +249,15 @@ const live = items.map((it) => ({ s: it.start, m: it.mins, t: it.title, p: it.pl
   }
   .prog-live__tag--next {
     background: var(--leaf);
+  }
+  .prog-live__link {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+  .prog-live__link:hover {
+    color: var(--wine);
   }
   .prog-live__foot {
     display: flex;
@@ -277,6 +296,7 @@ const live = items.map((it) => ({ s: it.start, m: it.mins, t: it.title, p: it.pl
     }
   }
   .prog-day {
+    position: relative;
     padding: 1rem 1.2rem 1.1rem;
     border-top: 8px solid var(--leaf);
     border-radius: 4px;
@@ -336,6 +356,25 @@ const live = items.map((it) => ({ s: it.start, m: it.mins, t: it.title, p: it.pl
     margin: 0.4rem 0 0;
     font-size: 0.9rem;
     color: var(--ink-soft);
+  }
+
+  /* カード全体を押せる範囲にする */
+  .prog-day__link {
+    position: absolute;
+    inset: 0;
+    border-radius: 4px;
+  }
+  .prog-day:has(.prog-day__link:hover) {
+    box-shadow:
+      inset 0 0 0 2px var(--wine),
+      0 10px 18px -14px rgba(46, 40, 38, 0.55);
+  }
+  .prog-day__link:focus-visible {
+    outline: none;
+  }
+  .prog-day:has(.prog-day__link:focus-visible) {
+    outline: 3px solid var(--wine);
+    outline-offset: 3px;
   }
 
   /* キーノート */
