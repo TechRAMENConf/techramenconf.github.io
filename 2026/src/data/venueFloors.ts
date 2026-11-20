@@ -8,16 +8,18 @@
  *    階段・EV・トイレは 2F の避難経路図（写真、2025/11）で確かめた
  * 図面からの読み取りなので寸法は概略。
  * 参加者が使う所と、その位置関係だけを載せる（立ち入り禁止の部屋・事務所は描かない。運営の書き込み 2026-11-13）。
+ * 壁がなく入れてしまう所だけ、access: "closed"（立ち入り禁止）で示す。
  *
  * use: 当日の用途（トラック・ハンズオン・受付など）。決まったらここに書くと、ラベルと色が変わる。
  */
 /** 使える範囲 */
-export type Access = "ticket" | "event" | "shared" | "guests";
+export type Access = "ticket" | "event" | "shared" | "guests" | "closed";
 export const ACCESS: Record<Access, { label: string; color: string }> = {
   ticket: { label: "チケットが要ります", color: "#7b2c3a" },
   event: { label: "一般の方も入れます", color: "#d9a520" },
-  shared: { label: "一般のお客さんと共有（占有せず、ゆずりあって使ってください）", color: "#6f9a3a" },
+  shared: { label: "一般のお客さんと共有", color: "#6f9a3a" },
   guests: { label: "宿泊の方専用（立ち入り禁止）", color: "#e07fc0" },
+  closed: { label: "立ち入り禁止", color: "#8c8579" },
 };
 
 export type RoomKind = "room" | "hall" | "entrance" | "stairs" | "wc";
@@ -240,7 +242,36 @@ export const FLOORS: Floor[] = [
       { id: "ev2N", name: "西の EV・階段", use: null, kind: "stairs", poly: rect(18.11, 20.13, 28.53, 22.3), access: "shared" },
       // EV・階段の奥（図面の上の端）の帯。運営の書き込み（2026-11-13）の位置から概略
       { id: "smoking", name: "喫煙スペース", use: null, kind: "room", poly: rect(18.11, 22.3, 27.8, Y4) },
-      { id: "corridor-w", name: "廊下", use: null, kind: "hall", poly: rect(15.62, 10.95, 17.8, 20.13), open: true },
+      // 大ホールの横の廊下。EV・階段の横を通って図面の上の端まで続く（運営の書き込み 2026-11-20）
+      {
+        id: "corridor-w",
+        name: "廊下",
+        use: null,
+        kind: "hall",
+        poly: [
+          [15.62, 8.82],
+          [17.8, 8.82],
+          [17.8, 20.13],
+          [18.11, 20.13],
+          [18.11, Y4],
+          [15.62, Y4],
+        ],
+        open: true,
+      },
+      // 廊下の下の端からトイレの前まで
+      { id: "corridor-s", name: "廊下", use: null, kind: "hall", poly: rect(7.7, 6.42, 17.8, 8.82), open: true },
+      // 横の位置は 1F のトイレ（x 7.7〜15.0）にそろえる。奥行きは 2F の避難経路図から（2F は図面の下の端が引っ込んでいる）
+      { id: "wc2", name: "トイレ", use: null, kind: "wc", poly: rect(7.7, 2.8, 15.0, 6.42), access: "shared" },
+      // 廊下の東。壁はないが入れない
+      {
+        id: "closed2",
+        name: "立ち入り禁止",
+        use: null,
+        kind: "hall",
+        poly: rect(17.8, 8.82, 31.92, 15.47),
+        open: true,
+        access: "closed",
+      },
       // EV とラウンジの間の廊下。自販機は使ってよい
       {
         id: "vending",
@@ -257,6 +288,7 @@ export const FLOORS: Floor[] = [
       { x: 19.2, y: 20.13, kind: "opening" }, // 西の EV → 廊下（自販機）
       { x: 23.0, y: 22.3, kind: "opening" }, // 西の EV → 喫煙スペース
       { x: 15.62, y: 13.3, kind: "manual" }, // 大ホールの後ろの扉
+      { x: 11.3, y: 6.42, kind: "opening" }, // 廊下 → トイレ
     ],
     columns: [],
     // 西の EV・階段からホールへ

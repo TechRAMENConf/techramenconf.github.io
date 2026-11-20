@@ -901,7 +901,9 @@ export function createVenueMap(
         }
         const onScreen = sx1 > 0 && sx0 < w && sy1 > 0 && sy0 < h;
         // 選んだ部屋 > 用途が決まった部屋 > そのほか
-        const pri = r === focused ? 9 : r.room.use ? 5 : PRIORITY[r.room.kind];
+        // 立ち入り禁止の区画は、重なったら隠してよい（階段・トイレと同じ扱い）
+        const pri =
+          r === focused ? 9 : r.room.use ? 5 : r.room.access === "closed" ? PRIORITY.wc : PRIORITY[r.room.kind];
         return { r, x, y, onScreen, pri };
       })
       .sort((a, b) => b.pri - a.pri);

@@ -10,7 +10,8 @@ const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
 const ORDER = { room: 0, hall: 0, entrance: 1, stairs: 2, wc: 2 } as const;
 const listed = (f: (typeof FLOORS)[number]) =>
   f.rooms
-    .filter((r) => !r.id.startsWith("corridor"))
+    // 廊下と立ち入り禁止の区画は一覧に出さない（地図の札と説明札は出る）
+    .filter((r) => !r.id.startsWith("corridor") && r.access !== "closed")
     .sort((a, b) => (a.use ? -1 : 0) - (b.use ? -1 : 0) || ORDER[a.kind] - ORDER[b.kind]);
 
 // 使える範囲（地図の床の縁取り）。地図で使っているものだけ
@@ -29,9 +30,6 @@ const ACCESS_HTML = JSON.stringify(Object.fromEntries(Object.entries(ACCESS).map
     <div class="wrap vp__head">
       <a class="back hand" href={`${BASE}#access`}>← TechRAMEN 2026 へ戻る</a>
       <h1 class="section-title vp__title">会場マップ</h1>
-      <p class="vp__venue jp">
-        <b>{venue.name}</b><span>{venue.address}・{venue.walk}</span>
-      </p>
     </div>
 
     <div class="vm-wrap">
@@ -140,7 +138,7 @@ const ACCESS_HTML = JSON.stringify(Object.fromEntries(Object.entries(ACCESS).map
           <span class="vm-ops--touch">部屋をタップすると説明が出ます。2 本指で回す・拡大</span>
           <span class="vm-ops--mouse">部屋にマウスを乗せると説明が出ます。ドラッグで回す／ctrl＋スクロールで拡大</span>
         </p>
-        <p class="vm-panel__note jp" set:html={jp("※ 図面をもとにした模式図です。参加者が使う所だけ載せています。")} />
+        <p class="vm-panel__note jp" set:html={jp("※ 図面をもとにした模式図です。")} />
       </aside>
     </div>
 
@@ -166,19 +164,8 @@ const ACCESS_HTML = JSON.stringify(Object.fromEntries(Object.entries(ACCESS).map
     margin-top: 1.6rem;
   }
   .vp__title {
-    margin: 0.2rem 0 0.3rem;
+    margin: 0.2rem 0 1rem;
     font-size: clamp(1.8rem, 6vw, 2.8rem);
-  }
-  .vp__venue {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0 0.8rem;
-    margin: 0 0 1rem;
-    font-size: 0.95rem;
-    color: var(--ink-soft);
-  }
-  .vp__venue b {
-    color: var(--grape);
   }
 
   /* ---------- 地図とパネル ---------- */
