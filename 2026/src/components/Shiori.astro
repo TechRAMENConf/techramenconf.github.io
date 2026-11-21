@@ -6,11 +6,13 @@
 import Icon from "./Icon.astro";
 
 import { FEATURES } from "../data/features";
+import tickets from "../data/tickets.json";
 
 // ページの並び順に書く（現在地は、並び順で最初に見えている欄にする）
 const items = [
   ...(FEATURES.timetable ? [{ id: "timetable", label: "タイムテーブル", short: "時間割", icon: "clock" } as const] : []),
-  { id: "tickets", label: "参加チケット", short: "チケット", icon: "ticket" } as const,
+  // 販売を終えたらチケット欄は出さない
+  ...(tickets.status !== "closed" ? [{ id: "tickets", label: "参加チケット", short: "チケット", icon: "ticket" } as const] : []),
   { id: "dates", label: "日程・会場", short: FEATURES.timetable ? "会場" : "日程", icon: "train" } as const,
   { id: "travel", label: "観光", short: "観光", icon: "map" } as const,
   { id: "news", label: "おしらせ", short: "おしらせ", icon: "note" } as const,
