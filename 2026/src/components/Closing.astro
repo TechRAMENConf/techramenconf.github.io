@@ -1,0 +1,54 @@
+---
+// 閉幕のあいさつ。ヒーローのすぐ下に 1 枚の紙で出す。
+// 見出しと署名だけ。本文を足すときは data/closing.json の lines に書く（show を false にすると出さない）。開催報告ができたら report に { "label", "url" } を入れる
+import closing from "../data/closing.json";
+import { jp } from "../lib/jp";
+
+const report = closing.report as { label: string; url: string } | null;
+---
+
+{
+  closing.show && (
+    <section id="closing" class="section closing">
+      <div class="wrap sheet reveal">
+        <p class="eyebrow">閉幕しました</p>
+        <h2 class="section-title">ありがとうございました</h2>
+        {closing.lines.length > 0 && (
+          <div class="closing__body">
+            {(closing.lines as string[]).map((l) => (
+              <p class="jp" set:html={jp(l)} />
+            ))}
+          </div>
+        )}
+        <p class="closing__from">{closing.from}</p>
+        {report && (
+          <a class="btn closing__report" href={report.url} target="_blank" rel="noopener">
+            {report.label}
+          </a>
+        )}
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .closing__body {
+    display: grid;
+    gap: 0.6rem;
+    margin-top: 1.2rem;
+    max-width: 40rem;
+    font-size: 1.05rem;
+    line-height: 1.9;
+  }
+  .closing__body p {
+    margin: 0;
+  }
+  .closing__from {
+    margin: 1.4rem 0 0;
+    font-weight: 700;
+    color: var(--grape);
+  }
+  .closing__report {
+    margin-top: 1.4rem;
+  }
+</style>

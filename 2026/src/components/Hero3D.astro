@@ -6,9 +6,11 @@ import cfp from "../data/cfp.json";
 import tickets from "../data/tickets.json";
 import { FEATURES } from "../data/features";
 
-// 「いま」いちばん伝えたいことを荷札で出す。CfP の募集中・準備中が先、締切後はチケット販売中
+// 「いま」いちばん伝えたいことを荷札で出す。閉幕後はお礼、CfP の募集中・準備中が先、締切後はチケット販売中
 const tag =
-  cfp.status === "open"
+  tickets.status === "closed"
+    ? { head: "閉幕しました", sub: "ご参加ありがとうございました", href: "#closing", hot: false }
+    : cfp.status === "open"
     ? { head: "登壇者募集中", sub: cfp.deadlines?.[0] ? `${cfp.deadlines[0].label} ${cfp.deadlines[0].date}` : "応募受付中", href: "#cfp", hot: true }
     : cfp.status === "soon"
       ? { head: "登壇者募集", sub: "まもなく開始", href: "#cfp", hot: false }
