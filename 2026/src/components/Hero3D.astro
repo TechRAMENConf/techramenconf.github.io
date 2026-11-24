@@ -5,6 +5,7 @@ import Logo from "./Logo.astro";
 import cfp from "../data/cfp.json";
 import tickets from "../data/tickets.json";
 import { FEATURES } from "../data/features";
+import { jp } from "../lib/jp";
 
 // 「いま」いちばん伝えたいことを荷札で出す。閉幕後はお礼、CfP の募集中・準備中が先、締切後はチケット販売中
 const tag =
@@ -30,7 +31,8 @@ const tag =
         >
           <span class="hero__tag-string" />
           <span class="hero__tag-head">{tag.head}</span>
-          <span class="hero__tag-sub hand">{tag.sub} →</span>
+          {/* 文節の切れ目でだけ折り返し、→ は直前の言葉にくっつける */}
+          <span class="hero__tag-sub hand jp" set:html={`${jp(tag.sub)}\u00a0→`} />
         </a>
       )
     }
