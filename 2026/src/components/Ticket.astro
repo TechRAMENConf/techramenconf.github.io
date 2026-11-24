@@ -1,5 +1,6 @@
 ---
 // 日程と会場を「きっぷ」1 枚にまとめる。半券（切り取り線の向こう）がカレンダー追加。
+// カレンダーの props を渡さないとき（閉幕後）は、半券のない 1 枚のきっぷにする
 // ※ 参加チケットではない（誤解されないよう注記を入れる）
 import venue from "../data/venue.json";
 import Icon from "./Icon.astro";
@@ -10,14 +11,15 @@ import tickets from "../data/tickets.json";
 const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
 
 interface Props {
-  ics: string;
-  gcalPre: string;
-  gcalMain: string;
+  ics?: string;
+  gcalPre?: string;
+  gcalMain?: string;
 }
 const { ics, gcalPre, gcalMain } = Astro.props;
+const stub = !!(ics && gcalPre && gcalMain);
 ---
 
-<div class:list={["ticket", FEATURES.archived && "ticket--solo"]}>
+<div class:list={["ticket", !stub && "ticket--solo"]}>
   <div class="ticket__body">
     <p class="ticket__head">
       <span class="ticket__kind">旅程</span>
@@ -74,8 +76,7 @@ const { ics, gcalPre, gcalMain } = Astro.props;
     <span>富良野</span><small>2026.11.20–21</small>
   </p>
 
-  {/* 半券（カレンダーへの追加）は会期まで。閉幕後は本体だけのきっぷにする */}
-  {!FEATURES.archived && <div class="ticket__stub">
+  {stub && <div class="ticket__stub">
     <p class="ticket__stub-h hand">カレンダーへ</p>
     <a class="btn ticket__btn" href={ics} download data-cal="ics"><Icon name="calendar" /> 2日分を追加（.ics）</a>
     <a class="btn btn--ghost ticket__btn" href={gcalPre} target="_blank" rel="noopener" data-cal="pre">
@@ -292,14 +293,12 @@ const { ics, gcalPre, gcalMain } = Astro.props;
     white-space: nowrap;
   }
 
-  /* 半券のないきっぷ（閉幕後）: 切り欠きを付けず、角を 4 つとも丸める */
+  /* 半券のないきっぷ（閉幕後）: 切り欠きを付けず、角を 4 つとも丸める。
+     狭い画面では文字の下に余白を取り、スタンプをそこに押す（文字に重ねない） */
   .ticket--solo .ticket__body {
     grid-column: 1;
     border-radius: 12px;
     mask: none;
-  }
-  /* 狭い画面では文字の下に余白を取り、スタンプをそこに押す（文字に重ねない） */
-  .ticket--solo .ticket__body {
     padding-bottom: 5.6rem;
   }
   .ticket--solo .ticket__stamp {

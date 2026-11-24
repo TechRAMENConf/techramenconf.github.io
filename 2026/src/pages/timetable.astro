@@ -29,7 +29,7 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
   <main class="tt" data-archived={FEATURES.archived ? "1" : undefined}>
     <div class="wrap">
       <a class="back hand" href={BASE}>← TechRAMEN 2026 へ戻る</a>
-      <p class="eyebrow">どこで聞く？</p>
+      <p class="eyebrow">{FEATURES.archived ? "どんなトークがあった？" : "どこで聞く？"}</p>
       <h1 class="section-title">タイムテーブル</h1>
       {
         !FEATURES.archived && (

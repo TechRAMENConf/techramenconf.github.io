@@ -74,8 +74,8 @@ const PUBLIC_TAGS = /^(難易度|手ぶらでOK|パソコン必須|要事前準�
 /** "醤油 - 2F大ホール" → 場所のまとまりと表示名 */
 const placeOf = (track: string): { group: Exclude<Group, "all">; place: string; room: string } => {
   const [name, where = ""] = track.split(/\s*-\s*/);
-  // 「1F中央広間」「1F EVELSA 奥」のどちらでも「1F 〜」にそろえる
-  const floor = where.replace(/^(\dF)\s*/, "$1 ");
+  // 「1F中央広間」「1F EVELSA 奥」のどちらでも「1F 〜」にそろえる。途中の空白（全角も）も 1 つにそろえる
+  const floor = where.replace(/\s+/g, " ").replace(/^(\dF) ?/, "$1 ");
   const room = floor.replace(/\s*[（(].*[）)]$/, "");
   if (name.startsWith("醤油")) return { group: "hall", place: floor, room };
   if (name.startsWith("味噌")) return { group: "handson", place: `${floor} ${name}`, room };
@@ -180,7 +180,7 @@ function row(it: Item, withPlace = true, withStamp = true): string {
         }${it.url ? `<a href="${esc(it.url)}" target="_blank" rel="noopener">fortee で見る →</a>` : ""}</details>`
       : "";
   // 「概要」の横に、fortee のフィードバック入力へのリンク
-  const feedback = it.feedback
+  const feedback = it.feedback && /^https:\/\/fortee\.jp\//.test(it.feedback)
     ? `<a class="tt-row__feedback" href="${esc(it.feedback)}" target="_blank" rel="noopener">フィードバックを送る →</a>`
     : "";
   const links = more || feedback ? `<div class="tt-row__links">${more}${feedback}</div>` : "";
@@ -204,7 +204,7 @@ const tableNo = (place: string) => Number(place.match(/味噌(\d+)/)?.[1] ?? Inf
 const laneOrder = ([pa, la]: [string, Item[]], [pb, lb]: [string, Item[]]) =>
   Number(lb[0].group === "hall") - Number(la[0].group === "hall") ||
   tableNo(pa) - tableNo(pb) ||
-  pa.localeCompare(pb, "ja");
+  pa.localeCompare(pb, "ja", { numeric: true });
 
 /**
  * 1 日分。時間が重なる発表は 1 つの囲みにまとめ、場所ごとの列に分ける

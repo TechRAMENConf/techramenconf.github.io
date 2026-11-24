@@ -23,7 +23,6 @@ import { jp, jpHtml } from "../lib/jp";
 
 // 末尾スラッシュを保証（BASE_URL は環境によりスラッシュ無しのことがある）
 const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
-const ics = `${BASE}techramen-2026.ics`;
 const venueMap = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
   `${venue.name} ${venue.address}`,
 )}`;
@@ -78,8 +77,14 @@ const eventLd = {
   }),
 };
 
-const gcalPre = gcal("TechRAMEN 2026 (pre event)", "20261120", "20261121");
-const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
+// カレンダーへの追加（きっぷの半券）は会期まで。アーカイブでは作らない
+const calendar = FEATURES.archived
+  ? {}
+  : {
+      ics: `${BASE}techramen-2026.ics`,
+      gcalPre: gcal("TechRAMEN 2026 (pre event)", "20261120", "20261121"),
+      gcalMain: gcal("TechRAMEN 2026 (main event)", "20261121", "20261122"),
+    };
 
 ---
 
@@ -119,7 +124,7 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
     <div class="wrap sheet reveal">
       <h2 class="section-title">日程と会場</h2>
 
-      <Ticket ics={ics} gcalPre={gcalPre} gcalMain={gcalMain} />
+      <Ticket {...calendar} />
 
       <!-- 会場と行き方（しおりの「会場」はここ） -->
       <div id="access" class="access" data-beat="access">
