@@ -9,4 +9,10 @@ export const FEATURES = {
   timetable: true,
   /** スタッフ一覧（fortee から取得。取れないときは data/staff.json） */
   staff: true,
+  /**
+   * 閉幕後のアーカイブ。true のあいだは
+   * - fortee を読みに行かない（ビルドもブラウザも、保存分の data/*.json だけを使う）
+   * - 会期中だけの仕組み（いま／つぎ・いまここ・「行く」の判子・カレンダーへの追加）を出さない
+   */
+  archived: true,
 };

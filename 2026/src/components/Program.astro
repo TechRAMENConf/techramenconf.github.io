@@ -6,6 +6,7 @@
 import { byDay, hhmm, type Item } from "../lib/timetable";
 import { loadTimetable } from "../lib/loadTimetable";
 import { jp } from "../lib/jp";
+import { FEATURES } from "../data/features";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
 const items = await loadTimetable();
@@ -45,10 +46,11 @@ const live = items.map((it) => ({ s: it.start, m: it.mins, t: it.title, p: it.pl
   items.length > 0 && (
     <section id="timetable" class="section" data-beat="dates">
       <div class="wrap sheet reveal">
-        <p class="eyebrow">どんなトークがある？</p>
+        <p class="eyebrow">{FEATURES.archived ? "どんなトークがあった？" : "どんなトークがある？"}</p>
         <h2 class="section-title">タイムテーブル</h2>
 
-        {/* 会期中だけ出す */}
+        {/* 会期中だけ出す（アーカイブ後は作らない） */}
+        {!FEATURES.archived && (
         <div class="prog-live" data-live hidden>
           <p class="prog-live__row" data-live-now hidden>
             <span class="prog-live__tag">いま</span>
@@ -63,6 +65,7 @@ const live = items.map((it) => ({ s: it.start, m: it.mins, t: it.title, p: it.pl
             <button type="button" class="prog-live__reload" data-live-reload>更新</button>
           </p>
         </div>
+        )}
 
         <div class="prog-days">
           {
@@ -119,7 +122,9 @@ const live = items.map((it) => ({ s: it.start, m: it.mins, t: it.title, p: it.pl
           ))
         }
 
-        <script is:inline type="application/json" data-live-items set:html={JSON.stringify(live).replace(/</g, "\\u003c")} />
+        {!FEATURES.archived && (
+          <script is:inline type="application/json" data-live-items set:html={JSON.stringify(live).replace(/</g, "\\u003c")} />
+        )}
       </div>
     </section>
   )

@@ -4,6 +4,7 @@
 // 保存しておいた src/data/staff.json を使う（更新は npm run staff:update → コミット）。
 // どちらも 0 人のときは、セクションごと出さない。
 import saved from "../data/staff.json";
+import { FEATURES } from "../data/features";
 
 const FORTEE_EVENT = "techramen-26-conf";
 
@@ -17,7 +18,8 @@ interface Staff {
 const named = (list: Staff[]) => list.filter((s) => s.name && s.name.trim() !== "");
 
 let staff: Staff[] = [];
-try {
+// アーカイブ後は保存分だけ
+if (!FEATURES.archived) try {
   const res = await fetch(`https://fortee.jp/${FORTEE_EVENT}/api/staff/v1`, {
     signal: AbortSignal.timeout(8000),
   });

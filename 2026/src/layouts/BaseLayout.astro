@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import "../styles/motion.css";
+import { FEATURES } from "../data/features";
 
 interface Props {
   title?: string;
@@ -13,7 +14,8 @@ interface Props {
 
 const {
   title = "TechRAMEN 2026 Conference",
-  description = "2026年11月20日(pre)・21日(main)、北海道・富良野のコンシェルジュ フラノで開催するTechRAMEN Conference。手作りであたたかく。",
+  // 閉幕後は「開催した」に
+  description = `2026年11月20日(pre)・21日(main)、北海道・富良野のコンシェルジュ フラノで${FEATURES.archived ? "開催した" : "開催する"}TechRAMEN Conference。手作りであたたかく。`,
   jsonLd,
   noindex = false,
 } = Astro.props;

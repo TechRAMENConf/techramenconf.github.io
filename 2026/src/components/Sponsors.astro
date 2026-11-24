@@ -15,6 +15,7 @@
 // そのため CSS は is:global にして #sponsors の下に閉じ込めている（Astro の scoped は後から入れた HTML に効かない）。
 // ロゴ・アバターは fortee の画像。WebGL には使えない（CORS が無い）ので、気球は DOM＋SVG で作る。
 import { PERSONAL_SPONSORS } from "../data/personalSponsors";
+import { FEATURES } from "../data/features";
 import savedPersonal from "../data/personal_sponsors.json";
 import corporateRaw from "../data/corporate_sponsors.json";
 import { buildSponsors, sigOf, validPersonal, type CorporateRow } from "../scripts/sponsors";
@@ -23,7 +24,8 @@ import anonSrc from "../assets/anonymous-emblem.svg?url";
 const personal = validPersonal(savedPersonal);
 const corporate = corporateRaw as CorporateRow[];
 const view = buildSponsors(personal, corporate, anonSrc);
-const live = PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
+// アーカイブ後は fortee を読み直さず、保存分だけで描く
+const live = !FEATURES.archived && PERSONAL_SPONSORS.live && !!PERSONAL_SPONSORS.apiUrl;
 ---
 
 {
