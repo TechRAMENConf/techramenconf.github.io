@@ -1,6 +1,7 @@
 ---
 // タイムテーブル。fortee の API をビルド時に取得（取れなければ data/timetable.json の保存分）。
 // ページを開いたときにもブラウザから API を取り直し、当日の差し替えをデプロイなしで反映する。
+// 閉幕後（FEATURES.archived）は保存分だけを出し、取り直し・「行く」の判子・いまここ は出さない。
 // 見た目はトップの「発車予定」と同じ、駅に貼られた紙の時刻表（左に「時」、右に「分」の行）。
 import BaseLayout from "../layouts/BaseLayout.astro";
 import tickets from "../data/tickets.json";
@@ -25,15 +26,19 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
   description="TechRAMEN 2026 Conference（11/20 pre・11/21 main）のタイムテーブル。"
   noindex={!FEATURES.timetable}
 >
-  <main class="tt">
+  <main class="tt" data-archived={FEATURES.archived ? "1" : undefined}>
     <div class="wrap">
       <a class="back hand" href={BASE}>← TechRAMEN 2026 へ戻る</a>
-      <p class="eyebrow">どこで聞く？</p>
+      <p class="eyebrow">{FEATURES.archived ? "どんなトークがあった？" : "どこで聞く？"}</p>
       <h1 class="section-title">タイムテーブル</h1>
-      <p class="tt__note">
-        気になる発表に「行く」の判子を押しておくと、表示の絞り込みができます。
-        <span class="tt__updated" hidden></span>
-      </p>
+      {
+        !FEATURES.archived && (
+          <p class="tt__note">
+            気になる発表に「行く」の判子を押しておくと、表示の絞り込みができます。
+            <span class="tt__updated" hidden />
+          </p>
+        )
+      }
       <button type="button" class="tt-reset" hidden></button>
     </div>
 
@@ -72,9 +77,13 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
               </button>
             ))
           }
-          <button type="button" class="tt-filter tt-filter--stamp" aria-pressed="false" data-filter="stamp">
-            行く
-          </button>
+          {
+            !FEATURES.archived && (
+              <button type="button" class="tt-filter tt-filter--stamp" aria-pressed="false" data-filter="stamp">
+                行く
+              </button>
+            )
+          }
         </div>
       </div>
     </div>
@@ -96,7 +105,7 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
                   {DAY_LABEL[day]?.label ?? day} {DAY_LABEL[day]?.sub} ・ コンシェルジュ フラノ
                 </span>
               </p>
-              <div class="tt-daylist__body" set:html={renderDay(list)} />
+              <div class="tt-daylist__body" set:html={renderDay(list, { stamp: !FEATURES.archived })} />
             </div>
           ))
         }
@@ -124,8 +133,11 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
 <script>
   import { FORTEE_TIMETABLE, byDay, normalize, renderDay } from "../lib/timetable";
 
+  // 閉幕後のアーカイブ: 判子・いまここ・fortee からの取り直しをしない
+  const archived = document.querySelector<HTMLElement>(".tt")?.dataset.archived === "1";
   const KEY = "tr26-timetable-stamps";
   const stamps = (() => {
+    if (archived) return new Set<string>();
     try {
       return new Set<string>(JSON.parse(localStorage.getItem(KEY) ?? "[]"));
     } catch {
@@ -193,7 +205,7 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
       }
     }
     empty.hidden = shown > 0;
-    nowBtn.hidden = !panels.some((p) => p.dataset.day === today());
+    nowBtn.hidden = archived || !panels.some((p) => p.dataset.day === today());
   }
 
   /** 判子をぜんぶ消す。間違って押しても消えないよう、3 秒以内にもう一度押したときだけ消す */
@@ -306,11 +318,12 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
     panels.find((p) => p.dataset.day === wantDay) ?? panels.find((p) => p.dataset.day === today()) ?? panels[0];
   if (first) {
     showDay(first.dataset.day!);
-    if (first.dataset.day === today()) scrollToNow(false);
+    if (!archived && first.dataset.day === today()) scrollToNow(false);
   }
 
   // fortee から取り直して、変わっていれば差し替える（取れなければビルド時のまま）
   (async () => {
+    if (archived) return;
     try {
       const res = await fetch(FORTEE_TIMETABLE, { signal: AbortSignal.timeout(8000) });
       if (!res.ok) return;
@@ -803,9 +816,22 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
     font-size: 0.85em;
     vertical-align: 0.05em;
   }
-  .tt-board :global(.tt-row__more) {
+  /* 「概要」とフィードバックを横に並べる。概要を開いたら、本文は下の行いっぱいに */
+  .tt-board :global(.tt-row__links) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 1.2rem;
     margin-top: 0.15rem;
     font-size: 0.88rem;
+  }
+  .tt-board :global(.tt-row__more[open]) {
+    flex-basis: 100%;
+  }
+  .tt-board :global(.tt-row__feedback) {
+    padding-block: 0.3rem;
+    color: var(--wine);
+    font-weight: 700;
   }
   .tt-board :global(.tt-row__more summary) {
     width: fit-content;
@@ -904,7 +930,7 @@ const FILTERS = [{ id: "", label: "すべて" }, ...Object.entries(GROUPS).map((
     .tt-board :global(.tt-list .tt-row__title),
     .tt-board :global(.tt-list .tt-row__meta),
     .tt-board :global(.tt-list .tt-row__clash),
-    .tt-board :global(.tt-list .tt-row__more) {
+    .tt-board :global(.tt-list .tt-row__links) {
       grid-column: 3;
     }
     .tt-board :global(.tt-list .tt-stamp) {

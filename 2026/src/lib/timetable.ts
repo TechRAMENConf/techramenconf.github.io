@@ -30,6 +30,8 @@ export interface Item {
   speaker?: { name: string; avatar?: string };
   tags: string[];
   keynote?: true;
+  /** fortee のフィードバック入力（受付中のときだけ。ログインが要る） */
+  feedback?: string;
 }
 
 interface RawItem {
@@ -43,6 +45,7 @@ interface RawItem {
   length_min: number;
   tags?: { name: string }[];
   speaker?: { name: string; avatar_url?: string };
+  feedback?: { open?: boolean; url?: string };
 }
 
 // 参加者に見せる枠だけを出す（準備・撤収・使用不可などの運営向けの枠は出さない）。
@@ -71,8 +74,9 @@ const PUBLIC_TAGS = /^(難易度|手ぶらでOK|パソコン必須|要事前準�
 /** "醤油 - 2F大ホール" → 場所のまとまりと表示名 */
 const placeOf = (track: string): { group: Exclude<Group, "all">; place: string; room: string } => {
   const [name, where = ""] = track.split(/\s*-\s*/);
-  const room = where.replace(/^(\dF)/, "$1 ").replace(/\s*[（(].*[）)]$/, "");
-  const floor = where.replace(/^(\dF)/, "$1 ");
+  // 「1F中央広間」「1F EVELSA 奥」のどちらでも「1F 〜」にそろえる。途中の空白（全角も）も 1 つにそろえる
+  const floor = where.replace(/\s+/g, " ").replace(/^(\dF) ?/, "$1 ");
+  const room = floor.replace(/\s*[（(].*[）)]$/, "");
   if (name.startsWith("醤油")) return { group: "hall", place: floor, room };
   if (name.startsWith("味噌")) return { group: "handson", place: `${floor} ${name}`, room };
   // 塩1・塩2: 1F カフェ EVELSA（手前側・奥側）。もくもく会など
@@ -123,6 +127,7 @@ export function normalize(raw: { timetable?: RawItem[] }): Item[] {
         ...(r.type === "talk" && KEYNOTE_SPEAKERS.has(r.speaker?.name.replace(/\s/g, "") ?? "")
           ? { keynote: true as const }
           : {}),
+        ...(r.type === "talk" && r.feedback?.open && r.feedback.url ? { feedback: r.feedback.url } : {}),
         sort: Math.min(...tracks.map((t) => t.sort)),
       };
     })
@@ -144,16 +149,16 @@ const endOf = (it: Item) => {
 };
 
 /** 1 行。左に時刻、まんなかに場所・題・登壇者、右に「行く」の判子 */
-function row(it: Item, withPlace = true): string {
+function row(it: Item, withPlace = true, withStamp = true): string {
   // 絞り込み・判子・いまここ の判定に使う
   const attrs = `data-group="${it.group}" data-id="${esc(it.id)}" data-start="${esc(it.start)}" data-mins="${it.mins}"`;
   const time = `<span class="tt-row__time">${hhmm(it.start)}</span>`;
   const place = withPlace ? `<p class="tt-row__place">${esc(it.place)}</p>` : "";
   const until = `〜${endOf(it)}（${it.mins}分）`;
   // 「行く」の判子（オープニング・ランチなどの枠にも付け、自分の予定に入れられるようにする）
-  const stamp = `<button type="button" class="tt-stamp" aria-pressed="false" aria-label="${esc(
-    it.title,
-  )} に行く"><span>行く</span></button>`;
+  const stamp = withStamp
+    ? `<button type="button" class="tt-stamp" aria-pressed="false" aria-label="${esc(it.title)} に行く"><span>行く</span></button>`
+    : "";
   if (it.kind === "slot") {
     return `<li class="tt-row tt-row--slot" ${attrs}>${time}<div class="tt-row__body">${place}<p class="tt-row__title">${esc(
       it.title,
@@ -174,10 +179,15 @@ function row(it: Item, withPlace = true): string {
           it.abstract ? `<p class="tt-row__abstract">${esc(it.abstract)}</p>` : ""
         }${it.url ? `<a href="${esc(it.url)}" target="_blank" rel="noopener">fortee で見る →</a>` : ""}</details>`
       : "";
+  // 「概要」の横に、fortee のフィードバック入力へのリンク
+  const feedback = it.feedback && /^https:\/\/fortee\.jp\//.test(it.feedback)
+    ? `<a class="tt-row__feedback" href="${esc(it.feedback)}" target="_blank" rel="noopener">フィードバックを送る →</a>`
+    : "";
+  const links = more || feedback ? `<div class="tt-row__links">${more}${feedback}</div>` : "";
   const badge = it.keynote ? `<p class="tt-row__badge">キーノート</p>` : "";
   return `<li class="tt-row" ${attrs}>${time}<div class="tt-row__body">${place}${badge}<p class="tt-row__title">${esc(
     it.title,
-  )}</p><p class="tt-row__meta">${speaker}<span>${notes}</span></p>${more}</div>${stamp}</li>`;
+  )}</p><p class="tt-row__meta">${speaker}<span>${notes}</span></p>${links}</div>${stamp}</li>`;
 }
 
 const ms = (it: Item) => Date.parse(it.start);
@@ -186,17 +196,22 @@ const endMs = (it: Item) => ms(it) + it.mins * 60e3;
 const parallel = (it: Item) => it.group === "hall" || it.group === "handson";
 
 /**
- * 囲みの中の列の順番。大ホールを先頭に、あとは場所の名前の番号順（味噌1 → 味噌5）。
- * 始まる時刻で決めると、大ホールの最初の発表が遅いときに大ホールが右端に回ってしまうので固定する
+ * 囲みの中の列の順番。大ホールを先頭に、あとは味噌の番号順（味噌1 → 味噌5）。
+ * 始まる時刻で決めると、大ホールの最初の発表が遅いときに大ホールが右端に回ってしまうので固定する。
+ * 部屋の名前では比べない（味噌5 だけ別の部屋「EVELSA 奥」になったことがある）
  */
+const tableNo = (place: string) => Number(place.match(/味噌(\d+)/)?.[1] ?? Infinity);
 const laneOrder = ([pa, la]: [string, Item[]], [pb, lb]: [string, Item[]]) =>
-  Number(lb[0].group === "hall") - Number(la[0].group === "hall") || pa.localeCompare(pb, "ja", { numeric: true });
+  Number(lb[0].group === "hall") - Number(la[0].group === "hall") ||
+  tableNo(pa) - tableNo(pb) ||
+  pa.localeCompare(pb, "ja", { numeric: true });
 
 /**
  * 1 日分。時間が重なる発表は 1 つの囲みにまとめ、場所ごとの列に分ける
  * （列が並ぶので、同じ時間に行けるのはどれか 1 つだと見て分かる）。重ならないものは 1 行ずつ
  */
-export function renderDay(items: Item[]): string {
+/** stamp: 「行く」の判子を付けるか（閉幕後のアーカイブでは付けない） */
+export function renderDay(items: Item[], { stamp = true }: { stamp?: boolean } = {}): string {
   type Block = { items: Item[]; end: number };
   const parts: (Item | Block)[] = [];
   let cur: Block | null = null;
@@ -214,11 +229,11 @@ export function renderDay(items: Item[]): string {
     }
   }
   const out = parts.flatMap((p) => {
-    if (!("end" in p)) return [`<ol class="tt-list">${row(p)}</ol>`];
+    if (!("end" in p)) return [`<ol class="tt-list">${row(p, true, stamp)}</ol>`];
     const lanes = new Map<string, Item[]>();
     for (const it of p.items) lanes.set(it.place, [...(lanes.get(it.place) ?? []), it]);
     // 1 か所だけなら囲まない
-    if (lanes.size === 1) return [`<ol class="tt-list">${p.items.map((it) => row(it)).join("")}</ol>`];
+    if (lanes.size === 1) return [`<ol class="tt-list">${p.items.map((it) => row(it, true, stamp)).join("")}</ol>`];
     const from = hhmm(p.items[0].start);
     const to = endOf({ ...p.items[0], mins: Math.round((p.end - ms(p.items[0])) / 60e3) });
     return [
@@ -228,7 +243,7 @@ export function renderDay(items: Item[]): string {
           ([place, list]) =>
             `<div class="tt-lane" data-group="${list[0].group}"><p class="tt-lane__place">${esc(
               place,
-            )}</p><ol class="tt-lane__rows">${list.map((it) => row(it, false)).join("")}</ol></div>`,
+            )}</p><ol class="tt-lane__rows">${list.map((it) => row(it, false, stamp)).join("")}</ol></div>`,
         )
         .join('<p class="tt-or hand" aria-hidden="true">または</p>')}</div></section>`,
     ];

@@ -37,21 +37,22 @@
       "tags": []
     },
     {
-      "id": "f0475c29-cd2b-4496-a6c7-95cb8f69d62d",
+      "id": "6c506e68-8618-463d-8a32-6ba1764959f1",
       "kind": "talk",
-      "title": "AIのある未来 ローカルLLM ディストピア",
-      "abstract": "今日はもう家に帰ってAIをしましょう。 インターネットはありません。 接続すると危ないですからね。\n\n# CONTENTS\n- **家に帰ってAIをする**とは？\n- 本当に家でAIができるのか？\n- 家でAIを育む\n- 目を覚ます インターネットをおもいだせ\n- 世界から家に\n\nこの短いトークでは、ご家庭にあるPCに仮想環境を展開し、インターネットに接続されていない環境下でも生成AIと対話して回答を得る仕組の構築方法を学びます。\n\nPCはx86、armを想定しており、Dockkerによる仮想環境でローカルLLM実行環境を立ち上げます。\n仮想環境ではOpenWebUIというプラットフォームを用いてローカルLLMと対話し、OpenAPI準拠の独自サービスを開発することで様々な追加機能を連携させることもできるようになります。\n最終的に家庭内AIを外から活用できるまでの過程を身につけましょう。",
-      "url": "https://fortee.jp/techramen-26-conf/proposal/f0475c29-cd2b-4496-a6c7-95cb8f69d62d",
+      "title": "札幌に引っ越しても、現場にいたい",
+      "abstract": "2025年5月に新しい職場に迎え入れられ、7月に東京から札幌へ引っ越した。AIによって開発のあり方が変わり、職場ではもうコードを書いていない。それでも、利用者の不便を受け止め、改善として返せる「現場にいる人」であり続けたい。\n\n組織と地理的に離れていても社内に居続けられるよう、常駐Meetを取り入れ、Slackでも積極的に発言してきた。一方で、飲み会や直接顔を合わせる時間など、物理的なつながりの大切さも感じている。それでも私は、札幌で暮らし、働いていきたい。\n\n本発表では、移住してみて簡単だったことと難しかったこと、距離を埋めるために試みた手段と、その限界を紹介する。私自身の選択を通じて、これから札幌などへ移住する開発者が、暮らしたい場所と組織とのつながりを両立するために取れる手段を持ち帰ってもらいたい。",
+      "url": "https://fortee.jp/techramen-26-conf/proposal/6c506e68-8618-463d-8a32-6ba1764959f1",
       "day": "2026-11-20",
       "start": "2026-11-20T18:20:00+09:00",
       "mins": 20,
       "group": "hall",
       "place": "2F 大ホール",
       "speaker": {
-        "name": "fkuMnk",
-        "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/59e1f003-991c-4bf1-a6ce-7524f5948234.jpg"
+        "name": "funwarioisii",
+        "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/12d76957-2f3f-4393-9b0b-c62800bd901f.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/6c506e68-8618-463d-8a32-6ba1764959f1"
     },
     {
       "id": "8af51b00-eb37-41b1-b393-c2e934b7c429",
@@ -68,7 +69,8 @@
         "name": "jnkykn",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/bc80b994-e3f9-40d6-bf95-e97e704998e4.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/8af51b00-eb37-41b1-b393-c2e934b7c429"
     },
     {
       "id": "09e34354-313c-4f7e-aaee-5f68851d0c27",
@@ -85,7 +87,8 @@
         "name": "西原 翔太",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/4a7781a0-3702-42fd-ab58-129017b8407d.png"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/09e34354-313c-4f7e-aaee-5f68851d0c27"
     },
     {
       "id": "711ce510-5d1f-4a81-944b-a7a7816a7e26",
@@ -102,7 +105,8 @@
         "name": "西原 翔太",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/4a7781a0-3702-42fd-ab58-129017b8407d.png"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/711ce510-5d1f-4a81-944b-a7a7816a7e26"
     },
     {
       "id": "15455271-265e-471e-9958-7acbfdafa83c",
@@ -119,24 +123,26 @@
         "name": "うさみけんた",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/1d718d30-7811-44b0-b7dd-c77c7f013067.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/15455271-265e-471e-9958-7acbfdafa83c"
     },
     {
-      "id": "6c506e68-8618-463d-8a32-6ba1764959f1",
+      "id": "f0475c29-cd2b-4496-a6c7-95cb8f69d62d",
       "kind": "talk",
-      "title": "札幌に引っ越しても、現場にいたい",
-      "abstract": "2025年5月に新しい職場に迎え入れられ、7月に東京から札幌へ引っ越した。AIによって開発のあり方が変わり、職場ではもうコードを書いていない。それでも、利用者の不便を受け止め、改善として返せる「現場にいる人」であり続けたい。\n\n組織と地理的に離れていても社内に居続けられるよう、常駐Meetを取り入れ、Slackでも積極的に発言してきた。一方で、飲み会や直接顔を合わせる時間など、物理的なつながりの大切さも感じている。それでも私は、札幌で暮らし、働いていきたい。\n\n本発表では、移住してみて簡単だったことと難しかったこと、距離を埋めるために試みた手段と、その限界を紹介する。私自身の選択を通じて、これから札幌などへ移住する開発者が、暮らしたい場所と組織とのつながりを両立するために取れる手段を持ち帰ってもらいたい。",
-      "url": "https://fortee.jp/techramen-26-conf/proposal/6c506e68-8618-463d-8a32-6ba1764959f1",
+      "title": "AIのある未来 ローカルLLM ディストピア",
+      "abstract": "今日はもう家に帰ってAIをしましょう。 インターネットはありません。 接続すると危ないですからね。\n\n# CONTENTS\n- **家に帰ってAIをする**とは？\n- 本当に家でAIができるのか？\n- 家でAIを育む\n- 目を覚ます インターネットをおもいだせ\n- 世界から家に\n\nこの短いトークでは、ご家庭にあるPCに仮想環境を展開し、インターネットに接続されていない環境下でも生成AIと対話して回答を得る仕組の構築方法を学びます。\n\nPCはx86、armを想定しており、Dockkerによる仮想環境でローカルLLM実行環境を立ち上げます。\n仮想環境ではOpenWebUIというプラットフォームを用いてローカルLLMと対話し、OpenAPI準拠の独自サービスを開発することで様々な追加機能を連携させることもできるようになります。\n最終的に家庭内AIを外から活用できるまでの過程を身につけましょう。",
+      "url": "https://fortee.jp/techramen-26-conf/proposal/f0475c29-cd2b-4496-a6c7-95cb8f69d62d",
       "day": "2026-11-20",
       "start": "2026-11-20T18:40:00+09:00",
       "mins": 20,
       "group": "hall",
       "place": "2F 大ホール",
       "speaker": {
-        "name": "funwarioisii",
-        "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/12d76957-2f3f-4393-9b0b-c62800bd901f.jpg"
+        "name": "fkuMnk",
+        "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/59e1f003-991c-4bf1-a6ce-7524f5948234.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/f0475c29-cd2b-4496-a6c7-95cb8f69d62d"
     },
     {
       "id": "67ffd6fb-1d47-4014-bfd1-0134b3cb658f",
@@ -153,7 +159,8 @@
         "name": "井出尭夫",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/25847929-499b-4184-8873-1ecd97150ec9.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/67ffd6fb-1d47-4014-bfd1-0134b3cb658f"
     },
     {
       "id": "c6d34530-2ff9-4e40-861e-576a03d4158a",
@@ -170,7 +177,8 @@
         "name": "yutannihilation",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/e5de4766-4a71-4a96-b61c-014b8bf4c164.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/c6d34530-2ff9-4e40-861e-576a03d4158a"
     },
     {
       "id": "0604e9c0-adc5-4e71-97fb-9049045b8cb7",
@@ -187,7 +195,8 @@
         "name": "たくみ",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/4c041b2b-f8b7-4ffb-b70f-4276e57450fb.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/0604e9c0-adc5-4e71-97fb-9049045b8cb7"
     },
     {
       "id": "d1d1374f-dd90-41f4-a911-b305a86b99ac",
@@ -204,7 +213,8 @@
         "name": "myou",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/ef9fc01d-76ed-404e-8257-814cb3f2e2b6.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/d1d1374f-dd90-41f4-a911-b305a86b99ac"
     },
     {
       "id": "c68d4f23-3395-46d7-9434-727b6fe2abb9",
@@ -221,7 +231,8 @@
         "name": "DE-TEIU",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/0cc6355c-cdb9-410a-bc6b-6a75b86f2413.png"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/c68d4f23-3395-46d7-9434-727b6fe2abb9"
     },
     {
       "id": "e1319682-cdfe-4712-a013-5af37017c334",
@@ -287,7 +298,8 @@
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/381578ff-aaa7-4149-a28f-ff425d901448.jpg"
       },
       "tags": [],
-      "keynote": true
+      "keynote": true,
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/6749264f-84f2-483f-b902-f446e0281155"
     },
     {
       "id": "319aa649-100a-498a-b3c2-ca000f5c4a01",
@@ -316,7 +328,8 @@
         "name": "jnkykn",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/bc80b994-e3f9-40d6-bf95-e97e704998e4.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/12fc13ea-a487-4e84-94f4-f220fed383b7"
     },
     {
       "id": "2f582a03-bb30-412d-9544-01076271eda8",
@@ -333,7 +346,25 @@
         "name": "西原 翔太",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/4a7781a0-3702-42fd-ab58-129017b8407d.png"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/2f582a03-bb30-412d-9544-01076271eda8"
+    },
+    {
+      "id": "d80dade2-9f0b-450f-b096-6eef9f7cfca2",
+      "kind": "talk",
+      "title": "本と真摯に向き合う会",
+      "abstract": "会場の1階にある EVELSA さんにご協力いただき、ブックカフェをやります。\n\n本は目立つところに展開されているので、EVELSA さんの美味しい飲み物と一緒に店内の技術書を楽しんでいただけたら嬉しいです。\n\nカンファレンスの合間の休憩時間などに、ぜひお気軽ご活用ください。",
+      "url": "https://fortee.jp/techramen-26-conf/proposal/d80dade2-9f0b-450f-b096-6eef9f7cfca2",
+      "day": "2026-11-21",
+      "start": "2026-11-21T11:15:00+09:00",
+      "mins": 295,
+      "group": "cafe",
+      "place": "1F カフェ EVELSA",
+      "speaker": {
+        "name": "yu fujioka"
+      },
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/d80dade2-9f0b-450f-b096-6eef9f7cfca2"
     },
     {
       "id": "b3ab979c-a4c4-45ff-bea9-7924aeb9cc32",
@@ -350,7 +381,8 @@
         "name": "坂本 純一",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/b3fd09d6-bee7-4bf0-8942-ec45cb23f472.png"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/b3ab979c-a4c4-45ff-bea9-7924aeb9cc32"
     },
     {
       "id": "a52e870d-3f4d-4926-84b5-833468a19c04",
@@ -362,12 +394,13 @@
       "start": "2026-11-21T12:15:00+09:00",
       "mins": 60,
       "group": "handson",
-      "place": "1F 中央広間 味噌5",
+      "place": "1F EVELSA 奥 味噌5",
       "speaker": {
         "name": "山川広人",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/74be05df-f673-4127-bbde-57c9b80eaa66.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/a52e870d-3f4d-4926-84b5-833468a19c04"
     },
     {
       "id": "f79d864c-5ad4-471a-bf0e-84cd5bf197a9",
@@ -384,7 +417,8 @@
         "name": "sogaoh",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/6d1ee8ca-ca02-457a-b380-b740b0baa21c.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/f79d864c-5ad4-471a-bf0e-84cd5bf197a9"
     },
     {
       "id": "b9450c21-f653-4d42-857c-39380cd00d15",
@@ -403,7 +437,8 @@
       },
       "tags": [
         "児童・生徒・学生"
-      ]
+      ],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/b9450c21-f653-4d42-857c-39380cd00d15"
     },
     {
       "id": "88a62b52-3dbd-4db6-95ab-3e7a5a94a539",
@@ -420,7 +455,8 @@
         "name": "mktakuya",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/33100f95-4a21-4272-854a-aa9e1479be4c.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/88a62b52-3dbd-4db6-95ab-3e7a5a94a539"
     },
     {
       "id": "efb2338a-0b27-438e-84c4-fd8691095ec8",
@@ -437,7 +473,8 @@
         "name": "うさみけんた",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/1d718d30-7811-44b0-b7dd-c77c7f013067.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/efb2338a-0b27-438e-84c4-fd8691095ec8"
     },
     {
       "id": "70a16f71-800c-4590-8d5d-7e75b295e95f",
@@ -454,7 +491,8 @@
         "name": "はくすけ",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/3b342b0f-f42e-4f5a-9ab8-28a9cc8f082b.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/70a16f71-800c-4590-8d5d-7e75b295e95f"
     },
     {
       "id": "82e8973a-7762-4e4c-88df-35129b997595",
@@ -471,7 +509,8 @@
         "name": "northprint",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/ee28f77f-f455-4484-b2fa-1f46018e2e86.png"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/82e8973a-7762-4e4c-88df-35129b997595"
     },
     {
       "id": "c532df3d-e560-4b8a-b56b-f3de7c7e5d06",
@@ -488,7 +527,8 @@
         "name": "Kazuki Nitta",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/dad362a6-710a-4ddc-9b44-a07ebbf198cf.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/c532df3d-e560-4b8a-b56b-f3de7c7e5d06"
     },
     {
       "id": "0bcecb23-58b7-4406-86c5-112d95de0b9a",
@@ -505,7 +545,8 @@
         "name": "黒井春人",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/2c0e975b-015f-43a5-8ce0-a29fcc829fc9.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/0bcecb23-58b7-4406-86c5-112d95de0b9a"
     },
     {
       "id": "20e4a418-6112-457f-bf88-e52ca0783eb8",
@@ -521,7 +562,8 @@
       "speaker": {
         "name": "げんき"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/20e4a418-6112-457f-bf88-e52ca0783eb8"
     },
     {
       "id": "c2d728c6-5bd8-4532-bc8a-3c54886e76ef",
@@ -533,12 +575,13 @@
       "start": "2026-11-21T14:45:00+09:00",
       "mins": 60,
       "group": "handson",
-      "place": "1F 中央広間 味噌5",
+      "place": "1F EVELSA 奥 味噌5",
       "speaker": {
         "name": "fkuMnk",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/59e1f003-991c-4bf1-a6ce-7524f5948234.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/c2d728c6-5bd8-4532-bc8a-3c54886e76ef"
     },
     {
       "id": "c9927986-a44c-4d80-ba72-638c9e5a0ccb",
@@ -555,7 +598,8 @@
         "name": "みゆ吉",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/8748466c-d95c-4b82-b44a-25da5ba2dd3c.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/c9927986-a44c-4d80-ba72-638c9e5a0ccb"
     },
     {
       "id": "00305ece-6c18-4eb9-82a5-53cf53459a2e",
@@ -572,7 +616,8 @@
         "name": "山川広人",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/74be05df-f673-4127-bbde-57c9b80eaa66.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/00305ece-6c18-4eb9-82a5-53cf53459a2e"
     },
     {
       "id": "515b16b6-627e-4687-9917-2ae69ef91395",
@@ -589,7 +634,8 @@
         "name": "yuskesh",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/383fc4e8-da80-44bb-8aa2-2a6c85db5d75.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/515b16b6-627e-4687-9917-2ae69ef91395"
     },
     {
       "id": "9dd74736-94f9-4273-b337-f5889a392ccb",
@@ -606,7 +652,8 @@
         "name": "okui",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/1342997a-87ef-4c07-853b-5654b065de4c.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/9dd74736-94f9-4273-b337-f5889a392ccb"
     },
     {
       "id": "2cb6c9b8-c59c-454e-bb67-0bf586e28310",
@@ -618,12 +665,13 @@
       "start": "2026-11-21T16:00:00+09:00",
       "mins": 60,
       "group": "handson",
-      "place": "1F 中央広間 味噌5",
+      "place": "1F EVELSA 奥 味噌5",
       "speaker": {
         "name": "西原 翔太",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/4a7781a0-3702-42fd-ab58-129017b8407d.png"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/2cb6c9b8-c59c-454e-bb67-0bf586e28310"
     },
     {
       "id": "cdf7401b-7c61-4a3c-b8fb-7e2e4949c7c6",
@@ -640,7 +688,8 @@
         "name": "Akiba",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/6095a678-19af-48b5-983e-89dba9b0e431.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/cdf7401b-7c61-4a3c-b8fb-7e2e4949c7c6"
     },
     {
       "id": "01a57934-098b-4f88-a668-8f84a3efbcf2",
@@ -657,7 +706,8 @@
         "name": "かぶ",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/924ee89a-c887-4dcc-ba6b-9686bcad563c.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/01a57934-098b-4f88-a668-8f84a3efbcf2"
     },
     {
       "id": "d9866610-b5e6-4cda-a80c-e2b30b054cc8",
@@ -674,7 +724,8 @@
         "name": "myou",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/ef9fc01d-76ed-404e-8257-814cb3f2e2b6.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/d9866610-b5e6-4cda-a80c-e2b30b054cc8"
     },
     {
       "id": "e7f9235f-e95a-414b-b4d2-8b71dd3d4190",
@@ -690,7 +741,8 @@
       "speaker": {
         "name": "yu fujioka"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/e7f9235f-e95a-414b-b4d2-8b71dd3d4190"
     },
     {
       "id": "6bde4d2c-1802-4a13-950a-d27725217785",
@@ -707,7 +759,8 @@
         "name": "おさない",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/3b5f9901-8e35-4f33-86b0-840af01a377a.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/6bde4d2c-1802-4a13-950a-d27725217785"
     },
     {
       "id": "13c9708c-42c6-47b7-af6e-c62e42618d8b",
@@ -724,7 +777,8 @@
         "name": "DE-TEIU",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/0cc6355c-cdb9-410a-bc6b-6a75b86f2413.png"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/13c9708c-42c6-47b7-af6e-c62e42618d8b"
     },
     {
       "id": "3455dd2b-94fc-4267-b575-27b2282b0fa5",
@@ -741,19 +795,26 @@
         "name": "Gacha",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/026e6127-9f8b-48d1-90c5-111abaf08483.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/3455dd2b-94fc-4267-b575-27b2282b0fa5"
     },
     {
-      "id": "3252d9d5-9324-4f9f-841a-5472452bc29a",
-      "kind": "slot",
-      "title": "パネルディスカッション",
-      "abstract": "",
+      "id": "c8d90607-c17e-478f-8443-74ae1f0a4192",
+      "kind": "talk",
+      "title": "ゆるいものづくり相談室～おもろいことにあふれた毎日をどう作るか？～",
+      "abstract": "おもろいことにあふれた毎日をどう作るか？\n会場のみなさんと考える時間にします．\n\nゲスト : 五十嵐 悠紀\n相談者1 : 須藤 敏彦\n相談者2 :  小池 共平\n司会 : 楢山 哲弘\n\n内容詳細\nhttps://note.com/northprint/n/n0f30d9dee4a4?magazine_key=mcf1b031e1753",
+      "url": "https://fortee.jp/techramen-26-conf/proposal/c8d90607-c17e-478f-8443-74ae1f0a4192",
       "day": "2026-11-21",
       "start": "2026-11-21T17:05:00+09:00",
       "mins": 60,
-      "group": "all",
+      "group": "hall",
       "place": "2F 大ホール",
-      "tags": []
+      "speaker": {
+        "name": "西原 翔太",
+        "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/4a7781a0-3702-42fd-ab58-129017b8407d.png"
+      },
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/c8d90607-c17e-478f-8443-74ae1f0a4192"
     },
     {
       "id": "8fd03cd8-b047-4519-a1b9-eb33bbb0745c",
@@ -794,7 +855,8 @@
         "name": "Hazime",
         "avatar": "https://fortee.jp/files/techramen-26-conf/speaker/33830385-5e24-4ef8-b21d-ed2ce4a17621.jpg"
       },
-      "tags": []
+      "tags": [],
+      "feedback": "https://fortee.jp/techramen-26-conf/me/feedback/dc2b4964-9c62-4c99-b9c6-2e90c786a6ec"
     },
     {
       "id": "2754609a-e3cc-45fb-938b-9630cea23ac4",

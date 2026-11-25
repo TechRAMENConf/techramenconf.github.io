@@ -10,6 +10,7 @@ import Cfp from "../components/Cfp.astro";
 import Program from "../components/Program.astro";
 import Tickets from "../components/Tickets.astro";
 import Closing from "../components/Closing.astro";
+import Videos from "../components/Videos.astro";
 import Guest from "../components/Guest.astro";
 import NoteFeed from "../components/NoteFeed.astro";
 import Sponsors from "../components/Sponsors.astro";
@@ -22,7 +23,6 @@ import { jp, jpHtml } from "../lib/jp";
 
 // 末尾スラッシュを保証（BASE_URL は環境によりスラッシュ無しのことがある）
 const BASE = import.meta.env.BASE_URL.replace(/\/?$/, "/");
-const ics = `${BASE}techramen-2026.ics`;
 const venueMap = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
   `${venue.name} ${venue.address}`,
 )}`;
@@ -41,7 +41,7 @@ const eventLd = {
   "@type": "Event",
   name: "TechRAMEN 2026 Conference",
   description:
-    "北海道・富良野で開催する手作りのテックカンファレンス。テーマは「ちゃんとはじめましてしましょう」。",
+    `北海道・富良野で${FEATURES.archived ? "開催した" : "開催する"}手作りのテックカンファレンス。テーマは「ちゃんとはじめましてしましょう」。`,
   startDate: "2026-11-20T17:30+09:00",
   endDate: "2026-11-21",
   eventStatus: "https://schema.org/EventScheduled",
@@ -77,8 +77,14 @@ const eventLd = {
   }),
 };
 
-const gcalPre = gcal("TechRAMEN 2026 (pre event)", "20261120", "20261121");
-const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
+// カレンダーへの追加（きっぷの半券）は会期まで。アーカイブでは作らない
+const calendar = FEATURES.archived
+  ? {}
+  : {
+      ics: `${BASE}techramen-2026.ics`,
+      gcalPre: gcal("TechRAMEN 2026 (pre event)", "20261120", "20261121"),
+      gcalMain: gcal("TechRAMEN 2026 (main event)", "20261121", "20261122"),
+    };
 
 ---
 
@@ -91,6 +97,9 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
 
   <!-- ============ 閉幕のあいさつ（data/closing.json の show が true のときだけ） ============ -->
   <Closing />
+
+  <!-- ============ 動画（data/videos.json が空なら出さない） ============ -->
+  <Videos />
 
   <!--
     並びは、来た人の流れ「どんなトークがある？ → いくら？ → 買う」に合わせる。
@@ -115,7 +124,7 @@ const gcalMain = gcal("TechRAMEN 2026 (main event)", "20261121", "20261122");
     <div class="wrap sheet reveal">
       <h2 class="section-title">日程と会場</h2>
 
-      <Ticket ics={ics} gcalPre={gcalPre} gcalMain={gcalMain} />
+      <Ticket {...calendar} />
 
       <!-- 会場と行き方（しおりの「会場」はここ） -->
       <div id="access" class="access" data-beat="access">

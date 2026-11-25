@@ -2,7 +2,7 @@
   "staff": [
     {
       "name": "Hazime",
-      "link_url": null,
+      "link_url": "https://twitter.com/kobutorigattu",
       "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/ef04bc9a-aa9e-4792-84a6-76e2a570ae0d.jpg",
       "type": "コアスタッフ"
     },
@@ -109,6 +109,11 @@
       "type": "サポートスタッフ"
     },
     {
+      "name": "takedah",
+      "link_url": "https://github.com/takedah",
+      "type": "サポートスタッフ"
+    },
+    {
       "name": "ไคโตะ",
       "link_url": "https://twitter.com/umiwatarin",
       "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/1ae72449-d2bf-48bb-9b27-24440f13d798.jpg",
@@ -118,6 +123,18 @@
       "name": "92thunder",
       "link_url": "https://twitter.com/92thunder",
       "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/97718974-2e19-4dd0-b3ed-b415c3d8eba7.png",
+      "type": "当日スタッフ"
+    },
+    {
+      "name": "ひなた",
+      "link_url": null,
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/96e586ac-1a42-4ce9-af7c-09a02a5fac94.jpg",
+      "type": "当日スタッフ"
+    },
+    {
+      "name": "naonao",
+      "link_url": null,
+      "avatar_url": "https://fortee.jp/files/techramen-26-conf/avatar/22ede751-565d-40f7-8efc-54fb63de17b5.jpg",
       "type": "当日スタッフ"
     }
   ]
