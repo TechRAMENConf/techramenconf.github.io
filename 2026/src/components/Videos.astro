@@ -1,6 +1,7 @@
 ---
 // 閉幕後の動画（エンディング・幕間など）。あいさつのすぐ下に並べる。
 // 中身は data/videos.json の videos に { "title": "Ending", "youtube": "<YouTube の id>" } を書く。空なら欄ごと出さない。
+// 大きく出すので、サムネイルは高解像度（maxresdefault）も使う。YouTube 側に無い動画を足すときは表示を確かめる
 // 押すまで YouTube を読み込まない（サムネイルだけ出し、押したら youtube-nocookie の iframe に差し替える）。
 import videos from "../data/videos.json";
 
@@ -20,6 +21,8 @@ const list = videos.videos as { title: string; youtube: string }[];
                 <button type="button" class="videos__play" data-youtube={v.youtube} data-title={v.title}>
                   <img
                     src={`https://i.ytimg.com/vi/${v.youtube}/hqdefault.jpg`}
+                    srcset={`https://i.ytimg.com/vi/${v.youtube}/hqdefault.jpg 480w, https://i.ytimg.com/vi/${v.youtube}/maxresdefault.jpg 1280w`}
+                    sizes="(min-width: 760px) 920px, 100vw"
                     alt=""
                     width="480"
                     height="360"
@@ -61,11 +64,7 @@ const list = videos.videos as { title: string; youtube: string }[];
     padding: 0;
     list-style: none;
   }
-  @media (min-width: 760px) {
-    .videos__list {
-      grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
-    }
-  }
+  /* 大きく見せたいので、幅が広くても 1 本ずつ縦に並べる */
   .videos__title {
     margin: 0 0 0.4rem;
     font-size: 1.3rem;
