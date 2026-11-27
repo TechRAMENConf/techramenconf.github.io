@@ -1,10 +1,15 @@
 ---
 // 閉幕後の動画（エンディング・幕間など）。あいさつのすぐ下に並べる。
-// 中身は data/videos.json の videos に { "title": "Ending", "youtube": "<YouTube の id>" } を書く。空なら欄ごと出さない。
+// 中身は data/videos.json の videos に { "title": "Ending", "youtube": "<YouTube の id>", "maxres": true } を書く。空なら欄ごと出さない。
+// maxres: YouTube に高解像度のサムネイル（maxresdefault.jpg）があるときだけ true。
+//   無い動画では 404 と一緒に灰色の小さな画像が返り、onerror も起きないので、確かめてから付ける
 // 押すまで YouTube を読み込まない（サムネイルだけ出し、押したら youtube-nocookie の iframe に差し替える）。
 import videos from "../data/videos.json";
 
-const list = videos.videos as { title: string; youtube: string }[];
+const list = videos.videos as { title: string; youtube: string; maxres?: boolean }[];
+const thumb = (id: string, name: string) => `https://i.ytimg.com/vi/${id}/${name}.jpg`;
+// 表示される幅: .wrap（min(100% - 2.4rem, 64rem)）から .sheet の左右の余白（clamp(1.9rem, 5.5vw, 3.2rem)）を引いた分
+const sizes = "(min-width: 1080px) 920px, (min-width: 560px) calc(89vw - 2.4rem), calc(100vw - 6.2rem)";
 ---
 
 {
@@ -19,10 +24,12 @@ const list = videos.videos as { title: string; youtube: string }[];
               <div class="videos__frame">
                 <button type="button" class="videos__play" data-youtube={v.youtube} data-title={v.title}>
                   <img
-                    src={`https://i.ytimg.com/vi/${v.youtube}/hqdefault.jpg`}
+                    src={thumb(v.youtube, "hqdefault")}
+                    srcset={v.maxres ? `${thumb(v.youtube, "hqdefault")} 480w, ${thumb(v.youtube, "maxresdefault")} 1280w` : undefined}
+                    sizes={v.maxres ? sizes : undefined}
                     alt=""
-                    width="480"
-                    height="360"
+                    width="1280"
+                    height="720"
                     loading="lazy"
                     decoding="async"
                   />
@@ -61,11 +68,7 @@ const list = videos.videos as { title: string; youtube: string }[];
     padding: 0;
     list-style: none;
   }
-  @media (min-width: 760px) {
-    .videos__list {
-      grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
-    }
-  }
+  /* 大きく見せたいので、幅が広くても 1 本ずつ縦に並べる */
   .videos__title {
     margin: 0 0 0.4rem;
     font-size: 1.3rem;
