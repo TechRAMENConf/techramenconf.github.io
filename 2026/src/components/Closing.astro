@@ -12,7 +12,7 @@ const report = closing.report as { label: string; url: string } | null;
     <section id="closing" class="section closing">
       <div class="wrap sheet reveal">
         <p class="eyebrow">閉幕しました</p>
-        <h2 class="section-title jp" set:html={jp("ありがとうございました")} />
+        <h2 class="section-title jp">ありがとう<wbr />ございました</h2>
         {closing.lines.length > 0 && (
           <div class="closing__body">
             {(closing.lines as string[]).map((l) => (

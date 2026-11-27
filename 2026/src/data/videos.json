@@ -1,6 +1,6 @@
 {
   "videos": [
-    { "title": "Ending", "youtube": "nHuFRsFE5Fg" },
-    { "title": "Intermission", "youtube": "eJcNTAJ2nts" }
+    { "title": "Ending", "youtube": "nHuFRsFE5Fg", "maxres": true },
+    { "title": "Intermission", "youtube": "eJcNTAJ2nts", "maxres": true }
   ]
 }
